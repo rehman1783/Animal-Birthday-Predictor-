@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -18,116 +17,24 @@ class OnboardingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Full Hero Section with Background Photo
-            Stack(
-              children: [
-                // Background Photo of Mare & Foal (520px height)
-                Container(
-                  width: double.infinity,
-                  height: 500.0,
-                  decoration: const BoxDecoration(
-                    color: AppColors.surface,
-                  ),
-                  child: Image.asset(
-                    'assets/images/onboarding_hero.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: AppColors.surface,
-                      child: const Center(
-                        child: Icon(
-                          Icons.pets,
-                          color: AppColors.primaryGold,
-                          size: 64,
-                        ),
-                      ),
-                    ),
-                  ),
+            // 1. Hero Image Graphic (Contains Photo + Badge + Title + Subtitle from Figma export)
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: AppColors.background,
+              ),
+              child: Image.asset(
+                'assets/images/onboarding_hero.png',
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 380,
+                  color: AppColors.surface,
                 ),
-                // Smooth Bottom Transition Gradient into Dark Navy #0A192F
-                Container(
-                  width: double.infinity,
-                  height: 500.0,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.black.withValues(alpha: 0.15),
-                        Colors.transparent,
-                        AppColors.background.withValues(alpha: 0.8),
-                        AppColors.background,
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.4, 0.85, 1.0],
-                    ),
-                  ),
-                ),
-                // Header Content Positioned over Hero Photo
-                Positioned.fill(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.horizontalPadding,
-                      vertical: 36.0,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Pill Badge: PREMIUM BREEDER TOOLS
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 6.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface.withValues(alpha: 0.75),
-                            borderRadius: BorderRadius.circular(20.0),
-                            border: Border.all(
-                              color: AppColors.primaryGold.withValues(alpha: 0.8),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: Text(
-                            'PREMIUM BREEDER TOOLS',
-                            style: AppTypography.sectionLabel.copyWith(
-                              fontSize: 10.0,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16.0),
-                        // Title: "Animal BirthDay\nPredictor"
-                        Text(
-                          'Animal BirthDay\nPredictor',
-                          style: AppTypography.displayHeadline.copyWith(
-                            fontSize: 32.0,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.8),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12.0),
-                        // Subtitle
-                        Text(
-                          'Tired of sleepless nights, worry and uncertainty? Let ABP take the guesswork out and give you peace of mind.',
-                          style: AppTypography.subtitle.copyWith(
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.9),
-                                blurRadius: 6,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
 
-            // 2. Body Section
+            // 2. Body Section below Hero
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.horizontalPadding),
               child: Column(
@@ -168,7 +75,7 @@ class OnboardingScreen extends StatelessWidget {
 
                   const SizedBox(height: 12.0),
 
-                  // TrustCard
+                  // TrustCard Graphic (Contains image + text from Figma export)
                   const TrustCard(),
 
                   const SizedBox(height: AppSpacing.sectionSpacing),
@@ -192,7 +99,12 @@ class OnboardingScreen extends StatelessWidget {
                   const Center(
                     child: Text(
                       'JOIN THE ELITE NETWORK OF BREEDERS',
-                      style: AppTypography.finePrint,
+                      style: TextStyle(
+                        fontSize: 11.0,
+                        fontWeight: FontWeight.normal,
+                        color: AppColors.textMuted,
+                        letterSpacing: 0.8,
+                      ),
                     ),
                   ),
 

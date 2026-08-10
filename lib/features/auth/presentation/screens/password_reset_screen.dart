@@ -74,10 +74,8 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
             // Header Banner
             const AuthHeaderBanner(
               imagePath: 'assets/images/auth_header_lost_your_way.png',
-              icon: Icons.vpn_key_rounded,
-              title: 'Lost Your Way?',
-              subtitle: 'RECOVER YOUR CELESTIAL ACCESS',
             ),
+
 
             Padding(
               padding: const EdgeInsets.symmetric(

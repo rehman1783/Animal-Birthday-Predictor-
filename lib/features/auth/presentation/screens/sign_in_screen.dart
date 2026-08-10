@@ -87,10 +87,8 @@ class _SignInScreenState extends State<SignInScreen> {
             // Header Banner (Welcome Back / Starry Sky Header)
             const AuthHeaderBanner(
               imagePath: 'assets/images/auth_header_welcome_back.png',
-              icon: Icons.nightlight_round,
-              title: 'Welcome Back',
-              subtitle: 'THE STARS HAVE MISSED YOU',
             ),
+
 
             Padding(
               padding: const EdgeInsets.symmetric(

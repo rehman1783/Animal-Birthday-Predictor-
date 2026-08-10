@@ -103,10 +103,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             // Header Banner (Reusable Widget)
             const AuthHeaderBanner(
               imagePath: 'assets/images/auth_header_join_the_mystery.png',
-              icon: Icons.pets_rounded,
-              title: 'Join the Mystery',
-              subtitle: 'ANIMAL BIRTHDAY PREDICTOR',
             ),
+
 
 
             Padding(

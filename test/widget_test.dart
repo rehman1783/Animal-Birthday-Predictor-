@@ -6,7 +6,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const AnimalBirthdayPredictorApp());
 
-    // Verify that onboarding screen loads with headline
-    expect(find.textContaining('Animal BirthDay'), findsOneWidget);
+    // Verify that onboarding screen loads with "WHY ABP?" section label
+    expect(find.textContaining('WHY ABP?'), findsOneWidget);
   });
 }
