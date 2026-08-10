@@ -14,30 +14,35 @@ class AuthHeaderBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24.0),
-          bottomRight: Radius.circular(24.0),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24.0),
-          bottomRight: Radius.circular(24.0),
-        ),
-        child: Image.asset(
+    return Stack(
+      children: [
+        Image.asset(
           imagePath,
           width: double.infinity,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) => Container(
-            height: 220,
-            color: AppColors.surface,
+            height: 240,
+            color: AppColors.background,
           ),
         ),
-      ),
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.transparent,
+                  AppColors.background.withValues(alpha: 0.7),
+                  AppColors.background,
+                ],
+                stops: const [0.0, 0.5, 0.85, 1.0],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

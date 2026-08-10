@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
-import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/widgets/feature_list_item.dart';
 import '../../../../core/widgets/trust_card.dart';
 
@@ -17,17 +16,13 @@ class OnboardingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Hero Image Graphic (Contains Photo + Badge + Title + Subtitle from Figma export)
-            Container(
+            // 1. Hero Image Graphic Header (Contains photo, badge, title, subtitle, and — WHY ABP? header)
+            Image.asset(
+              'assets/images/onboarding_hero_full_header.png',
               width: double.infinity,
-              decoration: const BoxDecoration(color: AppColors.background),
-              child: Image.asset(
-                'assets/images/onboarding_hero.png',
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Container(height: 380, color: AppColors.surface),
-              ),
+              fit: BoxFit.fitWidth,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(height: 380, color: AppColors.surface),
             ),
 
             // 2. Body Section below Hero
@@ -38,14 +33,7 @@ class OnboardingScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 24.0),
-
-                  // Section Divider Label: — WHY ABP?
-                  // const SectionDividerLabel(
-                  //   label: 'WHY ABP?',
-                  //   isLeftAligned: true,
-                  // ),
-                  const SizedBox(height: 12.0),
+                  const SizedBox(height: 16.0),
 
                   // Feature 1: Precision Tracking
                   const FeatureListItem(
