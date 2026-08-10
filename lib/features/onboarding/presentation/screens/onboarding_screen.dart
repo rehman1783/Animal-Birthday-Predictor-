@@ -18,12 +18,13 @@ class OnboardingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Section with Image & Header Overlay
+            // 1. Full Hero Section with Background Photo
             Stack(
               children: [
+                // Background Photo of Mare & Foal (520px height)
                 Container(
                   width: double.infinity,
-                  height: 340.0,
+                  height: 500.0,
                   decoration: const BoxDecoration(
                     color: AppColors.surface,
                   ),
@@ -42,89 +43,104 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Gradient overlay
+                // Smooth Bottom Transition Gradient into Dark Navy #0A192F
                 Container(
                   width: double.infinity,
-                  height: 340.0,
+                  height: 500.0,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
+                        Colors.black.withValues(alpha: 0.15),
                         Colors.transparent,
-                        AppColors.background.withValues(alpha: 0.4),
+                        AppColors.background.withValues(alpha: 0.8),
                         AppColors.background,
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.4, 0.85, 1.0],
                     ),
                   ),
                 ),
-                // Top Content OVER Hero
-                Positioned(
-                  left: AppSpacing.horizontalPadding,
-                  right: AppSpacing.horizontalPadding,
-                  bottom: 16.0,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Pill Badge: PREMIUM BREEDER TOOLS
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(20.0),
-                          border: Border.all(
-                            color: AppColors.primaryGold.withValues(alpha: 0.5),
-                            width: 1.0,
+                // Header Content Positioned over Hero Photo
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.horizontalPadding,
+                      vertical: 36.0,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Pill Badge: PREMIUM BREEDER TOOLS
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 6.0),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(20.0),
+                            border: Border.all(
+                              color: AppColors.primaryGold.withValues(alpha: 0.8),
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Text(
+                            'PREMIUM BREEDER TOOLS',
+                            style: AppTypography.sectionLabel.copyWith(
+                              fontSize: 10.0,
+                              letterSpacing: 1.5,
+                            ),
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: AppColors.primaryGold,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'PREMIUM BREEDER TOOLS',
-                              style: AppTypography.sectionLabel.copyWith(
-                                fontSize: 10.0,
-                                letterSpacing: 1.2,
+                        const SizedBox(height: 16.0),
+                        // Title: "Animal BirthDay\nPredictor"
+                        Text(
+                          'Animal BirthDay\nPredictor',
+                          style: AppTypography.displayHeadline.copyWith(
+                            fontSize: 32.0,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.8),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      // Title: "Animal BirthDay\nPredictor"
-                      const Text(
-                        'Animal BirthDay\nPredictor',
-                        style: AppTypography.displayHeadline,
-                      ),
-                    ],
+                        const SizedBox(height: 12.0),
+                        // Subtitle
+                        Text(
+                          'Tired of sleepless nights, worry and uncertainty? Let ABP take the guesswork out and give you peace of mind.',
+                          style: AppTypography.subtitle.copyWith(
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.9),
+                                blurRadius: 6,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
 
-            // Body Content Padding
+            // 2. Body Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.horizontalPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8.0),
-                  // Subtitle
-                  const Text(
-                    'Tired of sleepless nights, worry and uncertainty? Let ABP take the guesswork out and give you peace of mind.',
-                    style: AppTypography.subtitle,
-                  ),
-                  const SizedBox(height: AppSpacing.sectionSpacing),
+                  const SizedBox(height: 24.0),
 
-                  // Section Divider Label: WHY ABP?
-                  const SectionDividerLabel(label: 'WHY ABP?'),
-                  const SizedBox(height: AppSpacing.sectionSpacing),
+                  // Section Divider Label: — WHY ABP?
+                  const SectionDividerLabel(
+                    label: 'WHY ABP?',
+                    isLeftAligned: true,
+                  ),
+                  const SizedBox(height: 28.0),
 
                   // Feature 1: Precision Tracking
                   const FeatureListItem(
@@ -150,7 +166,7 @@ class OnboardingScreen extends StatelessWidget {
                         'Seamlessly follow up with a foal photo and detailed information with just one click. Keep your records pristine and professional.',
                   ),
 
-                  const SizedBox(height: 8.0),
+                  const SizedBox(height: 12.0),
 
                   // TrustCard
                   const TrustCard(),

@@ -4,14 +4,36 @@ import '../constants/app_typography.dart';
 
 class SectionDividerLabel extends StatelessWidget {
   final String label;
+  final bool isLeftAligned;
 
   const SectionDividerLabel({
     super.key,
     required this.label,
+    this.isLeftAligned = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isLeftAligned) {
+      return Row(
+        children: [
+          Container(
+            width: 32.0,
+            height: 2.0,
+            color: AppColors.primaryGold,
+          ),
+          const SizedBox(width: 12.0),
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.sectionLabel.copyWith(
+              fontSize: 13.0,
+              letterSpacing: 2.0,
+            ),
+          ),
+        ],
+      );
+    }
+
     return Row(
       children: [
         Expanded(

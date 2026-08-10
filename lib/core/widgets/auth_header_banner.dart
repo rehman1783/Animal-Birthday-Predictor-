@@ -21,44 +21,54 @@ class AuthHeaderBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 220.0,
+      height: 270.0,
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24.0),
-          bottomRight: Radius.circular(24.0),
+          bottomLeft: Radius.circular(28.0),
+          bottomRight: Radius.circular(28.0),
         ),
       ),
       child: Stack(
         children: [
-          // Background Image
+          // 1. Background Image from docx (Full opacity, crystal clear)
           Positioned.fill(
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(24.0),
-                bottomRight: Radius.circular(24.0),
+                bottomLeft: Radius.circular(28.0),
+                bottomRight: Radius.circular(28.0),
               ),
               child: Image.asset(
                 imagePath,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: AppColors.surface,
-                ),
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: AppColors.surface,
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: AppColors.primaryGold,
+                        size: 40,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-          // Dark Overlay Gradient
+          // 2. Light Bottom Vignette (Very subtle so image artwork stays bright and visible)
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24.0),
-                  bottomRight: Radius.circular(24.0),
+                  bottomLeft: Radius.circular(28.0),
+                  bottomRight: Radius.circular(28.0),
                 ),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withValues(alpha: 0.3),
-                    AppColors.background.withValues(alpha: 0.85),
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.1),
+                    AppColors.background.withValues(alpha: 0.4),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -66,10 +76,13 @@ class AuthHeaderBanner extends StatelessWidget {
               ),
             ),
           ),
-          // Header Content (Icon, Title, Subtitle)
+          // 3. Header Content (Icon Badge, Title, Subtitle)
           Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.horizontalPadding, vertical: 20.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.horizontalPadding,
+                vertical: 20.0,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -78,12 +91,19 @@ class AuthHeaderBanner extends StatelessWidget {
                     width: AppSpacing.iconContainerSize,
                     height: AppSpacing.iconContainerSize,
                     decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.8),
+                      color: AppColors.surface.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(AppSpacing.iconRadius),
                       border: Border.all(
-                        color: AppColors.primaryGold.withValues(alpha: 0.4),
-                        width: 1,
+                        color: AppColors.primaryGold,
+                        width: 1.5,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       icon,
@@ -94,13 +114,30 @@ class AuthHeaderBanner extends StatelessWidget {
                   const SizedBox(height: 12.0),
                   Text(
                     title,
-                    style: AppTypography.displayHeadline,
+                    style: AppTypography.displayHeadline.copyWith(
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.8),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 4.0),
                   Text(
                     subtitle.toUpperCase(),
-                    style: AppTypography.sectionLabel,
+                    style: AppTypography.sectionLabel.copyWith(
+                      letterSpacing: 2.0,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.8),
+                          blurRadius: 6,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],

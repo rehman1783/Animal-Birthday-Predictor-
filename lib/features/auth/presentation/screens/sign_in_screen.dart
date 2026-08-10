@@ -64,7 +64,7 @@ class _SignInScreenState extends State<SignInScreen> {
       _isLoading = true;
     });
 
-    // Mock delay
+    // Mock API loading delay
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
@@ -84,7 +84,7 @@ class _SignInScreenState extends State<SignInScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header Banner
+            // Header Banner (Welcome Back / Starry Sky Header)
             const AuthHeaderBanner(
               imagePath: 'assets/images/auth_header_welcome_back.png',
               icon: Icons.nightlight_round,
@@ -115,27 +115,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Password',
-                            style: AppTypography.inputLabel,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(context, '/reset-password');
-                            },
-                            child: Text(
-                              'Forgot Password?',
-                              style: AppTypography.inputLabel.copyWith(
-                                color: AppColors.primaryGold,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                  
                       const SizedBox(height: 8.0),
                       CustomTextField(
                         label: '',
@@ -156,6 +136,27 @@ class _SignInScreenState extends State<SignInScreen> {
                             });
                           },
                         ),
+                      ),
+                          Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Password',
+                            style: AppTypography.inputLabel,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(context, '/reset-password');
+                            },
+                            child: Text(
+                              'Forgot Password?',
+                              style: AppTypography.inputLabel.copyWith(
+                                color: AppColors.primaryGold,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -201,7 +202,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
                   const SizedBox(height: 20.0),
 
-                  // Social Buttons
+                  // Social Auth Buttons (Apple / Google)
                   SocialAuthButton(
                     provider: SocialProvider.apple,
                     onPressed: () {

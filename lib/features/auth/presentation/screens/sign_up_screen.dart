@@ -108,6 +108,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               subtitle: 'ANIMAL BIRTHDAY PREDICTOR',
             ),
 
+
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.horizontalPadding,
@@ -147,7 +148,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     errorText: _passwordError,
                     trailingWidget: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                         color: AppColors.textSecondary,
                         size: 20,
                       ),
