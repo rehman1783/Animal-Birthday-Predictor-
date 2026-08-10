@@ -20,34 +20,32 @@ class OnboardingScreen extends StatelessWidget {
             // 1. Hero Image Graphic (Contains Photo + Badge + Title + Subtitle from Figma export)
             Container(
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: AppColors.background,
-              ),
+              decoration: const BoxDecoration(color: AppColors.background),
               child: Image.asset(
                 'assets/images/onboarding_hero.png',
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 380,
-                  color: AppColors.surface,
-                ),
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(height: 380, color: AppColors.surface),
               ),
             ),
 
             // 2. Body Section below Hero
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.horizontalPadding),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.horizontalPadding,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24.0),
 
                   // Section Divider Label: — WHY ABP?
-                  const SectionDividerLabel(
-                    label: 'WHY ABP?',
-                    isLeftAligned: true,
-                  ),
-                  const SizedBox(height: 28.0),
+                  // const SectionDividerLabel(
+                  //   label: 'WHY ABP?',
+                  //   isLeftAligned: true,
+                  // ),
+                  const SizedBox(height: 12.0),
 
                   // Feature 1: Precision Tracking
                   const FeatureListItem(
