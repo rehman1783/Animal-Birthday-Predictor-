@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -7,21 +8,21 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/widgets/social_auth_button.dart';
+import '../providers/auth_provider.dart';
 
-class SignInScreen extends StatefulWidget {
+class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  ConsumerState<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _keepMeSignedIn = true;
-  bool _isLoading = false;
 
   String? _emailError;
   String? _passwordError;
@@ -60,35 +61,50 @@ class _SignInScreenState extends State<SignInScreen> {
   Future<void> _handleSignIn() async {
     if (!_validateForm()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Mock API loading delay
-    await Future.delayed(const Duration(seconds: 2));
+    final success = await ref.read(authControllerProvider.notifier).signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
 
     if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-    });
+    if (success) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      final errorState = ref.read(authControllerProvider);
+      final errorMsg = errorState.error?.toString() ?? 'Failed to sign in.';
 
-    // Navigate to placeholder home screen
-    Navigator.pushReplacementNamed(context, '/home');
+      setState(() {
+        if (errorMsg.contains('This account does not exist')) {
+          _emailError = 'This account does not exist. Please create an account first.';
+        } else if (errorMsg.contains('Incorrect password')) {
+          _passwordError = 'Incorrect password. Please try again.';
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMsg),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header Banner (Welcome Back / Starry Sky Header)
+            // Header Banner
             const AuthHeaderBanner(
               imagePath: 'assets/images/auth_header_welcome_back.png',
             ),
-
 
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -113,29 +129,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  
-                      const SizedBox(height: 8.0),
-                      CustomTextField(
-                        label: '',
-                        hintText: '••••••••',
-                        leadingIcon: Icons.lock_outline,
-                        obscureText: _obscurePassword,
-                        controller: _passwordController,
-                        errorText: _passwordError,
-                        trailingWidget: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            color: AppColors.textSecondary,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                          Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
@@ -155,6 +149,29 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 8.0),
+                      CustomTextField(
+                        label: '',
+                        hintText: '••••••••',
+                        leadingIcon: Icons.lock_outline,
+                        obscureText: _obscurePassword,
+                        controller: _passwordController,
+                        errorText: _passwordError,
+                        trailingWidget: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: AppColors.textSecondary,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -189,7 +206,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   // Primary CTA Button: Begin Journey ✦
                   GradientCtaButton(
                     text: 'Begin Journey ✦',
-                    isLoading: _isLoading,
+                    isLoading: isLoading,
                     onPressed: _handleSignIn,
                   ),
 

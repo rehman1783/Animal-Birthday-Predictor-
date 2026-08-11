@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/auth_header_banner.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../providers/auth_provider.dart';
 
-class PasswordResetScreen extends StatefulWidget {
+class PasswordResetScreen extends ConsumerStatefulWidget {
   const PasswordResetScreen({super.key});
 
   @override
-  State<PasswordResetScreen> createState() => _PasswordResetScreenState();
+  ConsumerState<PasswordResetScreen> createState() => _PasswordResetScreenState();
 }
 
-class _PasswordResetScreenState extends State<PasswordResetScreen> {
+class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
   final _emailController = TextEditingController();
-  bool _isLoading = false;
   bool _isSent = false;
   String? _emailError;
 
@@ -49,23 +50,35 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   Future<void> _handleSendResetLink() async {
     if (!_validateEmail()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Mock loading delay
-    await Future.delayed(const Duration(seconds: 2));
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .resetPasswordForEmail(_emailController.text.trim());
 
     if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-      _isSent = true;
-    });
+    if (success) {
+      setState(() {
+        _isSent = true;
+      });
+    } else {
+      final errorState = ref.read(authControllerProvider);
+      final errorMsg = errorState.error?.toString() ?? 'Failed to send reset link.';
+
+      setState(() {
+        if (errorMsg.contains('not registered')) {
+          _emailError = 'This email is not registered.';
+        } else {
+          _emailError = errorMsg;
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -75,7 +88,6 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
             const AuthHeaderBanner(
               imagePath: 'assets/images/auth_header_lost_your_way.png',
             ),
-
 
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -88,7 +100,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                   if (!_isSent) ...[
                     // Description
                     const Text(
-                      "Enter your email address below. We'll send you a mystical link to reset your journey's password.",
+                      "Enter your email address below. We'll send you a link to reset your password.",
                       style: AppTypography.body,
                     ),
                     const SizedBox(height: 24.0),
@@ -107,7 +119,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                     // CTA Button: Send Reset Link ➤
                     GradientCtaButton(
                       text: 'Send Reset Link ➤',
-                      isLoading: _isLoading,
+                      isLoading: isLoading,
                       onPressed: _handleSendResetLink,
                     ),
                   ] else ...[

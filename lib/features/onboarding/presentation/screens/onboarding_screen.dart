@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/feature_list_item.dart';
 import '../../../../core/widgets/trust_card.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
-class OnboardingScreen extends StatelessWidget {
+class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Hero Image Graphic Header (Contains photo, badge, title, subtitle, and — WHY ABP? header)
+            // 1. Hero Image Graphic Header
             Image.asset(
               'assets/images/onboarding_hero_full_header.png',
               width: double.infinity,
@@ -35,7 +37,7 @@ class OnboardingScreen extends StatelessWidget {
                 children: [
                   const SizedBox(height: 20.0),
 
-                  // Section Header: WHY ABP? (Native Flutter Text Widget)
+                  // Section Header: WHY ABP?
                   Row(
                     children: [
                       Container(
@@ -84,7 +86,7 @@ class OnboardingScreen extends StatelessWidget {
 
                   const SizedBox(height: 12.0),
 
-                  // TrustCard Graphic (Contains image + text from Figma export)
+                  // TrustCard Graphic
                   const TrustCard(),
 
                   const SizedBox(height: AppSpacing.sectionSpacing),
@@ -97,14 +99,17 @@ class OnboardingScreen extends StatelessWidget {
                       color: AppColors.background,
                       size: 20,
                     ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/signup');
+                    onPressed: () async {
+                      await ref.read(onboardingProvider.notifier).completeOnboarding();
+                      if (context.mounted) {
+                        Navigator.pushReplacementNamed(context, '/signup');
+                      }
                     },
                   ),
 
                   const SizedBox(height: 24.0),
 
-                  // Footer caption: JOIN THE ELITE NETWORK OF BREEDERS
+                  // Footer caption
                   const Center(
                     child: Text(
                       'JOIN THE ELITE NETWORK OF BREEDERS',

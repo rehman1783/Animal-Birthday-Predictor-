@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -7,21 +8,21 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/widgets/social_auth_button.dart';
+import '../providers/auth_provider.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
-  bool _isLoading = false;
 
   String? _fullNameError;
   String? _emailError;
@@ -76,36 +77,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _handleSignUp() async {
     if (!_validateForm()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Mock API loading delay
-    await Future.delayed(const Duration(seconds: 2));
+    final success = await ref.read(authControllerProvider.notifier).signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          fullName: _fullNameController.text.trim(),
+        );
 
     if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-    });
-
-    // Mock successful navigation to home placeholder
-    Navigator.pushReplacementNamed(context, '/home');
+    if (success) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      final errorState = ref.read(authControllerProvider);
+      final errorMsg = errorState.error?.toString() ?? 'An error occurred during sign up.';
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header Banner (Reusable Widget)
+            // Header Banner
             const AuthHeaderBanner(
               imagePath: 'assets/images/auth_header_join_the_mystery.png',
             ),
-
-
 
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -165,7 +173,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   // Primary CTA Button
                   GradientCtaButton(
                     text: 'Create Account',
-                    isLoading: _isLoading,
+                    isLoading: isLoading,
                     icon: const Icon(
                       Icons.arrow_forward_rounded,
                       color: AppColors.background,
