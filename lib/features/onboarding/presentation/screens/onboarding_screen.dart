@@ -33,6 +33,29 @@ class OnboardingScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 20.0),
+
+                  // Section Header: WHY ABP? (Native Flutter Text Widget)
+                  Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 2,
+                        color: const Color(0xFFE5C158),
+                      ),
+                      const SizedBox(width: 10.0),
+                      const Text(
+                        'WHY ABP?',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFE5C158),
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+
                   const SizedBox(height: 16.0),
 
                   // Feature 1: Precision Tracking
