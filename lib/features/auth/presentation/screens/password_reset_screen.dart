@@ -60,6 +60,13 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
       setState(() {
         _isSent = true;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password reset link sent! Please check your email inbox.'),
+          backgroundColor: AppColors.surface,
+          duration: Duration(seconds: 4),
+        ),
+      );
     } else {
       final errorState = ref.read(authControllerProvider);
       final errorMsg = errorState.error?.toString() ?? 'Failed to send reset link.';
@@ -71,6 +78,12 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
           _emailError = errorMsg;
         }
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 

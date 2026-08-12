@@ -25,6 +25,24 @@ class AuthRepository {
   /// Stream of Auth State changes
   Stream<AuthState> get onAuthStateChange => _supabase.auth.onAuthStateChange;
 
+  /// Helper to convert technical exceptions into clean, user-friendly error messages
+  AuthExceptionCustom _handleError(dynamic e) {
+    if (e is AuthExceptionCustom) return e;
+    final errStr = e.toString().toLowerCase();
+    if (errStr.contains('socketexception') ||
+        errStr.contains('failed host lookup') ||
+        errStr.contains('clientexception') ||
+        errStr.contains('connection refused') ||
+        errStr.contains('network') ||
+        errStr.contains('xmlhttprequest')) {
+      return const AuthExceptionCustom('Network error. Please check your internet connection and try again.');
+    }
+    if (e is AuthException) {
+      return AuthExceptionCustom(e.message);
+    }
+    return const AuthExceptionCustom('An unexpected error occurred. Please try again.');
+  }
+
   /// Check whether an email exists in the system (via RPC or profiles table)
   Future<bool> checkEmailExists(String email) async {
     final cleanEmail = email.trim().toLowerCase();
@@ -40,11 +58,13 @@ class AuthRepository {
         final res = await _supabase
             .from('profiles')
             .select('id')
-            .eq('email', cleanEmail)
+            .filter('email', 'ilike', cleanEmail)
             .maybeSingle();
         return res != null;
       } catch (_) {
-        return false;
+        // If unauthenticated query to profiles is blocked by RLS and RPC is missing,
+        // fallback to true so Supabase Auth API can perform the authoritative check
+        return true;
       }
     }
   }
@@ -56,10 +76,11 @@ class AuthRepository {
     required String fullName,
   }) async {
     try {
-      final cleanEmail = email.trim();
+      final cleanEmail = email.trim().toLowerCase();
       final response = await _supabase.auth.signUp(
         email: cleanEmail,
         password: password,
+        data: {'full_name': fullName.trim()},
       );
 
       final user = response.user;
@@ -83,13 +104,13 @@ class AuthRepository {
 
       return profile;
     } on AuthException catch (e) {
-      if (e.message.contains('already registered') || e.code == 'user_already_exists') {
+      final msg = e.message.toLowerCase();
+      if (msg.contains('already registered') || e.code == 'user_already_exists') {
         throw const AuthExceptionCustom('An account with this email already exists.');
       }
-      throw AuthExceptionCustom(e.message);
+      throw _handleError(e);
     } catch (e) {
-      if (e is AuthExceptionCustom) rethrow;
-      throw AuthExceptionCustom(e.toString());
+      throw _handleError(e);
     }
   }
 
@@ -98,7 +119,7 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    final cleanEmail = email.trim();
+    final cleanEmail = email.trim().toLowerCase();
 
     try {
       final response = await _supabase.auth.signInWithPassword(
@@ -115,27 +136,36 @@ class AuthRepository {
       final profile = await getUserProfile(user.id);
       return profile ?? UserProfile(id: user.id, email: cleanEmail, fullName: '');
     } on AuthException catch (e) {
-      if (e.message.toLowerCase().contains('invalid login credentials') ||
-          e.code == 'invalid_credentials') {
+      final msg = e.message.toLowerCase();
+
+      // Detect unverified account
+      if (msg.contains('email not confirmed') || e.code == 'email_not_confirmed') {
+        throw const AuthExceptionCustom('Please verify your email address before signing in.');
+      }
+
+      // Handle invalid credentials
+      if (msg.contains('invalid login credentials') ||
+          msg.contains('invalid credentials') ||
+          e.code == 'invalid_credentials' ||
+          e.code == 'invalid_grant') {
         final exists = await checkEmailExists(cleanEmail);
         if (!exists) {
-          throw const AuthExceptionCustom('This account does not exist. Please create an account first.');
+          throw const AuthExceptionCustom('Incorrect email or password. If you do not have an account, please sign up.');
         } else {
           throw const AuthExceptionCustom('Incorrect password. Please try again.');
         }
       }
-      throw AuthExceptionCustom(e.message);
+      throw _handleError(e);
     } catch (e) {
-      if (e is AuthExceptionCustom) rethrow;
-      throw AuthExceptionCustom(e.toString());
+      throw _handleError(e);
     }
   }
 
   /// Send Password Reset Link to Email
   Future<void> resetPasswordForEmail(String email) async {
-    final cleanEmail = email.trim();
+    final cleanEmail = email.trim().toLowerCase();
 
-    // Check if account exists
+    // Check if account exists via RPC or fallback
     final exists = await checkEmailExists(cleanEmail);
     if (!exists) {
       throw const AuthExceptionCustom('This email is not registered.');
@@ -147,10 +177,13 @@ class AuthRepository {
         redirectTo: 'io.supabase.animalbirthdaypredictor://reset-password',
       );
     } on AuthException catch (e) {
-      throw AuthExceptionCustom(e.message);
+      final msg = e.message.toLowerCase();
+      if (msg.contains('user not found') || msg.contains('unable to find user')) {
+        throw const AuthExceptionCustom('This email is not registered.');
+      }
+      throw _handleError(e);
     } catch (e) {
-      if (e is AuthExceptionCustom) rethrow;
-      throw AuthExceptionCustom(e.toString());
+      throw _handleError(e);
     }
   }
 
@@ -161,10 +194,9 @@ class AuthRepository {
         UserAttributes(password: newPassword),
       );
     } on AuthException catch (e) {
-      throw AuthExceptionCustom(e.message);
+      throw _handleError(e);
     } catch (e) {
-      if (e is AuthExceptionCustom) rethrow;
-      throw AuthExceptionCustom(e.toString());
+      throw _handleError(e);
     }
   }
 
@@ -186,6 +218,10 @@ class AuthRepository {
 
   /// Sign Out
   Future<void> signOut() async {
-    await _supabase.auth.signOut();
+    try {
+      await _supabase.auth.signOut();
+    } catch (_) {
+      // Ignore network errors on sign out to ensure local session clear
+    }
   }
 }

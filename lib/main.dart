@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,13 +61,15 @@ class AnimalBirthdayPredictorApp extends StatefulWidget {
 }
 
 class _AnimalBirthdayPredictorAppState extends State<AnimalBirthdayPredictorApp> {
+  StreamSubscription<AuthState>? _authSubscription;
+
   @override
   void initState() {
     super.initState();
 
     // Listen for Auth changes (e.g. Password Recovery Deep Link)
     try {
-      Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         final event = data.event;
         if (event == AuthChangeEvent.passwordRecovery) {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -78,6 +81,12 @@ class _AnimalBirthdayPredictorAppState extends State<AnimalBirthdayPredictorApp>
     } catch (_) {
       // Ignore if Supabase instance is not initialized in test environment
     }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   @override

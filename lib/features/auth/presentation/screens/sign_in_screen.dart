@@ -44,8 +44,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (email.isEmpty) {
       _emailError = 'Email address is required';
+      isValid = false;
+    } else if (!emailRegex.hasMatch(email)) {
+      _emailError = 'Please enter a valid email address';
       isValid = false;
     }
 
@@ -75,7 +79,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       final errorMsg = errorState.error?.toString() ?? 'Failed to sign in.';
 
       setState(() {
-        if (errorMsg.contains('This account does not exist')) {
+        if (errorMsg.contains('Incorrect email or password')) {
+          _emailError = 'Incorrect email or password. Please check your credentials.';
+        } else if (errorMsg.contains('This account does not exist')) {
           _emailError = 'This account does not exist. Please create an account first.';
         } else if (errorMsg.contains('Incorrect password')) {
           _passwordError = 'Incorrect password. Please try again.';

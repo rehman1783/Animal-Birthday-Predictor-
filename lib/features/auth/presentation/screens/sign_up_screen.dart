@@ -86,7 +86,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushReplacementNamed(context, '/home');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully! Please check your email and verify your address before signing in.'),
+          backgroundColor: AppColors.surface,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      Navigator.pushReplacementNamed(context, '/signin');
     } else {
       final errorState = ref.read(authControllerProvider);
       final errorMsg = errorState.error?.toString() ?? 'An error occurred during sign up.';
