@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../pregnancy/domain/preventative_care_record.dart';
 import '../../../pregnancy/presentation/providers/preventative_care_provider.dart';
@@ -207,7 +208,13 @@ class _FoalPreventativeCareScreenState extends ConsumerState<FoalPreventativeCar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(item.label, style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
+              Expanded(
+                child: Text(
+                  item.label,
+                  style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold),
+                ),
+              ),
+              const SizedBox(width: 8),
               Checkbox(
                 value: item.done,
                 activeColor: AppColors.primaryGold,
@@ -281,38 +288,41 @@ class _FoalPreventativeCareScreenState extends ConsumerState<FoalPreventativeCar
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.spaceL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Static Disclaimer Banner
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.spaceM),
-              decoration: BoxDecoration(
-                color: AppColors.primaryGold.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppSpacing.radiusM),
-                border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+        child: ResponsiveBody(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Static Disclaimer Banner
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.spaceM),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGold.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusM),
+                  border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  'All foals require a priming vaccination program for most vaccinations, always consult your Veterinarian for correct schedule and vaccine for your region. Please note the Vaccination Status of the pregnant mare will affect the start date of the priming program.',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11),
+                ),
               ),
-              child: Text(
-                'All foals require a priming vaccination program for most vaccinations, always consult your Veterinarian for correct schedule and vaccine for your region. Please note the Vaccination Status of the pregnant mare will affect the start date of the priming program.',
-                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11),
+
+              const SizedBox(height: AppSpacing.spaceL),
+              const SectionDividerLabel(label: 'FOAL PRIMING VACCINATIONS', isLeftAligned: true),
+              const SizedBox(height: AppSpacing.spaceM),
+
+              ..._careItems.keys.map((k) => _buildVaccineRow(k)),
+
+              const SizedBox(height: AppSpacing.spaceXL),
+
+              GradientCtaButton(
+                text: 'SAVE FOAL PREVENTATIVE CARE',
+                onPressed: _handleSave,
+                isLoading: _isSaving,
               ),
-            ),
-
-            const SizedBox(height: AppSpacing.spaceL),
-            const SectionDividerLabel(label: 'FOAL PRIMING VACCINATIONS', isLeftAligned: true),
-            const SizedBox(height: AppSpacing.spaceM),
-
-            ..._careItems.keys.map((k) => _buildVaccineRow(k)),
-
-            const SizedBox(height: AppSpacing.spaceXL),
-
-            GradientCtaButton(
-              text: 'SAVE FOAL PREVENTATIVE CARE',
-              onPressed: _handleSave,
-              isLoading: _isSaving,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

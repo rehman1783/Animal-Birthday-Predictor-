@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/breeding_record.dart';
 import '../providers/pregnancy_provider.dart';
@@ -144,154 +145,158 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.spaceL),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SectionDividerLabel(label: 'BREEDING METHOD *', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              // Single Select Chips
-              Row(
-                children: _methods.map((m) {
-                  final isSelected = _selectedMethod == m.value;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: ChoiceChip(
-                        label: Text(
-                          m.label,
-                          style: TextStyle(
-                            color: isSelected ? AppColors.background : AppColors.textPrimary,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                        selected: isSelected,
-                        selectedColor: AppColors.primaryGold,
-                        backgroundColor: AppColors.surface,
-                        side: BorderSide(
-                          color: isSelected ? AppColors.primaryGold : AppColors.inputBorder,
-                        ),
-                        onSelected: (val) {
-                          if (val) {
-                            setState(() {
-                              _selectedMethod = m.value;
-                              if (m.value == 'icsi') {
-                                _isEmbryoTransfer = true; // ICSI is embryo transfer by nature
-                              }
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-
-              if (_selectedMethod == null) ...[
-                const SizedBox(height: 8),
-                const Padding(
-                  padding: EdgeInsets.only(left: 8.0),
-                  child: Text(
-                    '* Selecting a breeding method is required',
-                    style: TextStyle(color: AppColors.error, fontSize: 12),
-                  ),
-                ),
-              ],
-
-              if (_selectedMethod != null) ...[
-                const SizedBox(height: AppSpacing.spaceL),
-                const SectionDividerLabel(label: 'EMBRYO TRANSFER', isLeftAligned: true),
+        child: ResponsiveBody(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SectionDividerLabel(label: 'BREEDING METHOD *', isLeftAligned: true),
                 const SizedBox(height: AppSpacing.spaceM),
 
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.spaceM),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                    border: Border.all(color: AppColors.inputBorder),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Was the resulting embryo transferred to a recipient mare?',
-                          style: AppTypography.bodyMedium,
+                // Responsive Wrap for Chips
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: _methods.map((m) {
+                    final isSelected = _selectedMethod == m.value;
+                    return ChoiceChip(
+                      label: Text(
+                        m.label,
+                        style: TextStyle(
+                          color: isSelected ? AppColors.background : AppColors.textPrimary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
-                      Switch(
-                        value: _isEmbryoTransfer,
-                        activeThumbColor: AppColors.primaryGold,
-                        onChanged: _selectedMethod == 'icsi'
-                            ? null // Locked to true for ICSI
-                            : (val) {
-                                setState(() => _isEmbryoTransfer = val);
-                              },
+                      selected: isSelected,
+                      selectedColor: AppColors.primaryGold,
+                      backgroundColor: AppColors.surface,
+                      side: BorderSide(
+                        color: isSelected ? AppColors.primaryGold : AppColors.inputBorder,
                       ),
-                    ],
+                      onSelected: (val) {
+                        if (val) {
+                          setState(() {
+                            _selectedMethod = m.value;
+                            if (m.value == 'icsi') {
+                              _isEmbryoTransfer = true; // ICSI is embryo transfer by nature
+                            }
+                          });
+                        }
+                      },
+                    );
+                  }).toList(),
+                ),
+
+                if (_selectedMethod == null) ...[
+                  const SizedBox(height: 8),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      '* Selecting a breeding method is required',
+                      style: TextStyle(color: AppColors.error, fontSize: 12),
+                    ),
                   ),
+                ],
+
+                if (_selectedMethod != null) ...[
+                  const SizedBox(height: AppSpacing.spaceL),
+                  const SectionDividerLabel(label: 'EMBRYO TRANSFER', isLeftAligned: true),
+                  const SizedBox(height: AppSpacing.spaceM),
+
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.spaceM),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                      border: Border.all(color: AppColors.inputBorder),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Was the resulting embryo transferred to a recipient mare?',
+                            style: AppTypography.bodyMedium,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Switch(
+                          value: _isEmbryoTransfer,
+                          activeThumbColor: AppColors.primaryGold,
+                          onChanged: _selectedMethod == 'icsi'
+                              ? null // Locked to true for ICSI
+                              : (val) {
+                                  setState(() => _isEmbryoTransfer = val);
+                                },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: AppSpacing.spaceL),
+                const SectionDividerLabel(label: 'DATE & DOCUMENTATION', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
+
+                // Date Picker Field
+                InkWell(
+                  onTap: _selectDate,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                  child: Container(
+                    padding: const EdgeInsets.all(AppSpacing.spaceM),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                      border: Border.all(color: AppColors.inputBorder),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _isEmbryoTransfer ? 'Date of Transfer *' : 'Date of Cover / Insemination *',
+                                style: AppTypography.inputLabel,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${_coverDate.day}/${_coverDate.month}/${_coverDate.year}',
+                                style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.calendar_today, color: AppColors.primaryGold),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.spaceM),
+
+                // Insemination Photo Slot using AppImagePicker
+                AppImagePicker(
+                  currentImagePath: _photoUrl,
+                  label: 'Tap to Add Insemination / Straw Photo',
+                  height: 120,
+                  onImagePicked: (path) => setState(() => _photoUrl = path),
+                ),
+
+                const SizedBox(height: AppSpacing.spaceXL),
+
+                GradientCtaButton(
+                  text: _isEmbryoTransfer ? 'CONTINUE TO RECIPIENT MARE' : 'SAVE & VIEW PREGNANCY SCANS',
+                  onPressed: _handleSave,
+                  isLoading: _isSaving,
                 ),
               ],
-
-              const SizedBox(height: AppSpacing.spaceL),
-              const SectionDividerLabel(label: 'DATE & DOCUMENTATION', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              // Date Picker Field
-              InkWell(
-                onTap: _selectDate,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.spaceM),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                    border: Border.all(color: AppColors.inputBorder),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _isEmbryoTransfer ? 'Date of Transfer *' : 'Date of Cover / Insemination *',
-                            style: AppTypography.inputLabel,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${_coverDate.day}/${_coverDate.month}/${_coverDate.year}',
-                            style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold),
-                          ),
-                        ],
-                      ),
-                      const Icon(Icons.calendar_today, color: AppColors.primaryGold),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.spaceM),
-
-              // Insemination Photo Slot using AppImagePicker
-              AppImagePicker(
-                currentImagePath: _photoUrl,
-                label: 'Tap to Add Insemination / Straw Photo',
-                height: 120,
-                onImagePicked: (path) => setState(() => _photoUrl = path),
-              ),
-
-              const SizedBox(height: AppSpacing.spaceXL),
-
-              GradientCtaButton(
-                text: _isEmbryoTransfer ? 'CONTINUE TO RECIPIENT MARE' : 'SAVE & VIEW PREGNANCY SCANS',
-                onPressed: _handleSave,
-                isLoading: _isSaving,
-              ),
-            ],
+            ),
           ),
         ),
       ),

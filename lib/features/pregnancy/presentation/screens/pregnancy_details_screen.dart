@@ -8,6 +8,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/pregnancy_record.dart';
 import '../providers/pregnancy_provider.dart';
@@ -149,7 +150,14 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -168,7 +176,9 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Pregnancy Confirmed', style: AppTypography.bodyMedium),
+              const Expanded(
+                child: Text('Pregnancy Confirmed', style: AppTypography.bodyMedium),
+              ),
               Checkbox(
                 value: isConfirmed,
                 activeColor: AppColors.primaryGold,
@@ -217,7 +227,10 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
         data: (record) {
           if (record == null) {
             return Center(
-              child: Text('No active pregnancy record found for this mare.', style: AppTypography.bodyMedium),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.spaceL),
+                child: Text('No active pregnancy record found for this carrier.', style: AppTypography.bodyMedium),
+              ),
             );
           }
 
@@ -226,175 +239,186 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
           }
 
           return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(AppSpacing.spaceL),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Expected Foaling Due Date Card
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.spaceM),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                      border: Border.all(color: AppColors.primaryGold),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.child_care, color: AppColors.primaryGold, size: 36),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('ESTIMATED FOALING DUE DATE', style: AppTypography.caption.copyWith(letterSpacing: 1.2)),
-                            const SizedBox(height: 2),
-                            Text(
-                              _formatDate(record.foalingDueDate),
-                              style: AppTypography.titleLarge.copyWith(color: AppColors.primaryGold),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.spaceL),
-
-                  // Static Warning Banner
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.spaceM),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusM),
-                      border: Border.all(color: AppColors.error.withValues(alpha: 0.5)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Early Pregnancy Scan Day 14-16 post cover/insemination. To reduce the risk of multiple pregnancies, it is strongly recommended to have your mare scanned by your veterinarian. Multiple pregnancies are dangerous and early detection is your best chance to safely manage them.',
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.textPrimary, fontSize: 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.spaceL),
-                  const SectionDividerLabel(label: 'PREGNANCY SCANS (1, 2, 3)', isLeftAligned: true),
-                  const SizedBox(height: AppSpacing.spaceM),
-
-                  _buildScanSubCard(
-                    title: '1st Pregnancy Scan',
-                    dueDate: record.scan1DueDate,
-                    isConfirmed: _scan1Confirmed,
-                    onConfirmedChanged: (v) => setState(() => _scan1Confirmed = v),
-                    imageUrl: _scan1Image,
-                    onPhotoPicked: (path) => setState(() => _scan1Image = path),
-                  ),
-
-                  _buildScanSubCard(
-                    title: '2nd Pregnancy Scan',
-                    dueDate: record.scan2DueDate,
-                    isConfirmed: _scan2Confirmed,
-                    onConfirmedChanged: (v) => setState(() => _scan2Confirmed = v),
-                    imageUrl: _scan2Image,
-                    onPhotoPicked: (path) => setState(() => _scan2Image = path),
-                  ),
-
-                  _buildScanSubCard(
-                    title: '3rd Pregnancy Scan',
-                    dueDate: record.scan3DueDate,
-                    isConfirmed: _scan3Confirmed,
-                    onConfirmedChanged: (v) => setState(() => _scan3Confirmed = v),
-                    imageUrl: _scan3Image,
-                    onPhotoPicked: (path) => setState(() => _scan3Image = path),
-                  ),
-
-                  const SizedBox(height: AppSpacing.spaceL),
-                  const SectionDividerLabel(label: 'VETERINARIAN DETAILS', isLeftAligned: true),
-                  const SizedBox(height: AppSpacing.spaceM),
-
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.spaceM),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                      border: Border.all(color: AppColors.inputBorder),
-                    ),
-                    child: Column(
-                      children: [
-                        CustomTextField(
-                          controller: _vetNameController,
-                          label: 'Vet Name *',
-                          prefixIcon: Icons.medical_services,
-                          validator: (v) => v == null || v.trim().isEmpty ? 'Vet name is required' : null,
-                        ),
-                        const SizedBox(height: AppSpacing.spaceM),
-                        CustomTextField(
-                          controller: _vetMobileController,
-                          label: 'Vet Mobile Number *',
-                          prefixIcon: Icons.phone,
-                          keyboardType: TextInputType.phone,
-                          validator: (v) => v == null || v.trim().isEmpty ? 'Vet mobile number is required' : null,
-                        ),
-                        const SizedBox(height: AppSpacing.spaceM),
-                        if (_vetMobileController.text.trim().isNotEmpty)
-                          ElevatedButton.icon(
-                            onPressed: () => _callVet(_vetMobileController.text.trim()),
-                            icon: const Icon(Icons.call, color: AppColors.background),
-                            label: Text('CALL VET (${_vetMobileController.text.trim()})'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryGold,
-                              minimumSize: const Size(double.infinity, 44),
-                            ),
-                          )
-                        else
-                          Text(
-                            'No Vet Added Yet',
-                            style: AppTypography.caption.copyWith(color: AppColors.textMuted),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.spaceL),
-
-                  // Button to Advanced Pregnancy Info
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/advanced-pregnancy',
-                        arguments: record.id,
-                      );
-                    },
-                    icon: const Icon(Icons.biotech, color: AppColors.primaryGold),
-                    label: Text(
-                      'ADVANCED PREGNANCY INFO (CASLICK & FETAL SEX)',
-                      style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.primaryGold),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
+            child: ResponsiveBody(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Expected Foaling Due Date Card
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.spaceM),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
                         borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                        border: Border.all(color: AppColors.primaryGold),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.child_care, color: AppColors.primaryGold, size: 36),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('ESTIMATED FOALING DUE DATE', style: AppTypography.caption.copyWith(letterSpacing: 1.2)),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _formatDate(record.foalingDueDate),
+                                  style: AppTypography.titleLarge.copyWith(color: AppColors.primaryGold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: AppSpacing.spaceXL),
+                    const SizedBox(height: AppSpacing.spaceL),
 
-                  GradientCtaButton(
-                    text: 'SAVE PREGNANCY DETAILS',
-                    onPressed: _handleSave,
-                    isLoading: _isSaving,
-                  ),
-                ],
+                    // Static Warning Banner
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.spaceM),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusM),
+                        border: Border.all(color: AppColors.error.withValues(alpha: 0.5)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Early Pregnancy Scan Day 14-16 post cover/insemination. To reduce the risk of multiple pregnancies, it is strongly recommended to have your mare scanned by your veterinarian. Multiple pregnancies are dangerous and early detection is your best chance to safely manage them.',
+                              style: AppTypography.bodySmall.copyWith(color: AppColors.textPrimary, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: AppSpacing.spaceL),
+                    const SectionDividerLabel(label: 'PREGNANCY SCANS (1, 2, 3)', isLeftAligned: true),
+                    const SizedBox(height: AppSpacing.spaceM),
+
+                    _buildScanSubCard(
+                      title: '1st Pregnancy Scan',
+                      dueDate: record.scan1DueDate,
+                      isConfirmed: _scan1Confirmed,
+                      onConfirmedChanged: (v) => setState(() => _scan1Confirmed = v),
+                      imageUrl: _scan1Image,
+                      onPhotoPicked: (path) => setState(() => _scan1Image = path),
+                    ),
+
+                    _buildScanSubCard(
+                      title: '2nd Pregnancy Scan',
+                      dueDate: record.scan2DueDate,
+                      isConfirmed: _scan2Confirmed,
+                      onConfirmedChanged: (v) => setState(() => _scan2Confirmed = v),
+                      imageUrl: _scan2Image,
+                      onPhotoPicked: (path) => setState(() => _scan2Image = path),
+                    ),
+
+                    _buildScanSubCard(
+                      title: '3rd Pregnancy Scan',
+                      dueDate: record.scan3DueDate,
+                      isConfirmed: _scan3Confirmed,
+                      onConfirmedChanged: (v) => setState(() => _scan3Confirmed = v),
+                      imageUrl: _scan3Image,
+                      onPhotoPicked: (path) => setState(() => _scan3Image = path),
+                    ),
+
+                    const SizedBox(height: AppSpacing.spaceL),
+                    const SectionDividerLabel(label: 'VETERINARIAN DETAILS', isLeftAligned: true),
+                    const SizedBox(height: AppSpacing.spaceM),
+
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.spaceM),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                        border: Border.all(color: AppColors.inputBorder),
+                      ),
+                      child: Column(
+                        children: [
+                          CustomTextField(
+                            controller: _vetNameController,
+                            label: 'Vet Name *',
+                            prefixIcon: Icons.medical_services,
+                            validator: (v) => v == null || v.trim().isEmpty ? 'Vet name is required' : null,
+                          ),
+                          const SizedBox(height: AppSpacing.spaceM),
+                          CustomTextField(
+                            controller: _vetMobileController,
+                            label: 'Vet Mobile Number *',
+                            prefixIcon: Icons.phone,
+                            keyboardType: TextInputType.phone,
+                            validator: (v) => v == null || v.trim().isEmpty ? 'Vet mobile number is required' : null,
+                          ),
+                          const SizedBox(height: AppSpacing.spaceM),
+                          if (_vetMobileController.text.trim().isNotEmpty)
+                            ElevatedButton.icon(
+                              onPressed: () => _callVet(_vetMobileController.text.trim()),
+                              icon: const Icon(Icons.call, color: AppColors.background),
+                              label: Text(
+                                'CALL VET (${_vetMobileController.text.trim()})',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryGold,
+                                minimumSize: const Size(double.infinity, 44),
+                              ),
+                            )
+                          else
+                            Text(
+                              'No Vet Added Yet',
+                              style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: AppSpacing.spaceL),
+
+                    // Button to Advanced Pregnancy Info
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/advanced-pregnancy',
+                          arguments: record.id,
+                        );
+                      },
+                      icon: const Icon(Icons.biotech, color: AppColors.primaryGold),
+                      label: Expanded(
+                        child: Text(
+                          'ADVANCED PREGNANCY INFO (CASLICK & FETAL SEX)',
+                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primaryGold),
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: AppSpacing.spaceXL),
+
+                    GradientCtaButton(
+                      text: 'SAVE PREGNANCY DETAILS',
+                      onPressed: _handleSave,
+                      isLoading: _isSaving,
+                    ),
+                  ],
+                ),
               ),
             ),
           );

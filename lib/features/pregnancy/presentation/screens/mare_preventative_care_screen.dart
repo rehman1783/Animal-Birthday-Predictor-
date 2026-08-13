@@ -7,6 +7,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/preventative_care_record.dart';
 import '../providers/preventative_care_provider.dart';
@@ -209,7 +210,13 @@ class _MarePreventativeCareScreenState extends ConsumerState<MarePreventativeCar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(item.label, style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
+              Expanded(
+                child: Text(
+                  item.label,
+                  style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold),
+                ),
+              ),
+              const SizedBox(width: 8),
               Checkbox(
                 value: item.done,
                 activeColor: AppColors.primaryGold,
@@ -269,165 +276,178 @@ class _MarePreventativeCareScreenState extends ConsumerState<MarePreventativeCar
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.spaceL),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SectionDividerLabel(label: 'VACCINATIONS & WORMER', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
+        child: ResponsiveBody(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SectionDividerLabel(label: 'VACCINATIONS & WORMER', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              ..._careItems.keys.map((k) => _buildVaccineRow(k)),
+                ..._careItems.keys.map((k) => _buildVaccineRow(k)),
 
-              const SizedBox(height: AppSpacing.spaceL),
-              const SectionDividerLabel(label: 'DENTISTRY & FARRIER', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
+                const SizedBox(height: AppSpacing.spaceL),
+                const SectionDividerLabel(label: 'DENTISTRY & FARRIER', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              // Dentistry Card
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Dental Checkup', style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
-                        Checkbox(
-                          value: _dentalDone,
-                          activeColor: AppColors.primaryGold,
-                          checkColor: AppColors.background,
-                          onChanged: (v) => setState(() => _dentalDone = v ?? false),
-                        ),
-                      ],
-                    ),
-                    InkWell(
-                      onTap: () => _pickDate('dental'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.inputField,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusM),
-                          border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.calendar_today, color: AppColors.primaryGold, size: 16),
-                            const SizedBox(width: 8),
-                            Text(_formatDate(_dentalDate), style: AppTypography.bodySmall),
-                          ],
+                // Dentistry Card
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text('Dental Checkup', style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
+                          ),
+                          Checkbox(
+                            value: _dentalDone,
+                            activeColor: AppColors.primaryGold,
+                            checkColor: AppColors.background,
+                            onChanged: (v) => setState(() => _dentalDone = v ?? false),
+                          ),
+                        ],
+                      ),
+                      InkWell(
+                        onTap: () => _pickDate('dental'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.inputField,
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusM),
+                            border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.calendar_today, color: AppColors.primaryGold, size: 16),
+                              const SizedBox(width: 8),
+                              Text(_formatDate(_dentalDate), style: AppTypography.bodySmall),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _dentistPhoneController,
-                      label: 'Dentist Phone Number *',
-                      prefixIcon: Icons.phone,
-                      keyboardType: TextInputType.phone,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Dentist phone number is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceS),
-                    if (_dentistPhoneController.text.trim().isNotEmpty)
-                      ElevatedButton.icon(
-                        onPressed: () => _callPhone(_dentistPhoneController.text.trim()),
-                        icon: const Icon(Icons.call, color: AppColors.background),
-                        label: Text('CALL DENTIST (${_dentistPhoneController.text.trim()})'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGold,
-                          minimumSize: const Size(double.infinity, 40),
-                        ),
-                      )
-                    else
-                      Text('No Dentist Number Added', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
-                  ],
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _dentistPhoneController,
+                        label: 'Dentist Phone Number *',
+                        prefixIcon: Icons.phone,
+                        keyboardType: TextInputType.phone,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Dentist phone number is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceS),
+                      if (_dentistPhoneController.text.trim().isNotEmpty)
+                        ElevatedButton.icon(
+                          onPressed: () => _callPhone(_dentistPhoneController.text.trim()),
+                          icon: const Icon(Icons.call, color: AppColors.background),
+                          label: Text(
+                            'CALL DENTIST (${_dentistPhoneController.text.trim()})',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryGold,
+                            minimumSize: const Size(double.infinity, 40),
+                          ),
+                        )
+                      else
+                        Text('No Dentist Number Added', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: AppSpacing.spaceM),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              // Farrier Card
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Farrier Service', style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
-                        Checkbox(
-                          value: _farrierDone,
-                          activeColor: AppColors.primaryGold,
-                          checkColor: AppColors.background,
-                          onChanged: (v) => setState(() => _farrierDone = v ?? false),
-                        ),
-                      ],
-                    ),
-                    InkWell(
-                      onTap: () => _pickDate('farrier'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.inputField,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusM),
-                          border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.calendar_today, color: AppColors.primaryGold, size: 16),
-                            const SizedBox(width: 8),
-                            Text(_formatDate(_farrierDate), style: AppTypography.bodySmall),
-                          ],
+                // Farrier Card
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text('Farrier Service', style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
+                          ),
+                          Checkbox(
+                            value: _farrierDone,
+                            activeColor: AppColors.primaryGold,
+                            checkColor: AppColors.background,
+                            onChanged: (v) => setState(() => _farrierDone = v ?? false),
+                          ),
+                        ],
+                      ),
+                      InkWell(
+                        onTap: () => _pickDate('farrier'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.inputField,
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusM),
+                            border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.calendar_today, color: AppColors.primaryGold, size: 16),
+                              const SizedBox(width: 8),
+                              Text(_formatDate(_farrierDate), style: AppTypography.bodySmall),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _farrierPhoneController,
-                      label: 'Farrier Phone Number *',
-                      prefixIcon: Icons.phone,
-                      keyboardType: TextInputType.phone,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Farrier phone number is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceS),
-                    if (_farrierPhoneController.text.trim().isNotEmpty)
-                      ElevatedButton.icon(
-                        onPressed: () => _callPhone(_farrierPhoneController.text.trim()),
-                        icon: const Icon(Icons.call, color: AppColors.background),
-                        label: Text('CALL FARRIER (${_farrierPhoneController.text.trim()})'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGold,
-                          minimumSize: const Size(double.infinity, 40),
-                        ),
-                      )
-                    else
-                      Text('No Farrier Number Added', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
-                  ],
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _farrierPhoneController,
+                        label: 'Farrier Phone Number *',
+                        prefixIcon: Icons.phone,
+                        keyboardType: TextInputType.phone,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Farrier phone number is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceS),
+                      if (_farrierPhoneController.text.trim().isNotEmpty)
+                        ElevatedButton.icon(
+                          onPressed: () => _callPhone(_farrierPhoneController.text.trim()),
+                          icon: const Icon(Icons.call, color: AppColors.background),
+                          label: Text(
+                            'CALL FARRIER (${_farrierPhoneController.text.trim()})',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryGold,
+                            minimumSize: const Size(double.infinity, 40),
+                          ),
+                        )
+                      else
+                        Text('No Farrier Number Added', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: AppSpacing.spaceXL),
+                const SizedBox(height: AppSpacing.spaceXL),
 
-              GradientCtaButton(
-                text: 'SAVE PREVENTATIVE CARE',
-                onPressed: _handleSave,
-                isLoading: _isSaving,
-              ),
-            ],
+                GradientCtaButton(
+                  text: 'SAVE PREVENTATIVE CARE',
+                  onPressed: _handleSave,
+                  isLoading: _isSaving,
+                ),
+              ],
+            ),
           ),
         ),
       ),

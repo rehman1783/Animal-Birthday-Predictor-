@@ -7,6 +7,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/markings.dart';
 import '../providers/mare_provider.dart';
@@ -119,93 +120,96 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.spaceL),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Static Disclaimer Banner
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryGold.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusM),
-                  border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.info_outline, color: AppColors.primaryGold, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'The diagrams provided are intended as a general guide only. Markings and brands should be recorded as accurately as possible, however always refer to official breed registration when in doubt.',
-                        style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 12),
+        child: ResponsiveBody(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Static Disclaimer Banner
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGold.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusM),
+                    border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline, color: AppColors.primaryGold, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'The diagrams provided are intended as a general guide only. Markings and brands should be recorded as accurately as possible, however always refer to official breed registration when in doubt.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 12),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: AppSpacing.spaceL),
-              const SectionDividerLabel(label: 'PHOTO & BRAND CAPTURE', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
+                const SizedBox(height: AppSpacing.spaceL),
+                const SectionDividerLabel(label: 'PHOTO & BRAND CAPTURE', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              Text('Left Side Markings', style: AppTypography.inputLabel),
-              const SizedBox(height: 8),
-              AppImagePicker(
-                currentImagePath: _leftSideImage,
-                label: 'Left Side Photo',
-                height: 140,
-                onImagePicked: (path) => setState(() => _leftSideImage = path),
-              ),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              Text('Right Side Markings', style: AppTypography.inputLabel),
-              const SizedBox(height: 8),
-              AppImagePicker(
-                currentImagePath: _rightSideImage,
-                label: 'Right Side Photo',
-                height: 140,
-                onImagePicked: (path) => setState(() => _rightSideImage = path),
-              ),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              Text('Head View Markings', style: AppTypography.inputLabel),
-              const SizedBox(height: 8),
-              AppImagePicker(
-                currentImagePath: _headViewImage,
-                label: 'Head View Photo',
-                height: 140,
-                onImagePicked: (path) => setState(() => _headViewImage = path),
-              ),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                  border: Border.all(color: AppColors.inputBorder),
+                Text('Left Side Markings', style: AppTypography.inputLabel),
+                const SizedBox(height: 8),
+                AppImagePicker(
+                  currentImagePath: _leftSideImage,
+                  label: 'Left Side Photo',
+                  height: 140,
+                  onImagePicked: (path) => setState(() => _leftSideImage = path),
                 ),
-                child: CustomTextField(
-                  controller: _headNotesController,
-                  label: 'Head View / Brand Notes *',
-                  prefixIcon: Icons.notes,
-                  maxLines: 3,
-                  validator: (v) => v == null || v.trim().isEmpty ? 'Markings notes are required' : null,
+                const SizedBox(height: AppSpacing.spaceM),
+
+                Text('Right Side Markings', style: AppTypography.inputLabel),
+                const SizedBox(height: 8),
+                AppImagePicker(
+                  currentImagePath: _rightSideImage,
+                  label: 'Right Side Photo',
+                  height: 140,
+                  onImagePicked: (path) => setState(() => _rightSideImage = path),
                 ),
-              ),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              const SizedBox(height: AppSpacing.spaceXL),
+                Text('Head View Markings', style: AppTypography.inputLabel),
+                const SizedBox(height: 8),
+                AppImagePicker(
+                  currentImagePath: _headViewImage,
+                  label: 'Head View Photo',
+                  height: 140,
+                  onImagePicked: (path) => setState(() => _headViewImage = path),
+                ),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              GradientCtaButton(
-                text: 'SAVE MARKINGS',
-                onPressed: _handleSave,
-                isLoading: _isSaving,
-              ),
-            ],
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: CustomTextField(
+                    controller: _headNotesController,
+                    label: 'Head View / Brand Notes *',
+                    prefixIcon: Icons.notes,
+                    maxLines: 3,
+                    validator: (v) => v == null || v.trim().isEmpty ? 'Markings notes are required' : null,
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.spaceXL),
+
+                GradientCtaButton(
+                  text: 'SAVE MARKINGS',
+                  onPressed: _handleSave,
+                  isLoading: _isSaving,
+                ),
+              ],
+            ),
           ),
         ),
       ),

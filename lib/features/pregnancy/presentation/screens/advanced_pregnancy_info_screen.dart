@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/advanced_pregnancy_info.dart';
 import '../providers/pregnancy_provider.dart';
@@ -140,8 +141,11 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
         children: [
           Text(title, style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
           const SizedBox(height: AppSpacing.spaceS),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12.0,
+            runSpacing: 8.0,
             children: [
               InkWell(
                 onTap: () async {
@@ -156,6 +160,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
                     border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.3)),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.calendar_today, color: AppColors.primaryGold, size: 16),
                       const SizedBox(width: 8),
@@ -190,112 +195,118 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.spaceL),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SectionDividerLabel(label: 'PROCEDURES & SEXING', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
+        child: ResponsiveBody(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SectionDividerLabel(label: 'PROCEDURES & SEXING', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              // 1. Caslick Sub-Card
-              _buildSubCard(
-                title: 'Caslick Procedure',
-                date: _caslickDate,
-                onDateChanged: (d) => setState(() => _caslickDate = d),
-                toggleWidget: Row(
-                  children: [
-                    const Text('Performed', style: AppTypography.bodySmall),
-                    Switch(
-                      value: _caslickDone,
-                      activeThumbColor: AppColors.primaryGold,
-                      onChanged: (v) => setState(() => _caslickDone = v),
-                    ),
-                  ],
+                // 1. Caslick Sub-Card
+                _buildSubCard(
+                  title: 'Caslick Procedure',
+                  date: _caslickDate,
+                  onDateChanged: (d) => setState(() => _caslickDate = d),
+                  toggleWidget: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Performed', style: AppTypography.bodySmall),
+                      Switch(
+                        value: _caslickDone,
+                        activeThumbColor: AppColors.primaryGold,
+                        onChanged: (v) => setState(() => _caslickDone = v),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // 2. Fetal Sex Scan Sub-Card
-              _buildSubCard(
-                title: 'Fetal Sex Scan',
-                date: _fetalSexScanDate,
-                onDateChanged: (d) => setState(() => _fetalSexScanDate = d),
-                toggleWidget: Row(
-                  children: [
-                    const Text('Done', style: AppTypography.bodySmall),
-                    Switch(
-                      value: _fetalSexScanDone,
-                      activeThumbColor: AppColors.primaryGold,
-                      onChanged: (v) => setState(() => _fetalSexScanDone = v),
-                    ),
-                  ],
+                // 2. Fetal Sex Scan Sub-Card
+                _buildSubCard(
+                  title: 'Fetal Sex Scan',
+                  date: _fetalSexScanDate,
+                  onDateChanged: (d) => setState(() => _fetalSexScanDate = d),
+                  toggleWidget: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Done', style: AppTypography.bodySmall),
+                      Switch(
+                        value: _fetalSexScanDone,
+                        activeThumbColor: AppColors.primaryGold,
+                        onChanged: (v) => setState(() => _fetalSexScanDone = v),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // 3. FFS Result Sub-Card
-              _buildSubCard(
-                title: 'Fetal Sex Result (FFS)',
-                date: _ffsResultDate,
-                onDateChanged: (d) => setState(() => _ffsResultDate = d),
-                toggleWidget: Row(
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Filly'),
-                      selected: _ffsResult == 'filly',
-                      selectedColor: AppColors.primaryGold,
-                      onSelected: (val) {
-                        if (val) setState(() => _ffsResult = 'filly');
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    ChoiceChip(
-                      label: const Text('Colt'),
-                      selected: _ffsResult == 'colt',
-                      selectedColor: AppColors.primaryGold,
-                      onSelected: (val) {
-                        if (val) setState(() => _ffsResult = 'colt');
-                      },
-                    ),
-                  ],
+                // 3. FFS Result Sub-Card
+                _buildSubCard(
+                  title: 'Fetal Sex Result (FFS)',
+                  date: _ffsResultDate,
+                  onDateChanged: (d) => setState(() => _ffsResultDate = d),
+                  toggleWidget: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('Filly'),
+                        selected: _ffsResult == 'filly',
+                        selectedColor: AppColors.primaryGold,
+                        onSelected: (val) {
+                          if (val) setState(() => _ffsResult = 'filly');
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      ChoiceChip(
+                        label: const Text('Colt'),
+                        selected: _ffsResult == 'colt',
+                        selectedColor: AppColors.primaryGold,
+                        onSelected: (val) {
+                          if (val) setState(() => _ffsResult = 'colt');
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: AppSpacing.spaceM),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              // Ultrasound Photo Upload Slot
-              AppImagePicker(
-                currentImagePath: _ultrasoundImageUrl,
-                label: 'Upload Fetal Ultrasound Image',
-                height: 120,
-                icon: Icons.center_focus_strong,
-                onImagePicked: (path) => setState(() => _ultrasoundImageUrl = path),
-              ),
-
-              const SizedBox(height: AppSpacing.spaceL),
-
-              // Static Disclaimer Banner
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryGold.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusM),
-                  border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+                // Ultrasound Photo Upload Slot
+                AppImagePicker(
+                  currentImagePath: _ultrasoundImageUrl,
+                  label: 'Upload Fetal Ultrasound Image',
+                  height: 120,
+                  icon: Icons.center_focus_strong,
+                  onImagePicked: (path) => setState(() => _ultrasoundImageUrl = path),
                 ),
-                child: Text(
-                  'Fetal sexing is a specialised procedure that relies on optimal timing and imaging conditions. While every effort is made to provide accurate results, results are not guaranteed and may be subject to misinterpretation due to fetal positioning, natural variation etc. We recommend discussing any findings with a qualified veterinarian. This feature is provided for informational purposes only.',
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11),
+
+                const SizedBox(height: AppSpacing.spaceL),
+
+                // Static Disclaimer Banner
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGold.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusM),
+                    border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+                  ),
+                  child: Text(
+                    'Fetal sexing is a specialised procedure that relies on optimal timing and imaging conditions. While every effort is made to provide accurate results, results are not guaranteed and may be subject to misinterpretation due to fetal positioning, natural variation etc. We recommend discussing any findings with a qualified veterinarian. This feature is provided for informational purposes only.',
+                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11),
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: AppSpacing.spaceXL),
+                const SizedBox(height: AppSpacing.spaceXL),
 
-              GradientCtaButton(
-                text: 'SAVE ADVANCED INFO',
-                onPressed: _handleSave,
-                isLoading: _isSaving,
-              ),
-            ],
+                GradientCtaButton(
+                  text: 'SAVE ADVANCED INFO',
+                  onPressed: _handleSave,
+                  isLoading: _isSaving,
+                ),
+              ],
+            ),
           ),
         ),
       ),

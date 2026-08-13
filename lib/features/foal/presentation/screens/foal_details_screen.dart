@@ -7,6 +7,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/mare_provider.dart';
 import '../../domain/foal_record.dart';
@@ -204,335 +205,349 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.spaceL),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Photo Header with AppImagePicker
-              AppImagePicker(
-                currentImagePath: _photoUrl,
-                label: 'Tap to Capture / Choose Foal Photo',
-                height: 160,
-                onImagePicked: (path) => setState(() => _photoUrl = path),
-              ),
-
-              const SizedBox(height: AppSpacing.spaceL),
-              const SectionDividerLabel(label: 'FOAL IDENTITY', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                  border: Border.all(color: AppColors.inputBorder),
+        child: ResponsiveBody(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Photo Header with AppImagePicker
+                AppImagePicker(
+                  currentImagePath: _photoUrl,
+                  label: 'Tap to Capture / Choose Foal Photo',
+                  height: 160,
+                  onImagePicked: (path) => setState(() => _photoUrl = path),
                 ),
-                child: Column(
-                  children: [
-                    CustomTextField(
-                      controller: _foalNameController,
-                      label: 'Foal Name *',
-                      prefixIcon: Icons.child_care,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Foal name is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    InkWell(
-                      onTap: () => _pickDate(true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: AppColors.inputField,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusM),
-                          border: Border.all(color: AppColors.inputBorder),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Date of Birth *', style: AppTypography.bodyMedium),
-                            Text(_formatDate(_dob), style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
-                          ],
-                        ),
+
+                const SizedBox(height: AppSpacing.spaceL),
+                const SectionDividerLabel(label: 'FOAL IDENTITY', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
+
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      CustomTextField(
+                        controller: _foalNameController,
+                        label: 'Foal Name *',
+                        prefixIcon: Icons.child_care,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Foal name is required' : null,
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _breedController,
-                      label: 'Breed *',
-                      prefixIcon: Icons.category,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Breed is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Sex *', style: AppTypography.bodyMedium),
-                        Row(
-                          children: [
-                            ChoiceChip(
-                              label: const Text('Filly'),
-                              selected: _sex == 'filly',
-                              selectedColor: AppColors.primaryGold,
-                              onSelected: (v) {
-                                if (v) setState(() => _sex = 'filly');
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            ChoiceChip(
-                              label: const Text('Colt'),
-                              selected: _sex == 'colt',
-                              selectedColor: AppColors.primaryGold,
-                              onSelected: (v) {
-                                if (v) setState(() => _sex = 'colt');
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.spaceL),
-              const SectionDividerLabel(label: 'LINKED PARENTS', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              // Mare & Recipient Mare Pickers
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Dam Mare *', style: AppTypography.inputLabel),
-                    const SizedBox(height: 6),
-                    maresAsync.when(
-                      loading: () => const LinearProgressIndicator(color: AppColors.primaryGold),
-                      error: (e, s) => Text('Error loading mares: $e'),
-                      data: (maresList) {
-                        return DropdownButtonFormField<String>(
-                          initialValue: _selectedMareId,
-                          dropdownColor: AppColors.surface,
-                          decoration: InputDecoration(
-                            fillColor: AppColors.inputField,
-                            filled: true,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusM)),
-                          ),
-                          items: maresList.map((m) {
-                            return DropdownMenuItem<String>(
-                              value: m.id,
-                              child: Text('${m.name} (${m.microchipNo ?? "No Microchip"})', style: AppTypography.bodyMedium),
-                            );
-                          }).toList(),
-                          onChanged: (val) => setState(() => _selectedMareId = val),
-                          validator: (v) => v == null || v.isEmpty ? 'Please select Dam Mare' : null,
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: AppSpacing.spaceM),
-
-                    Text('Recipient Mare (If Applicable)', style: AppTypography.inputLabel),
-                    const SizedBox(height: 6),
-                    recipientMaresAsync.when(
-                      loading: () => const LinearProgressIndicator(color: AppColors.primaryGold),
-                      error: (e, s) => Text('Error loading recipient mares: $e'),
-                      data: (recipList) {
-                        return DropdownButtonFormField<String>(
-                          initialValue: _selectedRecipientMareId,
-                          dropdownColor: AppColors.surface,
-                          decoration: InputDecoration(
-                            fillColor: AppColors.inputField,
-                            filled: true,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusM)),
-                          ),
-                          items: [
-                            const DropdownMenuItem<String>(
-                              value: null,
-                              child: Text('None (Natural Mare Carried)', style: TextStyle(color: AppColors.textMuted)),
-                            ),
-                            ...recipList.map((r) {
-                              return DropdownMenuItem<String>(
-                                value: r.id,
-                                child: Text('${r.nameNo} (${r.microchipNo ?? "No Microchip"})', style: AppTypography.bodyMedium),
-                              );
-                            }),
-                          ],
-                          onChanged: (val) => setState(() => _selectedRecipientMareId = val),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _stallionController,
-                      label: 'Stallion (Sire) *',
-                      prefixIcon: Icons.male,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Stallion (Sire) is required' : null,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.spaceL),
-              const SectionDividerLabel(label: 'HEALTH & REGISTRATION', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Column(
-                  children: [
-                    CustomTextField(
-                      controller: _iggController,
-                      label: 'IGG Value *',
-                      prefixIcon: Icons.health_and_safety,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'IGG Value is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _microchipController,
-                      label: 'Foal Microchip No. *',
-                      prefixIcon: Icons.qr_code,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Microchip number is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _dnaController,
-                      label: 'DNA Registration *',
-                      prefixIcon: Icons.fingerprint,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'DNA registration is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Gelded', style: AppTypography.bodyMedium),
-                        Switch(
-                          value: _gelded,
-                          activeThumbColor: AppColors.primaryGold,
-                          onChanged: (v) => setState(() => _gelded = v),
-                        ),
-                      ],
-                    ),
-                    if (_gelded) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.spaceM),
                       InkWell(
-                        onTap: () => _pickDate(false),
+                        onTap: () => _pickDate(true),
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                           decoration: BoxDecoration(
                             color: AppColors.inputField,
                             borderRadius: BorderRadius.circular(AppSpacing.radiusM),
+                            border: Border.all(color: AppColors.inputBorder),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Gelded Date', style: AppTypography.bodySmall),
-                              Text(_formatDate(_geldedDate), style: AppTypography.bodySmall.copyWith(color: AppColors.primaryGold)),
+                              const Expanded(
+                                child: Text('Date of Birth *', style: AppTypography.bodyMedium),
+                              ),
+                              Text(_formatDate(_dob), style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
                             ],
                           ),
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _breedController,
+                        label: 'Breed *',
+                        prefixIcon: Icons.category,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Breed is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Sex *', style: AppTypography.bodyMedium),
+                          Wrap(
+                            spacing: 6.0,
+                            children: [
+                              ChoiceChip(
+                                label: const Text('Filly'),
+                                selected: _sex == 'filly',
+                                selectedColor: AppColors.primaryGold,
+                                onSelected: (v) {
+                                  if (v) setState(() => _sex = 'filly');
+                                },
+                              ),
+                              ChoiceChip(
+                                label: const Text('Colt'),
+                                selected: _sex == 'colt',
+                                selectedColor: AppColors.primaryGold,
+                                onSelected: (v) {
+                                  if (v) setState(() => _sex = 'colt');
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ],
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _studBookController,
-                      label: 'Stud Book / Breeding Association *',
-                      prefixIcon: Icons.menu_book,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Stud Book / Association is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Status *', style: AppTypography.bodyMedium),
-                        Row(
-                          children: [
-                            ChoiceChip(
-                              label: const Text('Keep'),
-                              selected: _status == 'keep',
-                              selectedColor: AppColors.primaryGold,
-                              onSelected: (v) {
-                                if (v) setState(() => _status = 'keep');
-                              },
-                            ),
-                            const SizedBox(width: 4),
-                            ChoiceChip(
-                              label: const Text('Sold'),
-                              selected: _status == 'sold',
-                              selectedColor: AppColors.primaryGold,
-                              onSelected: (v) {
-                                if (v) setState(() => _status = 'sold');
-                              },
-                            ),
-                            const SizedBox(width: 4),
-                            ChoiceChip(
-                              label: const Text('Transferred'),
-                              selected: _status == 'transferred',
-                              selectedColor: AppColors.primaryGold,
-                              onSelected: (v) {
-                                if (v) setState(() => _status = 'transferred');
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _notesController,
-                      label: 'Notes *',
-                      prefixIcon: Icons.notes,
-                      maxLines: 2,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Notes are required' : null,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.spaceL),
-
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/markings',
-                    arguments: {'ownerType': 'foal', 'ownerId': foalId},
-                  );
-                },
-                icon: const Icon(Icons.palette, color: AppColors.primaryGold),
-                label: Text(
-                  'RECORD FOAL MARKINGS',
-                  style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primaryGold),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: AppSpacing.spaceXL),
+                const SizedBox(height: AppSpacing.spaceL),
+                const SectionDividerLabel(label: 'LINKED PARENTS', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              GradientCtaButton(
-                text: isEdit ? 'UPDATE FOAL DETAILS' : 'SAVE FOAL DETAILS',
-                onPressed: _handleSave,
-                isLoading: _isSaving,
-              ),
-            ],
+                // Mare & Recipient Mare Pickers
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Dam Mare *', style: AppTypography.inputLabel),
+                      const SizedBox(height: 6),
+                      maresAsync.when(
+                        loading: () => const LinearProgressIndicator(color: AppColors.primaryGold),
+                        error: (e, s) => Text('Error loading mares: $e'),
+                        data: (maresList) {
+                          return DropdownButtonFormField<String>(
+                            initialValue: _selectedMareId,
+                            dropdownColor: AppColors.surface,
+                            decoration: InputDecoration(
+                              fillColor: AppColors.inputField,
+                              filled: true,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusM)),
+                            ),
+                            items: maresList.map((m) {
+                              return DropdownMenuItem<String>(
+                                value: m.id,
+                                child: Text(
+                                  '${m.name} (${m.microchipNo ?? "No Microchip"})',
+                                  style: AppTypography.bodyMedium,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (val) => setState(() => _selectedMareId = val),
+                            validator: (v) => v == null || v.isEmpty ? 'Please select Dam Mare' : null,
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.spaceM),
+
+                      Text('Recipient Mare (If Applicable)', style: AppTypography.inputLabel),
+                      const SizedBox(height: 6),
+                      recipientMaresAsync.when(
+                        loading: () => const LinearProgressIndicator(color: AppColors.primaryGold),
+                        error: (e, s) => Text('Error loading recipient mares: $e'),
+                        data: (recipList) {
+                          return DropdownButtonFormField<String>(
+                            initialValue: _selectedRecipientMareId,
+                            dropdownColor: AppColors.surface,
+                            decoration: InputDecoration(
+                              fillColor: AppColors.inputField,
+                              filled: true,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusM)),
+                            ),
+                            items: [
+                              const DropdownMenuItem<String>(
+                                value: null,
+                                child: Text('None (Natural Mare Carried)', style: TextStyle(color: AppColors.textMuted)),
+                              ),
+                              ...recipList.map((r) {
+                                return DropdownMenuItem<String>(
+                                  value: r.id,
+                                  child: Text(
+                                    '${r.nameNo} (${r.microchipNo ?? "No Microchip"})',
+                                    style: AppTypography.bodyMedium,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }),
+                            ],
+                            onChanged: (val) => setState(() => _selectedRecipientMareId = val),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _stallionController,
+                        label: 'Stallion (Sire) *',
+                        prefixIcon: Icons.male,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Stallion (Sire) is required' : null,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.spaceL),
+                const SectionDividerLabel(label: 'HEALTH & REGISTRATION', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
+
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      CustomTextField(
+                        controller: _iggController,
+                        label: 'IGG Value *',
+                        prefixIcon: Icons.health_and_safety,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'IGG Value is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _microchipController,
+                        label: 'Foal Microchip No. *',
+                        prefixIcon: Icons.qr_code,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Microchip number is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _dnaController,
+                        label: 'DNA Registration *',
+                        prefixIcon: Icons.fingerprint,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'DNA registration is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Gelded', style: AppTypography.bodyMedium),
+                          Switch(
+                            value: _gelded,
+                            activeThumbColor: AppColors.primaryGold,
+                            onChanged: (v) => setState(() => _gelded = v),
+                          ),
+                        ],
+                      ),
+                      if (_gelded) ...[
+                        const SizedBox(height: 8),
+                        InkWell(
+                          onTap: () => _pickDate(false),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.inputField,
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusM),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Gelded Date', style: AppTypography.bodySmall),
+                                Text(_formatDate(_geldedDate), style: AppTypography.bodySmall.copyWith(color: AppColors.primaryGold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _studBookController,
+                        label: 'Stud Book / Breeding Association *',
+                        prefixIcon: Icons.menu_book,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Stud Book / Association is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Status *', style: AppTypography.bodyMedium),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: [
+                              ChoiceChip(
+                                label: const Text('Keep'),
+                                selected: _status == 'keep',
+                                selectedColor: AppColors.primaryGold,
+                                onSelected: (v) {
+                                  if (v) setState(() => _status = 'keep');
+                                },
+                              ),
+                              ChoiceChip(
+                                label: const Text('Sold'),
+                                selected: _status == 'sold',
+                                selectedColor: AppColors.primaryGold,
+                                onSelected: (v) {
+                                  if (v) setState(() => _status = 'sold');
+                                },
+                              ),
+                              ChoiceChip(
+                                label: const Text('Transferred'),
+                                selected: _status == 'transferred',
+                                selectedColor: AppColors.primaryGold,
+                                onSelected: (v) {
+                                  if (v) setState(() => _status = 'transferred');
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _notesController,
+                        label: 'Notes *',
+                        prefixIcon: Icons.notes,
+                        maxLines: 3,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Notes are required' : null,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.spaceL),
+
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/markings',
+                      arguments: {'ownerType': 'foal', 'ownerId': foalId},
+                    );
+                  },
+                  icon: const Icon(Icons.palette, color: AppColors.primaryGold),
+                  label: Text(
+                    'RECORD FOAL MARKINGS',
+                    style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.primaryGold),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.spaceXL),
+
+                GradientCtaButton(
+                  text: isEdit ? 'UPDATE FOAL DETAILS' : 'SAVE FOAL DETAILS',
+                  onPressed: _handleSave,
+                  isLoading: _isSaving,
+                ),
+              ],
+            ),
           ),
         ),
       ),

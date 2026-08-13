@@ -7,6 +7,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/mare.dart';
 import '../providers/mare_provider.dart';
@@ -126,135 +127,138 @@ class _MareDetailsScreenState extends ConsumerState<MareDetailsScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.spaceL),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Photo Header with AppImagePicker (Gallery + Camera)
-              AppImagePicker(
-                currentImagePath: _photoUrl,
-                label: 'Tap to Capture / Choose Mare Photo',
-                height: 160,
-                onImagePicked: (path) => setState(() => _photoUrl = path),
-              ),
-              const SizedBox(height: AppSpacing.spaceL),
-
-              const SectionDividerLabel(label: 'MARE IDENTITY', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
-
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                  border: Border.all(color: AppColors.inputBorder),
+        child: ResponsiveBody(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Photo Header with AppImagePicker (Gallery + Camera)
+                AppImagePicker(
+                  currentImagePath: _photoUrl,
+                  label: 'Tap to Capture / Choose Mare Photo',
+                  height: 160,
+                  onImagePicked: (path) => setState(() => _photoUrl = path),
                 ),
-                child: Column(
-                  children: [
-                    CustomTextField(
-                      controller: _nameController,
-                      label: 'Mare Name *',
-                      prefixIcon: Icons.pets,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Mare name is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _breedController,
-                      label: 'Breed *',
-                      prefixIcon: Icons.category,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Breed is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _brandController,
-                      label: 'Brand *',
-                      prefixIcon: Icons.branding_watermark,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Brand is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _dnaController,
-                      label: 'DNA Registration *',
-                      prefixIcon: Icons.fingerprint,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'DNA registration is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _microchipController,
-                      label: 'Microchip No. *',
-                      prefixIcon: Icons.qr_code,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Microchip number is required' : null,
-                    ),
-                  ],
-                ),
-              ),
+                const SizedBox(height: AppSpacing.spaceL),
 
-              const SizedBox(height: AppSpacing.spaceL),
-              const SectionDividerLabel(label: 'OWNER / CLIENT DETAILS', isLeftAligned: true),
-              const SizedBox(height: AppSpacing.spaceM),
+                const SectionDividerLabel(label: 'MARE IDENTITY', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.spaceM),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Column(
-                  children: [
-                    CustomTextField(
-                      controller: _ownerNameController,
-                      label: 'Owner / Client Name *',
-                      prefixIcon: Icons.person,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Owner name is required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.spaceM),
-                    CustomTextField(
-                      controller: _ownerPhoneController,
-                      label: 'Owner Phone Number *',
-                      prefixIcon: Icons.phone,
-                      keyboardType: TextInputType.phone,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Owner phone number is required' : null,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.spaceL),
-
-              // Action button to Markings
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/markings',
-                    arguments: {'ownerType': 'mare', 'ownerId': mareId},
-                  );
-                },
-                icon: const Icon(Icons.palette, color: AppColors.primaryGold),
-                label: Text(
-                  'RECORD MARE MARKINGS',
-                  style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primaryGold),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      CustomTextField(
+                        controller: _nameController,
+                        label: 'Mare Name *',
+                        prefixIcon: Icons.pets,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Mare name is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _breedController,
+                        label: 'Breed *',
+                        prefixIcon: Icons.category,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Breed is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _brandController,
+                        label: 'Brand *',
+                        prefixIcon: Icons.branding_watermark,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Brand is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _dnaController,
+                        label: 'DNA Registration *',
+                        prefixIcon: Icons.fingerprint,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'DNA registration is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _microchipController,
+                        label: 'Microchip No. *',
+                        prefixIcon: Icons.qr_code,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Microchip number is required' : null,
+                      ),
+                    ],
                   ),
                 ),
-              ),
 
-              const SizedBox(height: AppSpacing.spaceXL),
+                const SizedBox(height: AppSpacing.spaceL),
+                const SectionDividerLabel(label: 'OWNER / CLIENT DETAILS', isLeftAligned: true),
+                const SizedBox(height: AppSpacing.spaceM),
 
-              GradientCtaButton(
-                text: isEdit ? 'UPDATE MARE & PROCEED' : 'SAVE MARE & PROCEED TO BREEDING',
-                onPressed: _handleSave,
-                isLoading: _isSaving,
-              ),
-            ],
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceM),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      CustomTextField(
+                        controller: _ownerNameController,
+                        label: 'Owner / Client Name *',
+                        prefixIcon: Icons.person,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Owner name is required' : null,
+                      ),
+                      const SizedBox(height: AppSpacing.spaceM),
+                      CustomTextField(
+                        controller: _ownerPhoneController,
+                        label: 'Owner Phone Number *',
+                        prefixIcon: Icons.phone,
+                        keyboardType: TextInputType.phone,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Owner phone number is required' : null,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.spaceL),
+
+                // Action button to Markings
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/markings',
+                      arguments: {'ownerType': 'mare', 'ownerId': mareId},
+                    );
+                  },
+                  icon: const Icon(Icons.palette, color: AppColors.primaryGold),
+                  label: Text(
+                    'RECORD MARE MARKINGS',
+                    style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.primaryGold),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.spaceXL),
+
+                GradientCtaButton(
+                  text: isEdit ? 'UPDATE MARE & PROCEED' : 'SAVE MARE & PROCEED TO BREEDING',
+                  onPressed: _handleSave,
+                  isLoading: _isSaving,
+                ),
+              ],
+            ),
           ),
         ),
       ),
