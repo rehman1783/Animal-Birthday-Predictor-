@@ -1,53 +1,164 @@
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../domain/breeding_record.dart';
 import '../domain/pregnancy_record.dart';
-import '../../animals/domain/animal_type.dart';
+import '../domain/advanced_pregnancy_info.dart';
+import '../domain/pregnancy_calculation_utils.dart';
 
 class PregnancyRepository {
-  final List<PregnancyRecord> _mockPregnancies = [
-    PregnancyRecord(
-      id: 'p1',
-      damName: 'Starlight Eclipse',
-      sireName: 'Thunderbolt Fury',
-      animalType: AnimalType.horse,
-      breedingDate: DateTime.now().subtract(const Duration(days: 315)),
-      expectedDueDate: DateTime.now().add(const Duration(days: 25)),
-      confirmedPregnancy: true,
-      status: PregnancyStatus.active,
-      notes: 'Ultasound confirmed single healthy foal. Gestation on track.',
-      createdAt: DateTime.now().subtract(const Duration(days: 315)),
-    ),
-    PregnancyRecord(
-      id: 'p2',
-      damName: 'Bella Sterling',
-      sireName: 'Baron von Rex',
-      animalType: AnimalType.dog,
-      breedingDate: DateTime.now().subtract(const Duration(days: 52)),
-      expectedDueDate: DateTime.now().add(const Duration(days: 11)),
-      confirmedPregnancy: true,
-      status: PregnancyStatus.dueSoon,
-      notes: 'Nesting behavior observed. Expected litter of 5-7 puppies.',
-      createdAt: DateTime.now().subtract(const Duration(days: 52)),
-    ),
-    PregnancyRecord(
-      id: 'p3',
-      damName: 'Celestial Queen',
-      sireName: 'Northern Dancer',
-      animalType: AnimalType.horse,
-      breedingDate: DateTime.now().subtract(const Duration(days: 350)),
-      expectedDueDate: DateTime.now().subtract(const Duration(days: 10)),
-      confirmedPregnancy: true,
-      status: PregnancyStatus.delivered,
-      notes: 'Delivered healthy colt safely. Normal foaling.',
-      createdAt: DateTime.now().subtract(const Duration(days: 350)),
-    ),
-  ];
+  final SupabaseClient? _supabase;
+  final List<BreedingRecord> _inMemoryBreeding = [];
+  final List<PregnancyRecord> _inMemoryPregnancies = [];
+  final List<AdvancedPregnancyInfo> _inMemoryAdvanced = [];
 
-  Future<List<PregnancyRecord>> fetchPregnancies() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return List.from(_mockPregnancies);
+  PregnancyRepository({SupabaseClient? supabase})
+      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client);
+
+  SupabaseClient? get client {
+    try {
+      return _supabase ?? Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
   }
 
-  Future<void> addPregnancy(PregnancyRecord record) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    _mockPregnancies.insert(0, record);
+  // --- BREEDING RECORDS ---
+  Future<BreedingRecord> saveBreedingRecord(BreedingRecord record) async {
+    final c = client;
+    if (c == null) {
+      _inMemoryBreeding.add(record);
+      return record;
+    }
+    try {
+      final data = await c.from('breeding_records').upsert(record.toJson()).select().single();
+      return BreedingRecord.fromJson(data);
+    } catch (e) {
+      debugPrint('Supabase saveBreedingRecord error: $e');
+      _inMemoryBreeding.add(record);
+      return record;
+    }
+  }
+
+  // --- PREGNANCY RECORDS ---
+  Future<PregnancyRecord?> getPregnancyRecordForCarrier(String carrierType, String carrierId) async {
+    final c = client;
+    if (c == null) {
+      try {
+        return _inMemoryPregnancies.firstWhere(
+          (p) => p.carrierType == carrierType && p.carrierId == carrierId,
+        );
+      } catch (_) {
+        return null;
+      }
+    }
+    try {
+      final data = await c
+          .from('pregnancy_records')
+          .select()
+          .eq('carrier_type', carrierType)
+          .eq('carrier_id', carrierId)
+          .maybeSingle();
+      if (data == null) return null;
+      return PregnancyRecord.fromJson(data);
+    } catch (e) {
+      debugPrint('Supabase getPregnancyRecordForCarrier error: $e');
+      return null;
+    }
+  }
+
+  Future<PregnancyRecord> savePregnancyRecord(PregnancyRecord record) async {
+    final c = client;
+    if (c == null) {
+      final index = _inMemoryPregnancies.indexWhere((p) => p.id == record.id);
+      if (index >= 0) {
+        _inMemoryPregnancies[index] = record;
+      } else {
+        _inMemoryPregnancies.add(record);
+      }
+      return record;
+    }
+    try {
+      final data = await c.from('pregnancy_records').upsert(record.toJson()).select().single();
+      return PregnancyRecord.fromJson(data);
+    } catch (e) {
+      debugPrint('Supabase savePregnancyRecord error: $e');
+      _inMemoryPregnancies.add(record);
+      return record;
+    }
+  }
+
+  /// Create and store a calculated pregnancy record for a carrier
+  Future<PregnancyRecord> createCalculatedPregnancyRecord({
+    required String carrierType,
+    required String carrierId,
+    required String breedingRecordId,
+    required String method,
+    required DateTime baseDate,
+  }) async {
+    final calculated = calculatePregnancyDates(
+      carrierType: carrierType,
+      method: method,
+      baseDate: baseDate,
+    );
+
+    final record = PregnancyRecord(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      carrierType: carrierType,
+      carrierId: carrierId,
+      breedingRecordId: breedingRecordId,
+      scan1DueDate: calculated.scan1DueDate,
+      scan2DueDate: calculated.scan2DueDate,
+      scan3DueDate: calculated.scan3DueDate,
+      foalingDueDate: calculated.foalingDueDate,
+      createdAt: DateTime.now(),
+    );
+
+    return savePregnancyRecord(record);
+  }
+
+  // --- ADVANCED PREGNANCY INFO ---
+  Future<AdvancedPregnancyInfo?> getAdvancedPregnancyInfo(String pregnancyRecordId) async {
+    final c = client;
+    if (c == null) {
+      try {
+        return _inMemoryAdvanced.firstWhere((a) => a.pregnancyRecordId == pregnancyRecordId);
+      } catch (_) {
+        return null;
+      }
+    }
+    try {
+      final data = await c
+          .from('advanced_pregnancy_info')
+          .select()
+          .eq('pregnancy_record_id', pregnancyRecordId)
+          .maybeSingle();
+      if (data == null) return null;
+      return AdvancedPregnancyInfo.fromJson(data);
+    } catch (e) {
+      debugPrint('Supabase getAdvancedPregnancyInfo error: $e');
+      return null;
+    }
+  }
+
+  Future<AdvancedPregnancyInfo> saveAdvancedPregnancyInfo(AdvancedPregnancyInfo info) async {
+    final c = client;
+    if (c == null) {
+      final index = _inMemoryAdvanced.indexWhere((a) => a.id == info.id || a.pregnancyRecordId == info.pregnancyRecordId);
+      if (index >= 0) {
+        _inMemoryAdvanced[index] = info;
+      } else {
+        _inMemoryAdvanced.add(info);
+      }
+      return info;
+    }
+    try {
+      final data = await c.from('advanced_pregnancy_info').upsert(info.toJson()).select().single();
+      return AdvancedPregnancyInfo.fromJson(data);
+    } catch (e) {
+      debugPrint('Supabase saveAdvancedPregnancyInfo error: $e');
+      _inMemoryAdvanced.add(info);
+      return info;
+    }
   }
 }

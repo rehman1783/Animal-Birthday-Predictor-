@@ -90,4 +90,48 @@ abstract class AppTypography {
     color: AppColors.textMuted,
     letterSpacing: 0.5,
   );
+
+  // Standard Typography Aliases
+  static const TextStyle appBarTitle = TextStyle(
+    fontSize: 18.0,
+    fontWeight: FontWeight.bold,
+    color: AppColors.primaryGold,
+    letterSpacing: 1.2,
+  );
+
+  static const TextStyle headlineLarge = TextStyle(
+    fontSize: 26.0,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle titleLarge = TextStyle(
+    fontSize: 20.0,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle titleMedium = TextStyle(
+    fontSize: 16.0,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle bodyMedium = TextStyle(
+    fontSize: 14.0,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle bodySmall = TextStyle(
+    fontSize: 12.0,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle caption = TextStyle(
+    fontSize: 12.0,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textMuted,
+  );
 }

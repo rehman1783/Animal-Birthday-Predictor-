@@ -5,30 +5,38 @@ import '../constants/app_spacing.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
-  final String hintText;
+  final String? hintText;
   final TextEditingController? controller;
-  final IconData leadingIcon;
+  final IconData? leadingIcon;
+  final IconData? prefixIcon;
   final bool obscureText;
   final Widget? trailingWidget;
   final String? errorText;
   final ValueChanged<String>? onChanged;
   final TextInputType keyboardType;
+  final String? Function(String?)? validator;
+  final int maxLines;
 
   const CustomTextField({
     super.key,
     required this.label,
-    required this.hintText,
-    required this.leadingIcon,
+    this.hintText,
+    this.leadingIcon,
+    this.prefixIcon,
     this.controller,
     this.obscureText = false,
     this.trailingWidget,
     this.errorText,
     this.onChanged,
     this.keyboardType = TextInputType.text,
+    this.validator,
+    this.maxLines = 1,
   });
 
   @override
   Widget build(BuildContext context) {
+    final iconToUse = prefixIcon ?? leadingIcon;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -39,20 +47,24 @@ class CustomTextField extends StatelessWidget {
           ),
           const SizedBox(height: 8.0),
         ],
-        TextField(
+        TextFormField(
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
           onChanged: onChanged,
+          validator: validator,
+          maxLines: maxLines,
           style: AppTypography.inputText,
           decoration: InputDecoration(
-            hintText: hintText,
+            hintText: hintText ?? 'Enter $label',
             hintStyle: AppTypography.inputHint,
-            prefixIcon: Icon(
-              leadingIcon,
-              color: AppColors.primaryGold,
-              size: 20,
-            ),
+            prefixIcon: iconToUse != null
+                ? Icon(
+                    iconToUse,
+                    color: AppColors.primaryGold,
+                    size: 20,
+                  )
+                : null,
             suffixIcon: trailingWidget,
             errorText: errorText,
             errorStyle: const TextStyle(

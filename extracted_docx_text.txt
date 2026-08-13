@@ -1,0 +1,208 @@
+ABP — Milestone 1, Part B: Mare, Breeding, Pregnancy, Recipient & Foal
+Build Documentation — Fields, Database, Calculation Logic & Data Flow
+The old Thunkable screenshots the client sent were reference for WHICH fields are needed, not the layout to copy. This document intentionally does not include screen images — every screen should be laid out fresh, using the design system and reusable components already established in Part A (Onboarding + Auth), so the whole app looks and feels like one product instead of two different apps stitched together.
+Architecture continues from Part A: Flutter, Feature-First folders, Riverpod, Supabase — every feature below follows the same repository-interface pattern already used for auth.
+1. Layout Direction (apply to every screen below)
+Use the same visual language as Part A instead of the old app's boxed, form-heavy layout:
+Same color tokens: background #0A192F, surface #112240, primaryGold #D4AF37, text tones as defined in Part A's design system.
+Group related fields into cards/sections with a SectionDividerLabel header (e.g. "VACCINATIONS", "DENTISTRY & FARRIER") rather than one long unbroken form — several of the old screens (Preventative Care especially) were a single dense list; break these into clearly separated sections with breathing room.
+Use CustomTextField for every input, GradientCtaButton for the primary action, and the same rounded-card/icon-container style from the onboarding feature list for anything presented as a set of items (e.g. the vaccination list).
+Read-only / system-calculated values (scan due dates, foaling due date) should look visually distinct from editable fields — e.g. a muted label + value instead of a bordered input box — so the user can tell at a glance what they can edit vs. what the app worked out for them.
+Photo capture fields should default to opening the camera directly (not gallery-first), per the client's explicit request on the Markings screens.
+None of the old screens' exact box positions, colors, or spacing should be copied — treat the client's screenshots purely as a field checklist, cross-referenced against Section 4 below.
+2. Database Schema (Supabase / Postgres)
+One consistent design decision runs through this schema: pregnancy is tracked against whichever animal is actually carrying the foal — the donor mare herself for Natural/Chilled/Frozen breeding, or the recipient mare for an embryo transfer. See Section 3. Markings and Preventative Care are both polymorphic tables (owner_type + owner_id) so the same structure serves Mare, Recipient Mare, and Foal without three separate copies.
+Revised from the first draft of this document: (1) embryo transfer is now a yes/no question available after ANY breeding method, not just ICSI — a Natural/Chilled/Frozen-bred embryo can also be flushed and transferred to a recipient, this isn't ICSI-exclusive; (2) ultrasound images are now stored per scan (scan_1/2/3) instead of one shared field, since each scan visit produces its own image.
+-- MAREScreate table mares (  id uuid primary key default gen_random_uuid(),  account_id uuid references auth.users(id) not null,  name text not null,  breed text,  brand text,  dna text,  microchip_no text,  owner_client_name text,  owner_client_phone text,  photo_url text,  created_at timestamptz default now(),  updated_at timestamptz default now());-- MARKINGS (polymorphic: belongs to a mare, recipient_mare, or foal)create table markings (  id uuid primary key default gen_random_uuid(),  owner_type text not null check (owner_type in ('mare','recipient_mare','foal')),  owner_id uuid not null,  left_side_image_url text,  right_side_image_url text,  head_view_image_url text,  head_view_notes text,  created_at timestamptz default now(),  updated_at timestamptz default now());-- BREEDING RECORDScreate table breeding_records (  id uuid primary key default gen_random_uuid(),  mare_id uuid references mares(id) not null,  method text not null check (method in ('natural','chilled','frozen','icsi')),  is_embryo_transfer boolean default false,   -- available regardless of method, see note above  cover_or_transfer_date date,  photo_url text,  created_at timestamptz default now());-- RECIPIENT MARES (only created when is_embryo_transfer = true)create table recipient_mares (  id uuid primary key default gen_random_uuid(),  account_id uuid references auth.users(id) not null,  breeding_record_id uuid references breeding_records(id),  name_no text not null,  date_of_birth date,  colour text,  microchip_no text,              -- inferred field, see Section 5  dam_of_embryo text,  stallion_of_embryo text,  transfer_date date,  photo_url text,  created_at timestamptz default now());-- PREGNANCY RECORDS (carrier is EITHER the donor mare or the recipient mare)create table pregnancy_records (  id uuid primary key default gen_random_uuid(),  carrier_type text not null check (carrier_type in ('mare','recipient_mare')),  carrier_id uuid not null,  breeding_record_id uuid references breeding_records(id),  scan_1_due_date date,  scan_1_confirmed boolean default false,  scan_1_image_url text,  scan_2_due_date date,  scan_2_confirmed boolean default false,  scan_2_image_url text,  scan_3_due_date date,  scan_3_confirmed boolean default false,  scan_3_image_url text,  foaling_due_date date,  vet_name text,  vet_mobile text,  created_at timestamptz default now());-- ADVANCED PREGNANCY INFOcreate table advanced_pregnancy_info (  id uuid primary key default gen_random_uuid(),  pregnancy_record_id uuid references pregnancy_records(id) not null,  caslick_date date,  caslick_done boolean default false,  fetal_sex_scan_date date,  fetal_sex_scan_done boolean default false,  ffs_result_date date,  ffs_result text check (ffs_result in ('filly','colt')),  ultrasound_image_url text);-- PREVENTATIVE CARE (polymorphic: mare or foal)create table preventative_care (  id uuid primary key default gen_random_uuid(),  owner_type text not null check (owner_type in ('mare','foal')),  owner_id uuid not null,  wormer_date date, wormer_done boolean default false,  tetanus_date date, tetanus_done boolean default false,  strangles_date date, strangles_done boolean default false,  eq_herpes_date date, eq_herpes_done boolean default false,  rotavirus_date date, rotavirus_done boolean default false,  hendra_date date, hendra_done boolean default false,  eq_influenza_date date, eq_influenza_done boolean default false,  eee_wee_wnv_date date, eee_wee_wnv_done boolean default false,  rabies_date date, rabies_done boolean default false,  dental_date date, dental_done boolean default false,  dentist_number text,  farrier_date date, farrier_done boolean default false,  farrier_number text,  created_at timestamptz default now());-- FOALScreate table foals (  id uuid primary key default gen_random_uuid(),  mare_id uuid references mares(id) not null,  recipient_mare_id uuid references recipient_mares(id),  foal_name text,  date_of_birth date,  stallion text,  breed text,  sex text check (sex in ('filly','colt')),  igg_value text,  foal_microchip_no text,  dna text,  gelded boolean default false,  gelded_date date,  stud_book_association text,  notes text,  status text check (status in ('sold','keep','transferred')),  photo_url text,  created_at timestamptz default now());-- CALENDAR REMINDERS (generic — links any date field above to a synced device-calendar event)create table calendar_reminders (  id uuid primary key default gen_random_uuid(),  account_id uuid references auth.users(id) not null,  related_table text not null,  related_id uuid not null,  field_name text not null,  reminder_date date not null,  label text,  synced_to_device_calendar boolean default false,  created_at timestamptz default now());
+RLS: enable Row-Level Security on every table above. mares and recipient_mares check account_id = auth.uid() directly; every child table checks ownership via a join back to mares/recipient_mares.account_id, so a user can only ever see records under their own mares.
+3. Calculation Logic — Scan Dates & Foaling Due Date
+Key architectural decision: pregnancy is always tracked against whoever is physically carrying the foal.
+Natural / Chilled / Frozen without embryo transfer: the donor mare carries her own foal → pregnancy_records.carrier_type = 'mare', dates calculated from breeding_records.cover_or_transfer_date.
+Any method WITH embryo transfer (including ICSI, which is transferred by nature of the procedure): a recipient mare carries the foal → pregnancy_records.carrier_type = 'recipient_mare', dates calculated from recipient_mares.transfer_date.
+Breeding Path
+Carrier
+Scan 1
+Scan 2
+Scan 3
+Foaling Due
+Natural (no transfer)
+Donor mare
+cover date + 14 days
++ 30 days
++ 45 days
+cover date + 341 days
+Chilled (no transfer)
+Donor mare
+cover date + 14 days
++ 30 days
++ 45 days
+cover date + 341 days
+Frozen (no transfer)
+Donor mare
+cover date + 14 days
++ 30 days
++ 45 days
+cover date + 340 days
+Any method + Embryo Transfer, or ICSI
+Recipient mare
+transfer date + 7 days
++ 30 days
++ 45 days
+transfer date + 332 days
+Build this as one pure function — calculatePregnancyDates(carrierType, baseDate) → {scan1, scan2, scan3, foalingDue} — called once when a breeding_records or recipient_mares row is saved, writing the results into pregnancy_records. Don't recalculate on every screen load: store the computed values so a vet-adjusted scan date isn't silently overwritten later.
+Frozen's foaling due date (340 days) is intentionally 1 day less than Natural/Chilled's (341) despite identical scan offsets — keep this exactly as specified, it's not a typo.
+4. Screens — Fields, Layout Direction, and Data Flow
+4.1 Mare Details
+Field
+Source
+DB Column
+Mare Name
+User input
+mares.name
+Breed
+User input
+mares.breed
+Brand
+User input
+mares.brand
+DNA
+User input
+mares.dna
+Microchip No.
+User input
+mares.microchip_no
+Owner/Client Name
+User input
+mares.owner_client_name
+Owner/Client Phone
+User input
+mares.owner_client_phone
+Photo
+User input (camera/gallery)
+mares.photo_url
+Layout: a photo header at the top (tap to capture/change), then a single-column form grouped as one card, plus a "Markings" entry button below the form that opens the shared Markings screen for this mare.
+Data flow — Save: insert/update one row in mares. Load: fetch the mare row by id, populate all fields directly (no calculation involved on this screen).
+4.2 Markings (shared — used from Mare, Recipient Mare, and Foal)
+Left Side Markings — photo capture/upload.
+Right Side Markings — photo capture/upload.
+Head View — photo capture/upload + free-text notes.
+Static disclaimer: "The diagrams provided are intended as a general guide only. Markings and brands should be recorded as accurately as possible, however always refer to official breed registration when in doubt."
+Layout: three equal image-capture cards stacked vertically (Left / Right / Head View), each opening the camera directly on tap, matching the client's explicit request.
+Data flow — Save: upsert one row in markings keyed by (owner_type, owner_id) — the same screen and the same save logic serve all three parents. Load: query markings where owner_type = X and owner_id = <the mare/recipient/foal id passed in>; if no row exists yet, show empty capture placeholders.
+4.3 Breeding Details
+"How was your mare bred" — Natural / Chilled / Frozen / ICSI (single-select).
+"Was the resulting embryo transferred to a recipient mare?" — Yes/No, shown after any method is selected (not ICSI-only, see Section 2's revision note).
+Date of cover/insemination (if known).
+Photo (e.g. of the insemination straws).
+Layout: the 4 method options as a single-select row of pill/chip buttons (not plain checkboxes) so only one can be active at a time, matching the gold-accent selected state used elsewhere in the app; the transfer Yes/No question appears directly beneath once a method is chosen.
+Data flow — Save: insert breeding_records; if "transferred" = Yes, navigate to Recipient Mare Details (4.6) next, and hold off creating pregnancy_records until that recipient record exists. If "transferred" = No, immediately run Section 3's calculation with carrier_type='mare' and insert pregnancy_records. Load: read back the saved method/date/photo for editing.
+4.4 Pregnancy Details
+1st / 2nd / 3rd Preg Scan due on — system-calculated, shown read-only, each with its own "Pregnancy Confirmed" checkbox and its own scan photo upload.
+Static warning banner: "Early Pregnancy Scan Day 14-16 post cover/insemination. To reduce the risk of multiple pregnancies, it is strongly recommended to have your mare scanned by your veterinarian. Multiple pregnancies are dangerous and early detection is your best chance to safely manage them."
+Vet Name / Vet Mobile — user input, with a "Save Vet Details" action; shows a "No Vet Added" state until saved, and a call-vet shortcut once it is.
+Layout: the 3 scans as three matching sub-cards in a vertical sequence (due date + confirmed toggle + photo slot each), so the pattern is visually obvious as "scan 1, then 2, then 3" rather than three unrelated fields.
+Data flow — Save: update the relevant scan_N_confirmed / scan_N_image_url / vet_name / vet_mobile columns on the existing pregnancy_records row (the due dates themselves were already written when the record was created in 4.3/4.6). Saving any scan date here also writes a matching row into calendar_reminders. Load: read the single pregnancy_records row for this carrier and populate all three scan blocks plus vet info.
+4.5 Advanced Pregnancy Info
+Caslick — date + Yes toggle.
+Fetal Sex Scan — date + Yes toggle.
+FFS Result — date + Filly/Colt toggle.
+Ultrasound image upload.
+Static disclaimer: "Fetal sexing is a specialised procedure that relies on optimal timing and imaging conditions. While every effort is made to provide accurate results, results are not guaranteed and may be subject to misinterpretation due to fetal positioning, natural variation etc. We recommend discussing any findings with a qualified veterinarian. This feature is provided for informational purposes only."
+Layout: same sub-card pattern as Pregnancy Details — three stacked blocks (Caslick / Fetal Sex Scan / FFS Result), each a date + toggle, ending with the photo upload.
+Data flow — Save: upsert the single advanced_pregnancy_info row linked to this pregnancy_records.id. Load: fetch by pregnancy_record_id; if none exists yet, show the form empty (this screen is optional/no scan-date dependency, unlike 4.4).
+4.6 Recipient Mare Details
+Field
+Source
+DB Column
+Name/No.
+User input
+recipient_mares.name_no
+Date of Birth
+User input
+recipient_mares.date_of_birth
+Colour
+User input
+recipient_mares.colour
+Microchip No.
+User input (inferred — see Section 5)
+recipient_mares.microchip_no
+DAM of Embryo
+User input
+recipient_mares.dam_of_embryo
+Stallion of Embryo
+User input
+recipient_mares.stallion_of_embryo
+Transfer Date
+User input
+recipient_mares.transfer_date
+Photo
+User input
+recipient_mares.photo_url
+Layout: same card pattern as Mare Details (photo header + single-column form) — visually these two screens should feel like siblings, since a recipient mare is structurally a mare too.
+Data flow — Save: insert recipient_mares linked to the breeding_records.id from 4.3, then immediately run Section 3's calculation with carrier_type='recipient_mare' and base date = transfer_date, inserting pregnancy_records. Load: standard fetch-by-id for editing.
+4.7 Preventative Care — Mare
+Vaccinations section — one row per vaccine, each a date field + done checkbox: Tetanus, Strangles, Equine Herpes Virus, Rotavirus, Hendra (AUS), EQ Influenza (EU & UK), EEE/WEE/WNV (USA), Rabies (USA), plus Wormer.
+These are user-entered dates, not auto-calculated (per the client's own conclusion that the full priming logic is too variable to hard-code). Show the client's reference intervals as small helper text under each field for guidance only.
+Dentistry & Farrier section — Dental (date + done), Dentist No. (phone, with Save + a "No Dentist Number Added" empty state + a Call action), and the same pattern for Farrier.
+Layout: split into the two clearly labeled sections above (a SectionDividerLabel each), each vaccine as its own compact row rather than the old app's single unbroken checklist — this was the densest screen in the old app and is worth the most visual cleanup.
+Data flow — Save: update the corresponding column(s) on the single preventative_care row for this mare (owner_type='mare', owner_id=<mare id>; create the row on first save if it doesn't exist). Every date saved here also writes a calendar_reminders row. Load: fetch that one row and populate every field; unset vaccines simply show their date picker empty.
+4.8 Foal Details
+Field
+Source
+DB Column
+Foal Name
+User input
+foals.foal_name
+Date of Birth
+User input
+foals.date_of_birth
+Mare Name / Microchip No.
+Linked — selected from existing mares, not typed
+foals.mare_id → mares.name / microchip_no
+Stallion
+User input
+foals.stallion
+Recip Mare Name / Microchip No.
+Linked — selected from existing recipient_mares, if applicable
+foals.recipient_mare_id → recipient_mares.name_no / microchip_no
+Breed
+User input
+foals.breed
+Filly / Colt
+User input
+foals.sex
+IGG
+User input
+foals.igg_value
+Notes
+User input
+foals.notes
+Sold / Keep / Transferred
+User input
+foals.status
+Foal Microchip No. / DNA
+User input
+foals.foal_microchip_no / foals.dna
+Gelded (+ date)
+User input
+foals.gelded / foals.gelded_date
+Stud Book/Breeding Association
+User input
+foals.stud_book_association
+Photo
+User input
+foals.photo_url
+Important correction: "Mare Name" and "Recip Mare Name" must be pickers (dropdown/search selecting an existing record), not free-text fields — this is what makes the microchip numbers besides them auto-fill correctly instead of needing to be retyped.
+Layout: photo header, core identity fields (name/DOB/breed/sex) as one card, then a second card for the linked mare/recipient pickers, then a third for status/notes — plus a "Markings" entry button as on Mare Details.
+Data flow — Save: insert/update foals; mare_id and recipient_mare_id are foreign keys chosen via the pickers, never re-entered text. Load: fetch the foal row, then join to mares and (if present) recipient_mares to display their name/microchip alongside.
+4.9 Foal Preventative Care
+Same field set and layout pattern as 4.7 (Tetanus, Strangles, EQ Herpes, Rotavirus, Hendra, EQ Influenza, EEE/WEE/WNV, Rabies), stored in the same preventative_care table with owner_type='foal', owner_id=<foal id>.
+Static disclaimer: "All foals require a priming vaccination program for most vaccinations, always consult your Veterinarian for correct schedule and vaccine for your region. Please note the Vaccination Status of the pregnant mare will affect the start date of the priming program."
+Worth building as a real UI cue, not just static text: when this screen loads, also fetch the dam mare's own preventative_care row and show a small note like "Mare's Tetanus recorded [date]" next to the matching foal field, so the relationship the disclaimer describes is actually visible.
+Data flow: identical pattern to 4.7, just scoped to the foal's own row plus a read-only lookup of the dam's record for the reference note above.
+4.10 Congratulations Screen
+Shown when a pregnancy_records.foaling_due_date is reached / foaling is confirmed. Keep the copy species-agnostic from the start ("Congratulations on your new arrival") since this same screen gets reused for the Dog module and others later — one template with a species parameter, not a horse-specific screen to redo.
+5. Open Items (unchanged from the field-list review)
+Onboarding photo licensing — needs a direct answer before production, can't be confirmed from here.
+Recipient Mare's microchip field is inferred (not on the original field list) because Foal Details references it — confirm with the client, since they'd noted this page was incomplete.
+Mare-count package tiers and paid vet/farrier/dentist advertising — both need pricing/rules defined; not built in this part.

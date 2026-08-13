@@ -1,45 +1,53 @@
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../domain/foal_record.dart';
-import '../../animals/domain/animal_type.dart';
 
 class FoalRepository {
-  final List<FoalRecord> _mockFoals = [
-    FoalRecord(
-      id: 'f1',
-      pregnancyId: 'p3',
-      offspringName: 'Solar Flare',
-      animalType: AnimalType.horse,
-      damName: 'Celestial Queen',
-      sireName: 'Northern Dancer',
-      birthDate: DateTime.now().subtract(const Duration(days: 10)),
-      birthWeightKg: 48.5,
-      gender: 'colt',
-      color: 'Chestnut',
-      healthNotes: 'Strong vitals, nursing well within 2 hours. Normal colostrum intake.',
-      createdAt: DateTime.now().subtract(const Duration(days: 10)),
-    ),
-    FoalRecord(
-      id: 'f2',
-      pregnancyId: 'p0',
-      offspringName: 'Midnight Shadow',
-      animalType: AnimalType.horse,
-      damName: 'Starlight Eclipse',
-      sireName: 'Thunderbolt Fury',
-      birthDate: DateTime.now().subtract(const Duration(days: 365)),
-      birthWeightKg: 52.0,
-      gender: 'filly',
-      color: 'Black / Bay',
-      healthNotes: 'Healthy growth. Vaccinations updated.',
-      createdAt: DateTime.now().subtract(const Duration(days: 365)),
-    ),
-  ];
+  final SupabaseClient? _supabase;
+  final List<FoalRecord> _inMemoryFoals = [];
 
-  Future<List<FoalRecord>> fetchFoals() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return List.from(_mockFoals);
+  FoalRepository({SupabaseClient? supabase})
+      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client);
+
+  SupabaseClient? get client {
+    try {
+      return _supabase ?? Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
   }
 
-  Future<void> addFoal(FoalRecord record) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    _mockFoals.insert(0, record);
+  Future<List<FoalRecord>> getFoals() async {
+    final c = client;
+    if (c == null) return List.unmodifiable(_inMemoryFoals);
+    try {
+      final data = await c.from('foals').select().order('created_at', ascending: false);
+      return (data as List).map((json) => FoalRecord.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Supabase getFoals error: $e');
+      return List.unmodifiable(_inMemoryFoals);
+    }
+  }
+
+  Future<FoalRecord> saveFoal(FoalRecord foal) async {
+    final c = client;
+    if (c == null) {
+      final index = _inMemoryFoals.indexWhere((f) => f.id == foal.id);
+      if (index >= 0) {
+        _inMemoryFoals[index] = foal;
+      } else {
+        _inMemoryFoals.add(foal);
+      }
+      return foal;
+    }
+    try {
+      final data = await c.from('foals').upsert(foal.toJson()).select().single();
+      return FoalRecord.fromJson(data);
+    } catch (e) {
+      debugPrint('Supabase saveFoal error: $e');
+      _inMemoryFoals.add(foal);
+      return foal;
+    }
   }
 }

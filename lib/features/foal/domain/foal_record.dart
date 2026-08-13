@@ -1,32 +1,40 @@
-import '../../animals/domain/animal_type.dart';
-
 class FoalRecord {
   final String id;
-  final String pregnancyId;
-  final String offspringName;
-  final AnimalType animalType;
-  final String damName;
-  final String sireName;
-  final DateTime birthDate;
-  final double birthWeightKg;
-  final String gender; // 'colt', 'filly', 'male', 'female'
-  final String color;
-  final String? healthNotes;
+  final String mareId;
+  final String? recipientMareId;
+  final String? foalName;
+  final DateTime? dateOfBirth;
+  final String? stallion;
+  final String? breed;
+  final String? sex; // 'filly', 'colt'
+  final String? iggValue;
+  final String? foalMicrochipNo;
+  final String? dna;
+  final bool gelded;
+  final DateTime? geldedDate;
+  final String? studBookAssociation;
+  final String? notes;
+  final String? status; // 'sold', 'keep', 'transferred'
   final String? photoUrl;
   final DateTime createdAt;
 
   const FoalRecord({
     required this.id,
-    required this.pregnancyId,
-    required this.offspringName,
-    required this.animalType,
-    required this.damName,
-    required this.sireName,
-    required this.birthDate,
-    required this.birthWeightKg,
-    required this.gender,
-    required this.color,
-    this.healthNotes,
+    required this.mareId,
+    this.recipientMareId,
+    this.foalName,
+    this.dateOfBirth,
+    this.stallion,
+    this.breed,
+    this.sex,
+    this.iggValue,
+    this.foalMicrochipNo,
+    this.dna,
+    this.gelded = false,
+    this.geldedDate,
+    this.studBookAssociation,
+    this.notes,
+    this.status,
     this.photoUrl,
     required this.createdAt,
   });
@@ -34,16 +42,21 @@ class FoalRecord {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'pregnancy_id': pregnancyId,
-      'offspring_name': offspringName,
-      'animal_type': animalType.name,
-      'dam_name': damName,
-      'sire_name': sireName,
-      'birth_date': birthDate.toIso8601String(),
-      'birth_weight_kg': birthWeightKg,
-      'gender': gender,
-      'color': color,
-      'health_notes': healthNotes,
+      'mare_id': mareId,
+      'recipient_mare_id': recipientMareId,
+      'foal_name': foalName,
+      'date_of_birth': dateOfBirth?.toIso8601String(),
+      'stallion': stallion,
+      'breed': breed,
+      'sex': sex,
+      'igg_value': iggValue,
+      'foal_microchip_no': foalMicrochipNo,
+      'dna': dna,
+      'gelded': gelded,
+      'gelded_date': geldedDate?.toIso8601String(),
+      'stud_book_association': studBookAssociation,
+      'notes': notes,
+      'status': status,
       'photo_url': photoUrl,
       'created_at': createdAt.toIso8601String(),
     };
@@ -52,19 +65,25 @@ class FoalRecord {
   factory FoalRecord.fromJson(Map<String, dynamic> json) {
     return FoalRecord(
       id: json['id'] as String,
-      pregnancyId: json['pregnancy_id'] as String,
-      offspringName: json['offspring_name'] as String,
-      animalType: AnimalType.values.firstWhere(
-        (e) => e.name == json['animal_type'],
-        orElse: () => AnimalType.horse,
-      ),
-      damName: json['dam_name'] as String,
-      sireName: json['sire_name'] as String,
-      birthDate: DateTime.parse(json['birth_date'] as String),
-      birthWeightKg: (json['birth_weight_kg'] as num).toDouble(),
-      gender: json['gender'] as String,
-      color: json['color'] as String,
-      healthNotes: json['health_notes'] as String?,
+      mareId: json['mare_id'] as String,
+      recipientMareId: json['recipient_mare_id'] as String?,
+      foalName: json['foal_name'] as String?,
+      dateOfBirth: json['date_of_birth'] != null
+          ? DateTime.parse(json['date_of_birth'] as String)
+          : null,
+      stallion: json['stallion'] as String?,
+      breed: json['breed'] as String?,
+      sex: json['sex'] as String?,
+      iggValue: json['igg_value'] as String?,
+      foalMicrochipNo: json['foal_microchip_no'] as String?,
+      dna: json['dna'] as String?,
+      gelded: json['gelded'] as bool? ?? false,
+      geldedDate: json['gelded_date'] != null
+          ? DateTime.parse(json['gelded_date'] as String)
+          : null,
+      studBookAssociation: json['stud_book_association'] as String?,
+      notes: json['notes'] as String?,
+      status: json['status'] as String?,
       photoUrl: json['photo_url'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
