@@ -5,6 +5,12 @@ abstract class AppEnv {
   static const String defaultKey =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xb3VzaHRzbXl0cmVjcGd1dWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTQ2NjUsImV4cCI6MjEwMTY3MDY2NX0.-k5WrGjrBUj0eeSHqehpT-bB2QsV-F8aH1LME0ngEAY';
 
+  static const String authRedirectScheme = 'io.supabase.animalbirthdaypredictor';
+  static const String emailVerificationRedirectUrl =
+      'io.supabase.animalbirthdaypredictor://login-callback';
+  static const String passwordResetRedirectUrl =
+      'io.supabase.animalbirthdaypredictor://reset-password';
+
   static String get supabaseUrl {
     try {
       if (dotenv.isInitialized) {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/constants/app_env.dart';
 import '../domain/user_profile.dart';
 
 class AuthExceptionCustom implements Exception {
@@ -81,6 +82,7 @@ class AuthRepository {
         email: cleanEmail,
         password: password,
         data: {'full_name': fullName.trim()},
+        emailRedirectTo: AppEnv.emailVerificationRedirectUrl,
       );
 
       final user = response.user;
@@ -174,7 +176,7 @@ class AuthRepository {
     try {
       await _supabase.auth.resetPasswordForEmail(
         cleanEmail,
-        redirectTo: 'io.supabase.animalbirthdaypredictor://reset-password',
+        redirectTo: AppEnv.passwordResetRedirectUrl,
       );
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();

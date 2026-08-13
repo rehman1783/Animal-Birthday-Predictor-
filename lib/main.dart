@@ -67,13 +67,23 @@ class _AnimalBirthdayPredictorAppState extends State<AnimalBirthdayPredictorApp>
   void initState() {
     super.initState();
 
-    // Listen for Auth changes (e.g. Password Recovery Deep Link)
+    // Listen for Auth changes (e.g. Password Recovery and Email Verification Deep Links)
     try {
       _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         final event = data.event;
         if (event == AuthChangeEvent.passwordRecovery) {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
             '/update-password',
+            (route) => false,
+          );
+        } else if (event == AuthChangeEvent.signedIn) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            '/home',
+            (route) => false,
+          );
+        } else if (event == AuthChangeEvent.signedOut) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            '/signin',
             (route) => false,
           );
         }
