@@ -233,28 +233,34 @@ class AuthRepository {
     }
   }
 
-  /// Check if the user's email is confirmed by refreshing session / fetching user
+  /// Check if the user's email is confirmed by refreshing session / fetching live user from Supabase
   Future<bool> isEmailVerified([String? email]) async {
     try {
-      // 1. Try refreshing current auth session
-      final res = await _supabase.auth.refreshSession();
-      final user = res.user ?? _supabase.auth.currentUser;
-      if (user != null && user.emailConfirmedAt != null && user.emailConfirmedAt!.isNotEmpty) {
-        return true;
-      }
+      // 1. Force refresh session from Supabase backend
+      try {
+        final res = await _supabase.auth.refreshSession();
+        final user = res.user ?? _supabase.auth.currentUser;
+        if (user != null && user.emailConfirmedAt != null && user.emailConfirmedAt!.isNotEmpty) {
+          return true;
+        }
+      } catch (_) {}
 
-      // 2. Fetch fresh user info from server
-      final freshUserRes = await _supabase.auth.getUser();
-      final freshUser = freshUserRes.user;
-      if (freshUser != null && freshUser.emailConfirmedAt != null && freshUser.emailConfirmedAt!.isNotEmpty) {
-        return true;
-      }
+      // 2. Query live user endpoint from Supabase server
+      try {
+        final freshUserRes = await _supabase.auth.getUser();
+        final freshUser = freshUserRes.user;
+        if (freshUser != null && freshUser.emailConfirmedAt != null && freshUser.emailConfirmedAt!.isNotEmpty) {
+          return true;
+        }
+      } catch (_) {}
 
-      return false;
+      // 3. Fallback check on active session user object
+      final currentUser = _supabase.auth.currentUser;
+      return currentUser != null &&
+          currentUser.emailConfirmedAt != null &&
+          currentUser.emailConfirmedAt!.isNotEmpty;
     } catch (_) {
-      // Fallback check on current session user
-      final u = _supabase.auth.currentUser;
-      return u != null && u.emailConfirmedAt != null && u.emailConfirmedAt!.isNotEmpty;
+      return false;
     }
   }
 

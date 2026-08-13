@@ -110,7 +110,7 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Your email is not verified yet. Please check your inbox and click the verification link.'),
+          content: Text('Your email has not been verified yet.'),
           backgroundColor: AppColors.error,
           duration: Duration(seconds: 4),
         ),
@@ -265,14 +265,14 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
 
                   const SizedBox(height: 32.0),
 
-                  // Back to Sign In
+                  // Back to Sign Up
                   Center(
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.pushReplacementNamed(context, '/signin');
+                        Navigator.pushReplacementNamed(context, '/signup');
                       },
                       child: Text(
-                        '← Back to Sign In',
+                        '← Back to Sign Up',
                         style: AppTypography.body.copyWith(
                           color: AppColors.primaryGold,
                           fontWeight: FontWeight.bold,
