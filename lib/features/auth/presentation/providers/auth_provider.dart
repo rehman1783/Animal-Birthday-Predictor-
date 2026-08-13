@@ -117,6 +117,22 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
     }
   }
 
+  Future<bool> resendVerificationEmail(String email) async {
+    state = const AsyncValue.loading();
+    try {
+      await _authRepository.resendVerificationEmail(email);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      return false;
+    }
+  }
+
+  Future<bool> checkIsEmailVerified([String? email]) async {
+    return await _authRepository.isEmailVerified(email);
+  }
+
   Future<void> signOut() async {
     state = const AsyncValue.loading();
     await _authRepository.signOut();

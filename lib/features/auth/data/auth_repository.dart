@@ -218,6 +218,46 @@ class AuthRepository {
     }
   }
 
+  /// Resend Signup Verification Email
+  Future<void> resendVerificationEmail(String email) async {
+    try {
+      await _supabase.auth.resend(
+        type: OtpType.signup,
+        email: email.trim().toLowerCase(),
+        emailRedirectTo: AppEnv.emailVerificationRedirectUrl,
+      );
+    } on AuthException catch (e) {
+      throw _handleError(e);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Check if the user's email is confirmed by refreshing session / fetching user
+  Future<bool> isEmailVerified([String? email]) async {
+    try {
+      // 1. Try refreshing current auth session
+      final res = await _supabase.auth.refreshSession();
+      final user = res.user ?? _supabase.auth.currentUser;
+      if (user != null && user.emailConfirmedAt != null && user.emailConfirmedAt!.isNotEmpty) {
+        return true;
+      }
+
+      // 2. Fetch fresh user info from server
+      final freshUserRes = await _supabase.auth.getUser();
+      final freshUser = freshUserRes.user;
+      if (freshUser != null && freshUser.emailConfirmedAt != null && freshUser.emailConfirmedAt!.isNotEmpty) {
+        return true;
+      }
+
+      return false;
+    } catch (_) {
+      // Fallback check on current session user
+      final u = _supabase.auth.currentUser;
+      return u != null && u.emailConfirmedAt != null && u.emailConfirmedAt!.isNotEmpty;
+    }
+  }
+
   /// Sign Out
   Future<void> signOut() async {
     try {
