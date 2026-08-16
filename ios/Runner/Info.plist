@@ -45,6 +45,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Camera & Photo Permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>Animal Birthday Predictor needs camera access to capture animal, markings, and ultrasound scan photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Animal Birthday Predictor needs photo library access to upload animal photos and scan reports.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Animal Birthday Predictor needs permission to save generated foal certificates.</string>
+
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
