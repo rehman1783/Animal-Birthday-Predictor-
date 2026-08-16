@@ -228,19 +228,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
                     const SizedBox(height: 20.0),
 
-                    // Social Auth Buttons (Apple / Google)
-                    SocialAuthButton(
-                      provider: SocialProvider.apple,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Apple sign in (Mock state trigger)'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12.0),
+                    // Social Auth Button (Google)
                     SocialAuthButton(
                       provider: SocialProvider.google,
                       onPressed: () {
