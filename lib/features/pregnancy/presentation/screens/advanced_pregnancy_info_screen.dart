@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/advanced_pregnancy_info.dart';
 import '../providers/pregnancy_provider.dart';
@@ -156,7 +157,8 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
             ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGold))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-                child: Column(
+                child: ResponsiveBody(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Disclaimer Card
@@ -299,6 +301,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
                     ),
                     const SizedBox(height: 24.0),
                   ],
+                ),
                 ),
               ),
       ),

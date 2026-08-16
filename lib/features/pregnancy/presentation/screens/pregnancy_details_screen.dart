@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../domain/pregnancy_record.dart';
@@ -158,7 +159,8 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
             ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGold))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-                child: Column(
+                child: ResponsiveBody(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Carrier Header Card
@@ -309,6 +311,7 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                     ),
                     const SizedBox(height: 24.0),
                   ],
+                ),
                 ),
               ),
       ),

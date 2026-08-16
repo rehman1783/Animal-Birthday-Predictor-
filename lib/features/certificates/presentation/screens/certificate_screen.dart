@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -63,7 +64,8 @@ class CertificateScreen extends ConsumerWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-          child: Column(
+          child: ResponsiveBody(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Certificate Document Container
@@ -199,6 +201,7 @@ class CertificateScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
             ],
+          ),
           ),
         ),
       ),

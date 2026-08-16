@@ -7,6 +7,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/markings.dart';
 import '../providers/mare_provider.dart';
@@ -116,81 +117,83 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
             ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGold))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Disclaimer Card
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                        border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.info_outline, color: AppColors.primaryGold, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'The diagrams provided are intended as a general guide only. Markings and brands should be recorded as accurately as possible, however always refer to official breed registration when in doubt.',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: AppColors.textSecondary,
-                                height: 1.4,
+                child: ResponsiveBody(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Disclaimer Card
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                          border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.info_outline, color: AppColors.primaryGold, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'The diagrams provided are intended as a general guide only. Markings and brands should be recorded as accurately as possible, however always refer to official breed registration when in doubt.',
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.textSecondary,
+                                  height: 1.4,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24.0),
+                      const SizedBox(height: 24.0),
 
-                    // Left Side Markings
-                    const SectionDividerLabel(label: 'LEFT SIDE VIEW'),
-                    const SizedBox(height: 12.0),
-                    AppImagePicker(
-                      label: 'Left Side Markings Photo (Camera First)',
-                      initialImageUrl: _leftSideImage,
-                      onImageSelected: (url) => setState(() => _leftSideImage = url),
-                    ),
-                    const SizedBox(height: 24.0),
+                      // Left Side Markings
+                      const SectionDividerLabel(label: 'LEFT SIDE VIEW'),
+                      const SizedBox(height: 12.0),
+                      AppImagePicker(
+                        label: 'Left Side Markings Photo (Camera First)',
+                        initialImageUrl: _leftSideImage,
+                        onImageSelected: (url) => setState(() => _leftSideImage = url),
+                      ),
+                      const SizedBox(height: 24.0),
 
-                    // Right Side Markings
-                    const SectionDividerLabel(label: 'RIGHT SIDE VIEW'),
-                    const SizedBox(height: 12.0),
-                    AppImagePicker(
-                      label: 'Right Side Markings Photo (Camera First)',
-                      initialImageUrl: _rightSideImage,
-                      onImageSelected: (url) => setState(() => _rightSideImage = url),
-                    ),
-                    const SizedBox(height: 24.0),
+                      // Right Side Markings
+                      const SectionDividerLabel(label: 'RIGHT SIDE VIEW'),
+                      const SizedBox(height: 12.0),
+                      AppImagePicker(
+                        label: 'Right Side Markings Photo (Camera First)',
+                        initialImageUrl: _rightSideImage,
+                        onImageSelected: (url) => setState(() => _rightSideImage = url),
+                      ),
+                      const SizedBox(height: 24.0),
 
-                    // Head View
-                    const SectionDividerLabel(label: 'HEAD VIEW & FACIAL MARKINGS'),
-                    const SizedBox(height: 12.0),
-                    AppImagePicker(
-                      label: 'Head View / Muzzle Markings Photo',
-                      initialImageUrl: _headViewImage,
-                      onImageSelected: (url) => setState(() => _headViewImage = url),
-                    ),
-                    const SizedBox(height: 14.0),
+                      // Head View
+                      const SectionDividerLabel(label: 'HEAD VIEW & FACIAL MARKINGS'),
+                      const SizedBox(height: 12.0),
+                      AppImagePicker(
+                        label: 'Head View / Muzzle Markings Photo',
+                        initialImageUrl: _headViewImage,
+                        onImageSelected: (url) => setState(() => _headViewImage = url),
+                      ),
+                      const SizedBox(height: 14.0),
 
-                    CustomTextField(
-                      label: 'Head View & Facial Notes',
-                      hintText: 'e.g. Star, strip, snip, white lower lip, whorl between eyes...',
-                      controller: _headNotesController,
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 32.0),
+                      CustomTextField(
+                        label: 'Head View & Facial Notes',
+                        hintText: 'e.g. Star, strip, snip, white lower lip, whorl between eyes...',
+                        controller: _headNotesController,
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 32.0),
 
-                    // Save CTA
-                    GradientCtaButton(
-                      text: _isSaving ? 'SAVING MARKINGS...' : 'SAVE MARKINGS',
-                      onPressed: _isSaving ? null : _handleSave,
-                    ),
-                    const SizedBox(height: 24.0),
-                  ],
+                      // Save CTA
+                      GradientCtaButton(
+                        text: _isSaving ? 'SAVING MARKINGS...' : 'SAVE MARKINGS',
+                        onPressed: _isSaving ? null : _handleSave,
+                      ),
+                      const SizedBox(height: 24.0),
+                    ],
+                  ),
                 ),
               ),
       ),

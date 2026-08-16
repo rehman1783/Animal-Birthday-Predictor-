@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../providers/animal_provider.dart';
 import '../widgets/animal_list_tile.dart';
 
@@ -86,48 +87,50 @@ class _SpeciesAnimalList extends ConsumerWidget {
       data: (animals) {
         if (animals.isEmpty) {
           return Center(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
+              child: ResponsiveBody(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
+                      ),
+                      child: const Icon(Icons.pets, size: 36, color: AppColors.primaryGold),
                     ),
-                    child: const Icon(Icons.pets, size: 36, color: AppColors.primaryGold),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'No ${species.toUpperCase()}s Registered',
-                    style: AppTypography.displayHeadline.copyWith(fontSize: 20),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Register your animals once in the universal registry and select them anytime across breeding and foal records.',
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: 220,
-                    child: GradientCtaButton(
-                      text: '+ Add ${species.toUpperCase()}',
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/animal-details',
-                          arguments: {'species': species},
-                        );
-                      },
+                    const SizedBox(height: 20),
+                    Text(
+                      'No ${species.toUpperCase()}s Registered',
+                      style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Register your animals once in the universal registry and select them anytime across breeding and foal records.',
+                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: 220,
+                      child: GradientCtaButton(
+                        text: '+ Add ${species.toUpperCase()}',
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/animal-details',
+                            arguments: {'species': species},
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -139,22 +142,24 @@ class _SpeciesAnimalList extends ConsumerWidget {
           onRefresh: () async {
             ref.invalidate(animalsListProvider(species));
           },
-          child: ListView.builder(
-            padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-            itemCount: animals.length,
-            itemBuilder: (context, index) {
-              final animal = animals[index];
-              return AnimalListTile(
-                animal: animal,
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/animal-details',
-                    arguments: {'animal': animal, 'species': species},
-                  );
-                },
-              );
-            },
+          child: ResponsiveBody(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
+              itemCount: animals.length,
+              itemBuilder: (context, index) {
+                final animal = animals[index];
+                return AnimalListTile(
+                  animal: animal,
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/animal-details',
+                      arguments: {'animal': animal, 'species': species},
+                    );
+                  },
+                );
+              },
+            ),
           ),
         );
       },

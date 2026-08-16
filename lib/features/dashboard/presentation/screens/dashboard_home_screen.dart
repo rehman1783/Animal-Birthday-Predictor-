@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -37,7 +38,8 @@ class DashboardHomeScreen extends ConsumerWidget {
             horizontal: AppSpacing.horizontalPadding,
             vertical: 16.0,
           ),
-          child: Column(
+          child: ResponsiveBody(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Header Welcome Banner
@@ -204,6 +206,7 @@ class DashboardHomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24.0),
             ],
+          ),
           ),
         ),
       ),

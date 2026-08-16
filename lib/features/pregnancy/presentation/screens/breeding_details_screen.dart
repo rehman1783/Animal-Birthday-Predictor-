@@ -7,6 +7,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
@@ -206,7 +207,8 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
             horizontal: AppSpacing.horizontalPadding,
             vertical: 16.0,
           ),
-          child: Form(
+          child: ResponsiveBody(
+            child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -531,6 +533,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                 const SizedBox(height: 24.0),
               ],
             ),
+          ),
           ),
         ),
       ),
