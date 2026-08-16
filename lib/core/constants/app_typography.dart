@@ -76,6 +76,18 @@ abstract class AppTypography {
     color: AppColors.textSecondary,
   );
 
+  static const TextStyle labelMedium = TextStyle(
+    fontSize: 13.0,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle labelLarge = TextStyle(
+    fontSize: 14.0,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+
   /// Input Field placeholder
   static const TextStyle inputHint = TextStyle(
     fontSize: 14.0,

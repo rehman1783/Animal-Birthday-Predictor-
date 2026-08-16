@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../domain/animal.dart';
 import '../domain/mare.dart';
 import '../domain/markings.dart';
 
 class MareRepository {
   final SupabaseClient? _supabase;
   final List<Mare> _inMemoryMares = [];
-  final List<RecipientMare> _inMemoryRecipientMares = [];
   final List<Markings> _inMemoryMarkings = [];
 
   MareRepository({SupabaseClient? supabase})
@@ -21,71 +21,70 @@ class MareRepository {
     }
   }
 
-  // --- MARES ---
-  Future<List<Mare>> getMares() async {
+  // --- ANIMALS / MARES (reads from unified animals table) ---
+  Future<List<Animal>> getMares() async {
     final c = client;
-    if (c == null) return List.unmodifiable(_inMemoryMares);
+    if (c == null) {
+      return _inMemoryMares.map((m) => Animal(
+        id: m.id,
+        accountId: m.accountId,
+        species: 'horse',
+        name: m.name,
+        breed: m.breed,
+        brand: m.brand,
+        dna: m.dna,
+        microchipNo: m.microchipNo,
+        ownerClientName: m.ownerClientName,
+        ownerClientPhone: m.ownerClientPhone,
+        photoUrl: m.photoUrl,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+      )).toList();
+    }
     try {
-      final data = await c.from('mares').select().order('created_at', ascending: false);
-      return (data as List).map((json) => Mare.fromJson(json)).toList();
+      final data = await c.from('animals').select().eq('species', 'horse').order('created_at', ascending: false);
+      return (data as List).map((json) => Animal.fromJson(json)).toList();
     } catch (e) {
       debugPrint('Supabase getMares error: $e');
-      return List.unmodifiable(_inMemoryMares);
+      return [];
     }
   }
 
-  Future<Mare> saveMare(Mare mare) async {
+  Future<Animal> saveMare(Animal animal) async {
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id ?? (animal.accountId.isNotEmpty ? animal.accountId : '00000000-0000-0000-0000-000000000000');
+    final toSave = animal.copyWith(accountId: accountId, species: 'horse');
+
     if (c == null) {
-      final index = _inMemoryMares.indexWhere((m) => m.id == mare.id);
+      final index = _inMemoryMares.indexWhere((m) => m.id == toSave.id);
+      final mare = Mare(
+        id: toSave.id,
+        accountId: toSave.accountId,
+        name: toSave.name,
+        breed: toSave.breed,
+        brand: toSave.brand,
+        dna: toSave.dna,
+        microchipNo: toSave.microchipNo,
+        ownerClientName: toSave.ownerClientName,
+        ownerClientPhone: toSave.ownerClientPhone,
+        photoUrl: toSave.photoUrl,
+        createdAt: toSave.createdAt,
+        updatedAt: toSave.updatedAt,
+      );
       if (index >= 0) {
         _inMemoryMares[index] = mare;
       } else {
-        _inMemoryMares.add(mare);
+        _inMemoryMares.insert(0, mare);
       }
-      return mare;
+      return toSave;
     }
     try {
-      final data = await c.from('mares').upsert(mare.toJson()).select().single();
-      return Mare.fromJson(data);
+      final data = await c.from('animals').upsert(toSave.toJson()).select().single();
+      return Animal.fromJson(data);
     } catch (e) {
       debugPrint('Supabase saveMare error: $e');
-      _inMemoryMares.add(mare);
-      return mare;
-    }
-  }
-
-  // --- RECIPIENT MARES ---
-  Future<List<RecipientMare>> getRecipientMares() async {
-    final c = client;
-    if (c == null) return List.unmodifiable(_inMemoryRecipientMares);
-    try {
-      final data = await c.from('recipient_mares').select().order('created_at', ascending: false);
-      return (data as List).map((json) => RecipientMare.fromJson(json)).toList();
-    } catch (e) {
-      debugPrint('Supabase getRecipientMares error: $e');
-      return List.unmodifiable(_inMemoryRecipientMares);
-    }
-  }
-
-  Future<RecipientMare> saveRecipientMare(RecipientMare recip) async {
-    final c = client;
-    if (c == null) {
-      final index = _inMemoryRecipientMares.indexWhere((r) => r.id == recip.id);
-      if (index >= 0) {
-        _inMemoryRecipientMares[index] = recip;
-      } else {
-        _inMemoryRecipientMares.add(recip);
-      }
-      return recip;
-    }
-    try {
-      final data = await c.from('recipient_mares').upsert(recip.toJson()).select().single();
-      return RecipientMare.fromJson(data);
-    } catch (e) {
-      debugPrint('Supabase saveRecipientMare error: $e');
-      _inMemoryRecipientMares.add(recip);
-      return recip;
+      return toSave;
     }
   }
 
@@ -93,16 +92,13 @@ class MareRepository {
   Future<Markings?> getMarkings(String ownerType, String ownerId) async {
     final c = client;
     if (c == null) {
-      return _inMemoryMarkings.firstWhere(
-        (m) => m.ownerType == ownerType && m.ownerId == ownerId,
-        orElse: () => Markings(
-          id: '',
-          ownerType: ownerType,
-          ownerId: ownerId,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      );
+      try {
+        return _inMemoryMarkings.firstWhere(
+          (m) => m.ownerType == ownerType && m.ownerId == ownerId,
+        );
+      } catch (_) {
+        return null;
+      }
     }
     try {
       final data = await c
@@ -137,7 +133,6 @@ class MareRepository {
       return Markings.fromJson(data);
     } catch (e) {
       debugPrint('Supabase saveMarkings error: $e');
-      _inMemoryMarkings.add(markings);
       return markings;
     }
   }

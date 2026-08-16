@@ -5,16 +5,19 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_image_picker.dart';
+import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
-import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
+import '../../../animals/domain/animal.dart';
+import '../../../animals/presentation/providers/animal_provider.dart';
+import '../../../animals/presentation/widgets/select_or_add_animal_modal.dart';
 import '../../domain/breeding_record.dart';
 import '../providers/pregnancy_provider.dart';
 
 class BreedingDetailsScreen extends ConsumerStatefulWidget {
-  final String mareId;
+  final String? initialMareId;
 
-  const BreedingDetailsScreen({super.key, required this.mareId});
+  const BreedingDetailsScreen({super.key, this.initialMareId});
 
   @override
   ConsumerState<BreedingDetailsScreen> createState() => _BreedingDetailsScreenState();
@@ -22,9 +25,18 @@ class BreedingDetailsScreen extends ConsumerStatefulWidget {
 
 class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? _selectedMethod; // 'natural', 'chilled', 'frozen', 'icsi'
+
+  Animal? _selectedMare;
+  Animal? _selectedRecipient;
+
+  final _stallionController = TextEditingController();
+  final _damOfEmbryoController = TextEditingController();
+  final _stallionOfEmbryoController = TextEditingController();
+
+  String? _selectedMethod = 'natural'; // 'natural', 'chilled', 'frozen', 'icsi'
   bool _isEmbryoTransfer = false;
   DateTime _coverDate = DateTime.now();
+  DateTime _transferDate = DateTime.now();
   String? _photoUrl;
   bool _isSaving = false;
 
@@ -35,12 +47,37 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
     (label: 'ICSI', value: 'icsi'),
   ];
 
-  Future<void> _selectDate() async {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialMareId != null && widget.initialMareId!.isNotEmpty) {
+      _loadInitialMare(widget.initialMareId!);
+    }
+  }
+
+  Future<void> _loadInitialMare(String id) async {
+    final repo = ref.read(animalRepositoryProvider);
+    final animal = await repo.getAnimalById(id);
+    if (animal != null && mounted) {
+      setState(() => _selectedMare = animal);
+    }
+  }
+
+  @override
+  void dispose() {
+    _stallionController.dispose();
+    _damOfEmbryoController.dispose();
+    _stallionOfEmbryoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate(bool isTransfer) async {
+    final current = isTransfer ? _transferDate : _coverDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _coverDate,
+      initialDate: current,
       firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
+      lastDate: DateTime(2035),
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
@@ -55,14 +92,31 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
       },
     );
     if (picked != null) {
-      setState(() => _coverDate = picked);
+      setState(() {
+        if (isTransfer) {
+          _transferDate = picked;
+        } else {
+          _coverDate = picked;
+        }
+      });
     }
   }
 
+  String _formatDate(DateTime dt) {
+    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+  }
+
   Future<void> _handleSave() async {
-    if (_selectedMethod == null) {
+    if (_selectedMare == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a breeding method (* required)')),
+        const SnackBar(content: Text('Please select or register the donor mare.')),
+      );
+      return;
+    }
+
+    if (_isEmbryoTransfer && _selectedRecipient == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select or register the recipient mare carrying the embryo.')),
       );
       return;
     }
@@ -74,52 +128,57 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(pregnancyRepositoryProvider);
+      final breedingId = DateTime.now().millisecondsSinceEpoch.toString();
+
       final breedingRecord = BreedingRecord(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        mareId: widget.mareId,
-        method: _selectedMethod!,
-        isEmbryoTransfer: _isEmbryoTransfer,
+        id: breedingId,
+        accountId: '',
+        mareAnimalId: _selectedMare!.id,
+        stallionName: _stallionController.text.trim(),
+        method: _selectedMethod ?? 'natural',
         coverOrTransferDate: _coverDate,
+        isEmbryoTransfer: _isEmbryoTransfer,
+        recipientAnimalId: _isEmbryoTransfer ? _selectedRecipient?.id : null,
+        damOfEmbryo: _isEmbryoTransfer ? _damOfEmbryoController.text.trim() : null,
+        stallionOfEmbryo: _isEmbryoTransfer ? _stallionOfEmbryoController.text.trim() : null,
         photoUrl: _photoUrl,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final savedBreeding = await repo.saveBreedingRecord(breedingRecord);
 
-      if (mounted) {
-        if (_isEmbryoTransfer) {
-          // Navigate to Recipient Mare Details next
-          Navigator.pushNamed(
-            context,
-            '/recipient-mare-details',
-            arguments: savedBreeding.id,
-          );
-        } else {
-          // Immediately calculate and insert pregnancy record for Donor Mare
-          await repo.createCalculatedPregnancyRecord(
-            carrierType: 'mare',
-            carrierId: widget.mareId,
-            breedingRecordId: savedBreeding.id,
-            method: _selectedMethod!,
-            baseDate: _coverDate,
-          );
+      // Automatically compute pregnancy dates and insert pregnancy record
+      final carrierAnimalId = _isEmbryoTransfer ? _selectedRecipient!.id : _selectedMare!.id;
+      final baseDate = _isEmbryoTransfer ? _transferDate : _coverDate;
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Breeding details & pregnancy record saved!')),
-            );
-            Navigator.pushNamed(
-              context,
-              '/pregnancy-details',
-              arguments: {'carrierType': 'mare', 'carrierId': widget.mareId},
-            );
-          }
-        }
+      final createdPregnancy = await repo.createCalculatedPregnancyRecord(
+        carrierAnimalId: carrierAnimalId,
+        breedingRecordId: savedBreeding.id,
+        method: _selectedMethod ?? 'natural',
+        isEmbryoTransfer: _isEmbryoTransfer,
+        baseDate: baseDate,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Breeding and pregnancy record calculated successfully!')),
+        );
+
+        Navigator.pushReplacementNamed(
+          context,
+          '/pregnancy-details',
+          arguments: {
+            'carrierAnimalId': carrierAnimalId,
+            'breedingRecordId': savedBreeding.id,
+            'pregnancyRecordId': createdPregnancy.id,
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving breeding details: $e')),
+          SnackBar(content: Text('Failed to save breeding: $e')),
         );
       }
     } finally {
@@ -135,166 +194,341 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primaryGold),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          onPressed: () => Navigator.maybePop(context),
         ),
-        title: const Text(
-          'BREEDING DETAILS',
-          style: AppTypography.appBarTitle,
-        ),
+        title: const Text('BREEDING DETAILS', style: AppTypography.sectionLabel),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(AppSpacing.spaceL),
-        child: ResponsiveBody(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.horizontalPadding,
+            vertical: 16.0,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SectionDividerLabel(label: 'BREEDING METHOD *', isLeftAligned: true),
-                const SizedBox(height: AppSpacing.spaceM),
+                // 1. Mare Picker Card
+                const SectionDividerLabel(label: 'DONOR MARE (MOTHER)'),
+                const SizedBox(height: 12.0),
 
-                // Responsive Wrap for Chips
-                Wrap(
-                  spacing: 8.0,
-                  runSpacing: 8.0,
-                  children: _methods.map((m) {
-                    final isSelected = _selectedMethod == m.value;
-                    return ChoiceChip(
-                      label: Text(
-                        m.label,
-                        style: TextStyle(
-                          color: isSelected ? AppColors.background : AppColors.textPrimary,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                      selected: isSelected,
-                      selectedColor: AppColors.primaryGold,
-                      backgroundColor: AppColors.surface,
-                      side: BorderSide(
-                        color: isSelected ? AppColors.primaryGold : AppColors.inputBorder,
-                      ),
-                      onSelected: (val) {
-                        if (val) {
-                          setState(() {
-                            _selectedMethod = m.value;
-                            if (m.value == 'icsi') {
-                              _isEmbryoTransfer = true; // ICSI is embryo transfer by nature
-                            }
-                          });
-                        }
-                      },
+                GestureDetector(
+                  onTap: () async {
+                    final chosen = await SelectOrAddAnimalModal.show(
+                      context,
+                      title: 'Select Donor Mare',
+                      species: 'horse',
+                      currentSelectedId: _selectedMare?.id,
                     );
-                  }).toList(),
-                ),
-
-                if (_selectedMethod == null) ...[
-                  const SizedBox(height: 8),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      '* Selecting a breeding method is required',
-                      style: TextStyle(color: AppColors.error, fontSize: 12),
-                    ),
-                  ),
-                ],
-
-                if (_selectedMethod != null) ...[
-                  const SizedBox(height: AppSpacing.spaceL),
-                  const SectionDividerLabel(label: 'EMBRYO TRANSFER', isLeftAligned: true),
-                  const SizedBox(height: AppSpacing.spaceM),
-
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.spaceM),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                      border: Border.all(color: AppColors.inputBorder),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Was the resulting embryo transferred to a recipient mare?',
-                            style: AppTypography.bodyMedium,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Switch(
-                          value: _isEmbryoTransfer,
-                          activeThumbColor: AppColors.primaryGold,
-                          onChanged: _selectedMethod == 'icsi'
-                              ? null // Locked to true for ICSI
-                              : (val) {
-                                  setState(() => _isEmbryoTransfer = val);
-                                },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: AppSpacing.spaceL),
-                const SectionDividerLabel(label: 'DATE & DOCUMENTATION', isLeftAligned: true),
-                const SizedBox(height: AppSpacing.spaceM),
-
-                // Date Picker Field
-                InkWell(
-                  onTap: _selectDate,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+                    if (chosen != null) setState(() => _selectedMare = chosen);
+                  },
                   child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.spaceM),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusL),
-                      border: Border.all(color: AppColors.inputBorder),
+                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                      border: Border.all(
+                        color: _selectedMare != null ? AppColors.primaryGold : AppColors.surface,
+                        width: 1.5,
+                      ),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.inputField,
+                            border: Border.all(color: AppColors.primaryGold),
+                          ),
+                          child: const Icon(Icons.pets, color: AppColors.primaryGold, size: 24),
+                        ),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _isEmbryoTransfer ? 'Date of Transfer *' : 'Date of Cover / Insemination *',
-                                style: AppTypography.inputLabel,
-                                overflow: TextOverflow.ellipsis,
+                                _selectedMare != null ? _selectedMare!.name : 'Select or Add Donor Mare',
+                                style: AppTypography.displayHeadline.copyWith(
+                                  fontSize: 16,
+                                  color: _selectedMare != null ? AppColors.primaryGold : AppColors.textPrimary,
+                                ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
-                                '${_coverDate.day}/${_coverDate.month}/${_coverDate.year}',
-                                style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold),
+                                _selectedMare != null
+                                    ? '${_selectedMare!.breed ?? "Equine"} • Chip: ${_selectedMare!.microchipNo ?? "N/A"}'
+                                    : 'Tap to choose from saved horses or add new',
+                                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.calendar_today, color: AppColors.primaryGold),
+                        const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.primaryGold, size: 16),
                       ],
                     ),
                   ),
                 ),
+                const SizedBox(height: 24.0),
 
-                const SizedBox(height: AppSpacing.spaceM),
+                // 2. Sire / Stallion Field
+                const SectionDividerLabel(label: 'STALLION (FATHER)'),
+                const SizedBox(height: 12.0),
 
-                // Insemination Photo Slot using AppImagePicker
+                CustomTextField(
+                  label: 'Stallion Name',
+                  hintText: 'e.g. Northern Dancer (External Stud)',
+                  controller: _stallionController,
+                  prefixIcon: Icons.pets_outlined,
+                ),
+                const SizedBox(height: 24.0),
+
+                // 3. Breeding Method Selector Chips
+                const SectionDividerLabel(label: 'HOW WAS YOUR MARE BRED?'),
+                const SizedBox(height: 12.0),
+
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _methods.map((m) {
+                    final isSelected = _selectedMethod == m.value;
+                    return ChoiceChip(
+                      label: Text(
+                        m.label,
+                        style: AppTypography.buttonLabel.copyWith(
+                          color: isSelected ? AppColors.background : AppColors.textPrimary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      selected: isSelected,
+                      selectedColor: AppColors.primaryGold,
+                      backgroundColor: AppColors.surface,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: isSelected ? AppColors.primaryGold : AppColors.surface,
+                        ),
+                      ),
+                      onSelected: (val) {
+                        if (val) setState(() => _selectedMethod = m.value);
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24.0),
+
+                // 4. Embryo Transfer Question
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                    border: Border.all(color: AppColors.surface),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Was the resulting embryo transferred to a recipient mare?',
+                        style: AppTypography.displayHeadline.copyWith(fontSize: 15),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Embryo transfer flushes the fertilized embryo to be carried to term by a surrogate recipient mare.',
+                        style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => setState(() => _isEmbryoTransfer = false),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: !_isEmbryoTransfer ? AppColors.primaryGold : AppColors.inputField,
+                                foregroundColor: !_isEmbryoTransfer ? AppColors.background : AppColors.textPrimary,
+                                side: const BorderSide(color: AppColors.primaryGold),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: const Text('NO (Donor Mare Carries)'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => setState(() => _isEmbryoTransfer = true),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: _isEmbryoTransfer ? AppColors.primaryGold : AppColors.inputField,
+                                foregroundColor: _isEmbryoTransfer ? AppColors.background : AppColors.textPrimary,
+                                side: const BorderSide(color: AppColors.primaryGold),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: const Text('YES (Recipient Carries)'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+
+                // 5. If Embryo Transfer: Recipient & Genetic Origin Fields
+                if (_isEmbryoTransfer) ...[
+                  const SectionDividerLabel(label: 'RECIPIENT MARE & EMBRYO GENETICS'),
+                  const SizedBox(height: 12.0),
+
+                  GestureDetector(
+                    onTap: () async {
+                      final chosen = await SelectOrAddAnimalModal.show(
+                        context,
+                        title: 'Select Recipient Mare',
+                        species: 'horse',
+                        currentSelectedId: _selectedRecipient?.id,
+                      );
+                      if (chosen != null) setState(() => _selectedRecipient = chosen);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                        border: Border.all(
+                          color: _selectedRecipient != null ? AppColors.primaryGold : AppColors.surface,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.favorite_border_rounded, color: AppColors.primaryGold, size: 24),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _selectedRecipient != null ? _selectedRecipient!.name : 'Select / Add Recipient Mare *',
+                                  style: AppTypography.displayHeadline.copyWith(
+                                    fontSize: 16,
+                                    color: _selectedRecipient != null ? AppColors.primaryGold : AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _selectedRecipient != null
+                                      ? 'Chip: ${_selectedRecipient!.microchipNo ?? "N/A"}'
+                                      : 'The surrogate mare carrying this pregnancy',
+                                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.primaryGold, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  CustomTextField(
+                    label: 'DAM of Embryo (Genetic Mother)',
+                    hintText: 'e.g. Celestial Queen',
+                    controller: _damOfEmbryoController,
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  CustomTextField(
+                    label: 'Stallion of Embryo (Genetic Father)',
+                    hintText: 'e.g. Storm Chaser',
+                    controller: _stallionOfEmbryoController,
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  // Transfer Date Picker
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Embryo Transfer Date *', style: AppTypography.inputLabel),
+                      const SizedBox(height: 6),
+                      GestureDetector(
+                        onTap: () => _pickDate(true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: AppColors.inputField,
+                            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                            border: Border.all(color: AppColors.primaryGold),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDate(_transferDate),
+                                style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
+                              ),
+                              const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primaryGold),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24.0),
+                ],
+
+                // 6. Cover / Insemination Date (if not ET)
+                if (!_isEmbryoTransfer) ...[
+                  const SectionDividerLabel(label: 'COVER / INSEMINATION DATE'),
+                  const SizedBox(height: 12.0),
+
+                  GestureDetector(
+                    onTap: () => _pickDate(false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.inputField,
+                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                        border: Border.all(color: AppColors.primaryGold),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _formatDate(_coverDate),
+                            style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
+                          ),
+                          const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primaryGold),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                ],
+
+                // 7. Photo Upload (Straws / Certificate)
+                const SectionDividerLabel(label: 'BREEDING PHOTO / INSEMINATION STRAWS'),
+                const SizedBox(height: 12.0),
+
                 AppImagePicker(
-                  currentImagePath: _photoUrl,
-                  label: 'Tap to Add Insemination / Straw Photo',
-                  height: 120,
-                  onImagePicked: (path) => setState(() => _photoUrl = path),
+                  label: 'Insemination Straws / Cover Photo',
+                  initialImageUrl: _photoUrl,
+                  onImageSelected: (url) => setState(() => _photoUrl = url),
                 ),
+                const SizedBox(height: 32.0),
 
-                const SizedBox(height: AppSpacing.spaceXL),
-
+                // 8. Submit CTA
                 GradientCtaButton(
-                  text: _isEmbryoTransfer ? 'CONTINUE TO RECIPIENT MARE' : 'SAVE & VIEW PREGNANCY SCANS',
-                  onPressed: _handleSave,
-                  isLoading: _isSaving,
+                  text: _isSaving ? 'CALCULATING PREGNANCY...' : 'SAVE & CALCULATE PREGNANCY',
+                  onPressed: _isSaving ? null : _handleSave,
                 ),
+                const SizedBox(height: 24.0),
               ],
             ),
           ),

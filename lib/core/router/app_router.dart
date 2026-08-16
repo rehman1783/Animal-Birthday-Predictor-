@@ -7,19 +7,20 @@ import '../../features/auth/presentation/screens/password_reset_screen.dart';
 import '../../features/auth/presentation/screens/update_password_screen.dart';
 import '../../features/auth/presentation/screens/email_verification_screen.dart';
 import '../../features/main/presentation/screens/main_navigation_screen.dart';
-import '../../features/animals/presentation/screens/animal_detail_screen.dart';
-import '../../features/animals/presentation/screens/mare_details_screen.dart';
+import '../../features/animals/domain/animal.dart';
+import '../../features/animals/presentation/screens/species_selection_screen.dart';
+import '../../features/animals/presentation/screens/saved_animals_screen.dart';
+import '../../features/animals/presentation/screens/animal_details_screen.dart';
 import '../../features/animals/presentation/screens/markings_screen.dart';
-import '../../features/animals/domain/mare.dart';
 import '../../features/pregnancy/presentation/screens/breeding_details_screen.dart';
 import '../../features/pregnancy/presentation/screens/pregnancy_details_screen.dart';
+import '../../features/pregnancy/presentation/screens/pregnancy_scans_screen.dart';
 import '../../features/pregnancy/presentation/screens/advanced_pregnancy_info_screen.dart';
-import '../../features/pregnancy/presentation/screens/recipient_mare_details_screen.dart';
-import '../../features/pregnancy/presentation/screens/mare_preventative_care_screen.dart';
-import '../../features/foal/presentation/screens/foal_details_screen.dart';
-import '../../features/foal/presentation/screens/foal_preventative_care_screen.dart';
-import '../../features/foal/presentation/screens/congratulations_screen.dart';
+import '../../features/pregnancy/presentation/screens/preventative_care_screen.dart';
 import '../../features/foal/domain/foal_record.dart';
+import '../../features/foal/presentation/screens/foal_details_screen.dart';
+import '../../features/foal/presentation/screens/congratulations_screen.dart';
+import '../../features/certificates/presentation/screens/certificate_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 
 abstract class AppRouter {
@@ -32,10 +33,32 @@ abstract class AppRouter {
           settings: settings,
         );
 
-      case '/mare-details':
-        final mare = settings.arguments as Mare?;
+      case '/species-select':
         return MaterialPageRoute(
-          builder: (_) => MareDetailsScreen(mare: mare),
+          builder: (_) => const SpeciesSelectionScreen(),
+          settings: settings,
+        );
+
+      case '/saved-animals':
+        return MaterialPageRoute(
+          builder: (_) => const SavedAnimalsScreen(),
+          settings: settings,
+        );
+
+      case '/animal-details':
+      case '/mare-details':
+        final args = settings.arguments;
+        Animal? animal;
+        String species = 'horse';
+        if (args is Animal) {
+          animal = args;
+          species = args.species;
+        } else if (args is Map<String, dynamic>) {
+          animal = args['animal'] as Animal?;
+          species = (args['species'] as String?) ?? 'horse';
+        }
+        return MaterialPageRoute(
+          builder: (_) => AnimalDetailsScreen(animal: animal, species: species),
           settings: settings,
         );
 
@@ -43,16 +66,16 @@ abstract class AppRouter {
         final args = settings.arguments as Map<String, dynamic>? ?? {};
         return MaterialPageRoute(
           builder: (_) => MarkingsScreen(
-            ownerType: args['ownerType'] as String? ?? 'mare',
+            ownerType: args['ownerType'] as String? ?? 'animal',
             ownerId: args['ownerId'] as String? ?? '',
           ),
           settings: settings,
         );
 
       case '/breeding-details':
-        final mareId = (settings.arguments as String?) ?? '';
+        final mareId = settings.arguments is String ? (settings.arguments as String) : null;
         return MaterialPageRoute(
-          builder: (_) => BreedingDetailsScreen(mareId: mareId),
+          builder: (_) => BreedingDetailsScreen(initialMareId: mareId),
           settings: settings,
         );
 
@@ -60,8 +83,19 @@ abstract class AppRouter {
         final args = settings.arguments as Map<String, dynamic>? ?? {};
         return MaterialPageRoute(
           builder: (_) => PregnancyDetailsScreen(
-            carrierType: args['carrierType'] as String? ?? 'mare',
-            carrierId: args['carrierId'] as String? ?? '',
+            carrierAnimalId: (args['carrierAnimalId'] as String?) ?? (args['carrierId'] as String?) ?? '',
+            breedingRecordId: args['breedingRecordId'] as String?,
+            pregnancyRecordId: args['pregnancyRecordId'] as String?,
+          ),
+          settings: settings,
+        );
+
+      case '/pregnancy-scans':
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        return MaterialPageRoute(
+          builder: (_) => PregnancyScansScreen(
+            carrierAnimalId: (args['carrierAnimalId'] as String?) ?? '',
+            pregnancyRecordId: args['pregnancyRecordId'] as String?,
           ),
           settings: settings,
         );
@@ -73,17 +107,30 @@ abstract class AppRouter {
           settings: settings,
         );
 
-      case '/recipient-mare-details':
-        final breedingRecordId = (settings.arguments as String?) ?? '';
-        return MaterialPageRoute(
-          builder: (_) => RecipientMareDetailsScreen(breedingRecordId: breedingRecordId),
-          settings: settings,
-        );
-
+      case '/preventative-care':
       case '/mare-preventative-care':
-        final mareId = (settings.arguments as String?) ?? '';
+        final args = settings.arguments;
+        String ownerType = 'animal';
+        String ownerId = '';
+        String? title;
+        String? damMareId;
+
+        if (args is String) {
+          ownerId = args;
+        } else if (args is Map<String, dynamic>) {
+          ownerType = args['ownerType'] as String? ?? 'animal';
+          ownerId = args['ownerId'] as String? ?? '';
+          title = args['title'] as String?;
+          damMareId = args['damMareId'] as String?;
+        }
+
         return MaterialPageRoute(
-          builder: (_) => MarePreventativeCareScreen(mareId: mareId),
+          builder: (_) => PreventativeCareScreen(
+            ownerType: ownerType,
+            ownerId: ownerId,
+            title: title,
+            damMareId: damMareId,
+          ),
           settings: settings,
         );
 
@@ -94,20 +141,24 @@ abstract class AppRouter {
           settings: settings,
         );
 
-      case '/foal-preventative-care':
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        return MaterialPageRoute(
-          builder: (_) => FoalPreventativeCareScreen(
-            foalId: args['foalId'] as String? ?? '',
-            damMareId: args['damMareId'] as String?,
-          ),
-          settings: settings,
-        );
-
       case '/congratulations':
         final species = (settings.arguments as String?) ?? 'Equine';
         return MaterialPageRoute(
           builder: (_) => CongratulationsScreen(species: species),
+          settings: settings,
+        );
+
+      case '/certificate':
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final foal = args['foal'] as FoalRecord?;
+        final dam = args['dam'] as Animal?;
+        if (foal == null) {
+          return MaterialPageRoute(
+            builder: (_) => const Scaffold(body: Center(child: Text('No foal selected'))),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (_) => CertificateScreen(foal: foal, dam: dam),
           settings: settings,
         );
     }
@@ -130,11 +181,10 @@ abstract class AppRouter {
       '/reset-password': (context) => const PasswordResetScreen(),
       '/update-password': (context) => const UpdatePasswordScreen(),
       '/home': (context) => const MainNavigationScreen(),
-      '/animal-detail': (context) => const AnimalDetailScreen(),
+      '/species-select': (context) => const SpeciesSelectionScreen(),
+      '/saved-animals': (context) => const SavedAnimalsScreen(),
+      '/animal-details': (context) => const AnimalDetailsScreen(),
       '/settings': (context) => const SettingsScreen(),
-      '/mare-details': (context) => const MareDetailsScreen(),
-      '/foal-details': (context) => const FoalDetailsScreen(),
-      '/congratulations': (context) => const CongratulationsScreen(),
     };
   }
 }

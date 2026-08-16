@@ -6,173 +6,166 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/section_divider_label.dart';
-import '../../../animals/presentation/providers/mare_provider.dart';
+import '../../../animals/presentation/providers/animal_provider.dart';
 
 class PregnancyModuleScreen extends ConsumerWidget {
   const PregnancyModuleScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final maresAsync = ref.watch(maresListProvider);
-    final recipAsync = ref.watch(recipientMaresListProvider);
+    final horsesAsync = ref.watch(animalsListProvider('horse'));
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: const Text(
-          'PREGNANCY & BREEDING TRACKER',
-          style: AppTypography.appBarTitle,
-        ),
+        title: const Text('PREGNANCY & BREEDING TRACKER', style: AppTypography.sectionLabel),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SectionDividerLabel(label: 'DONOR MARES', isLeftAligned: true),
-            const SizedBox(height: AppSpacing.spaceM),
-
-            maresAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-              error: (e, s) => Text('Error loading mares: $e', style: AppTypography.body),
-              data: (mares) {
-                if (mares.isEmpty) {
-                  return Container(
-                    padding: const EdgeInsets.all(AppSpacing.spaceM),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header CTA
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                  border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.6)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Record New Breeding Event', style: AppTypography.displayHeadline.copyWith(fontSize: 17)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Select a mare, choose the breeding method (Natural, Chilled, Frozen, ICSI), and auto-calculate pregnancy scan due dates.',
+                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                     ),
-                    child: Column(
-                      children: [
-                        const Text('No donor mares registered yet.', style: AppTypography.body),
-                        const SizedBox(height: 12),
-                        GradientCtaButton(
-                          text: '+ Add Donor Mare',
-                          onPressed: () => Navigator.pushNamed(context, '/mare-details'),
-                        ),
-                      ],
+                    const SizedBox(height: 14),
+                    GradientCtaButton(
+                      text: '+ RECORD BREEDING EVENT',
+                      onPressed: () => Navigator.pushNamed(context, '/breeding-details'),
                     ),
-                  );
-                }
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24.0),
 
-                return Column(
-                  children: mares.map((mare) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: AppSpacing.spaceM),
-                      padding: const EdgeInsets.all(AppSpacing.spaceM),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                        border: Border.all(color: AppColors.inputBorder),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(mare.name, style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
-                              Text(mare.breed ?? 'Horse', style: AppTypography.finePrint),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text('Microchip: ${mare.microchipNo ?? "N/A"}', style: AppTypography.caption),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(context, '/breeding-details', arguments: mare.id);
-                                  },
-                                  child: const Text('Log Breeding'),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/pregnancy-details',
-                                      arguments: {'carrierType': 'mare', 'carrierId': mare.id},
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGold),
-                                  child: const Text('Scans', style: TextStyle(color: AppColors.background)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
+              const SectionDividerLabel(label: 'REGISTERED MARES & CARRIERS'),
+              const SizedBox(height: 14.0),
 
-            const SizedBox(height: AppSpacing.spaceL),
-            const SectionDividerLabel(label: 'RECIPIENT MARES', isLeftAligned: true),
-            const SizedBox(height: AppSpacing.spaceM),
-
-            recipAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-              error: (e, s) => Text('Error loading recipient mares: $e', style: AppTypography.body),
-              data: (recips) {
-                if (recips.isEmpty) {
-                  return Text('No recipient mares logged.', style: AppTypography.finePrint);
-                }
-
-                return Column(
-                  children: recips.map((recip) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: AppSpacing.spaceM),
-                      padding: const EdgeInsets.all(AppSpacing.spaceM),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                        border: Border.all(color: AppColors.inputBorder),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(recip.nameNo, style: AppTypography.titleMedium.copyWith(color: AppColors.primaryGold)),
-                              Text('Recipient Mare', style: AppTypography.finePrint),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text('Dam of Embryo: ${recip.damOfEmbryo ?? "N/A"}', style: AppTypography.caption),
-                          const SizedBox(height: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/pregnancy-details',
-                                arguments: {'carrierType': 'recipient_mare', 'carrierId': recip.id},
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryGold,
-                              minimumSize: const Size(double.infinity, 40),
+              horsesAsync.when(
+                data: (horses) {
+                  if (horses.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.pets, size: 40, color: AppColors.primaryGold),
+                            const SizedBox(height: 12),
+                            const Text('No horses registered yet', style: TextStyle(color: AppColors.textPrimary)),
+                            const SizedBox(height: 12),
+                            OutlinedButton(
+                              onPressed: () => Navigator.pushNamed(context, '/species-select'),
+                              child: const Text('Register First Mare'),
                             ),
-                            child: const Text('View Recipient Scans', style: TextStyle(color: AppColors.background)),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
-                  }).toList(),
-                );
-              },
-            ),
-          ],
+                  }
+
+                  return Column(
+                    children: horses.map((horse) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                          border: Border.all(color: AppColors.surface),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  horse.name,
+                                  style: AppTypography.displayHeadline.copyWith(
+                                    fontSize: 16,
+                                    color: AppColors.primaryGold,
+                                  ),
+                                ),
+                                Text(
+                                  horse.breed ?? 'Equine',
+                                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Chip: ${horse.microchipNo ?? "N/A"} • DNA: ${horse.dna ?? "N/A"}',
+                              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted, fontSize: 11),
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/breeding-details',
+                                        arguments: horse.id,
+                                      );
+                                    },
+                                    icon: const Icon(Icons.favorite_outline, size: 16, color: AppColors.primaryGold),
+                                    label: const Text('Log Breeding'),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: AppColors.primaryGold),
+                                      foregroundColor: AppColors.primaryGold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/pregnancy-details',
+                                        arguments: {'carrierAnimalId': horse.id},
+                                      );
+                                    },
+                                    icon: const Icon(Icons.monitor_heart, size: 16),
+                                    label: const Text('Scans / Preg'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryGold,
+                                      foregroundColor: AppColors.background,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
+                error: (e, _) => Text('Error loading horses: $e', style: const TextStyle(color: Colors.redAccent)),
+              ),
+            ],
+          ),
         ),
       ),
     );

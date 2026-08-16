@@ -1,57 +1,111 @@
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/animal.dart';
-import '../domain/animal_type.dart';
 
 class AnimalRepository {
-  // In-memory initial data for demonstration & fast UI testing
-  final List<Animal> _mockAnimals = [
-    Animal(
-      id: 'a1',
-      name: 'Starlight Eclipse',
-      type: AnimalType.horse,
-      breed: 'Thoroughbred',
-      gender: 'female',
-      dateOfBirth: DateTime(2019, 4, 12),
-      registrationNumber: 'TB-89421',
-      damName: 'Celestial Queen',
-      sireName: 'Northern Dancer',
-      notes: 'Prime breeding mare. Exceptionally calm temperament.',
-      createdAt: DateTime.now().subtract(const Duration(days: 300)),
-    ),
-    Animal(
-      id: 'a2',
-      name: 'Thunderbolt Fury',
-      type: AnimalType.horse,
-      breed: 'Quarter Horse',
-      gender: 'male',
-      dateOfBirth: DateTime(2018, 5, 20),
-      registrationNumber: 'QH-55910',
-      damName: 'Golden Sunburst',
-      sireName: 'Storm Chaser',
-      notes: 'Proven stud stallion. High fertility score.',
-      createdAt: DateTime.now().subtract(const Duration(days: 280)),
-    ),
-    Animal(
-      id: 'a3',
-      name: 'Bella Sterling',
-      type: AnimalType.dog,
-      breed: 'German Shepherd',
-      gender: 'female',
-      dateOfBirth: DateTime(2021, 8, 15),
-      registrationNumber: 'AKC-GS9942',
-      damName: 'Lady Freya',
-      sireName: 'Baron von Rex',
-      notes: 'Champion bloodline. Excellent whelping history.',
-      createdAt: DateTime.now().subtract(const Duration(days: 120)),
-    ),
-  ];
+  final SupabaseClient? _supabase;
+  final List<Animal> _inMemoryAnimals = [];
 
-  Future<List<Animal>> fetchAnimals() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return List.from(_mockAnimals);
+  AnimalRepository({SupabaseClient? supabase})
+      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client);
+
+  SupabaseClient? get client {
+    try {
+      return _supabase ?? Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
   }
 
-  Future<void> addAnimal(Animal animal) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    _mockAnimals.insert(0, animal);
+  Future<List<Animal>> getAnimals({String? species}) async {
+    final c = client;
+    if (c == null) {
+      if (species != null && species.isNotEmpty) {
+        return _inMemoryAnimals.where((a) => a.species.toLowerCase() == species.toLowerCase()).toList();
+      }
+      return List.unmodifiable(_inMemoryAnimals);
+    }
+    try {
+      var query = c.from('animals').select();
+      if (species != null && species.isNotEmpty) {
+        query = query.eq('species', species);
+      }
+      final data = await query.order('created_at', ascending: false);
+      return (data as List).map((json) => Animal.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Supabase getAnimals error: $e');
+      if (species != null && species.isNotEmpty) {
+        return _inMemoryAnimals.where((a) => a.species.toLowerCase() == species.toLowerCase()).toList();
+      }
+      return List.unmodifiable(_inMemoryAnimals);
+    }
+  }
+
+  Future<Animal?> getAnimalById(String id) async {
+    final c = client;
+    if (c == null) {
+      try {
+        return _inMemoryAnimals.firstWhere((a) => a.id == id);
+      } catch (_) {
+        return null;
+      }
+    }
+    try {
+      final data = await c.from('animals').select().eq('id', id).maybeSingle();
+      if (data == null) return null;
+      return Animal.fromJson(data);
+    } catch (e) {
+      debugPrint('Supabase getAnimalById error: $e');
+      return null;
+    }
+  }
+
+  Future<Animal> saveAnimal(Animal animal) async {
+    final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id ?? (animal.accountId.isNotEmpty ? animal.accountId : '00000000-0000-0000-0000-000000000000');
+    final toSave = animal.copyWith(accountId: accountId);
+
+    if (c == null) {
+      final index = _inMemoryAnimals.indexWhere((a) => a.id == toSave.id);
+      if (index >= 0) {
+        _inMemoryAnimals[index] = toSave;
+      } else {
+        _inMemoryAnimals.insert(0, toSave);
+      }
+      return toSave;
+    }
+    try {
+      final data = await c.from('animals').upsert(toSave.toJson()).select().single();
+      final saved = Animal.fromJson(data);
+      final index = _inMemoryAnimals.indexWhere((a) => a.id == saved.id);
+      if (index >= 0) {
+        _inMemoryAnimals[index] = saved;
+      } else {
+        _inMemoryAnimals.insert(0, saved);
+      }
+      return saved;
+    } catch (e) {
+      debugPrint('Supabase saveAnimal error: $e');
+      final index = _inMemoryAnimals.indexWhere((a) => a.id == toSave.id);
+      if (index >= 0) {
+        _inMemoryAnimals[index] = toSave;
+      } else {
+        _inMemoryAnimals.insert(0, toSave);
+      }
+      return toSave;
+    }
+  }
+
+  Future<void> deleteAnimal(String id) async {
+    final c = client;
+    _inMemoryAnimals.removeWhere((a) => a.id == id);
+    if (c != null) {
+      try {
+        await c.from('animals').delete().eq('id', id);
+      } catch (e) {
+        debugPrint('Supabase deleteAnimal error: $e');
+      }
+    }
   }
 }

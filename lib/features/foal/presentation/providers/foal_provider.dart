@@ -11,3 +11,8 @@ final foalsListProvider = FutureProvider<List<FoalRecord>>((ref) async {
   final repo = ref.watch(foalRepositoryProvider);
   return repo.getFoals();
 });
+
+final foalByIdProvider = FutureProvider.family<FoalRecord?, String>((ref, id) async {
+  final repo = ref.watch(foalRepositoryProvider);
+  return repo.getFoalById(id);
+});

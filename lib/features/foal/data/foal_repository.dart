@@ -30,24 +30,71 @@ class FoalRepository {
     }
   }
 
-  Future<FoalRecord> saveFoal(FoalRecord foal) async {
+  Future<FoalRecord?> getFoalById(String id) async {
     final c = client;
     if (c == null) {
-      final index = _inMemoryFoals.indexWhere((f) => f.id == foal.id);
-      if (index >= 0) {
-        _inMemoryFoals[index] = foal;
-      } else {
-        _inMemoryFoals.add(foal);
+      try {
+        return _inMemoryFoals.firstWhere((f) => f.id == id);
+      } catch (_) {
+        return null;
       }
-      return foal;
     }
     try {
-      final data = await c.from('foals').upsert(foal.toJson()).select().single();
+      final data = await c.from('foals').select().eq('id', id).maybeSingle();
+      if (data == null) return null;
       return FoalRecord.fromJson(data);
     } catch (e) {
+      debugPrint('Supabase getFoalById error: $e');
+      return null;
+    }
+  }
+
+  Future<FoalRecord> saveFoal(FoalRecord foal) async {
+    final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id ?? (foal.accountId.isNotEmpty ? foal.accountId : '00000000-0000-0000-0000-000000000000');
+    final toSave = foal.copyWith(accountId: accountId);
+
+    if (c == null) {
+      final index = _inMemoryFoals.indexWhere((f) => f.id == toSave.id);
+      if (index >= 0) {
+        _inMemoryFoals[index] = toSave;
+      } else {
+        _inMemoryFoals.insert(0, toSave);
+      }
+      return toSave;
+    }
+    try {
+      final data = await c.from('foals').upsert(toSave.toJson()).select().single();
+      final saved = FoalRecord.fromJson(data);
+      final index = _inMemoryFoals.indexWhere((f) => f.id == saved.id);
+      if (index >= 0) {
+        _inMemoryFoals[index] = saved;
+      } else {
+        _inMemoryFoals.insert(0, saved);
+      }
+      return saved;
+    } catch (e) {
       debugPrint('Supabase saveFoal error: $e');
-      _inMemoryFoals.add(foal);
-      return foal;
+      final index = _inMemoryFoals.indexWhere((f) => f.id == toSave.id);
+      if (index >= 0) {
+        _inMemoryFoals[index] = toSave;
+      } else {
+        _inMemoryFoals.insert(0, toSave);
+      }
+      return toSave;
+    }
+  }
+
+  Future<void> deleteFoal(String id) async {
+    final c = client;
+    _inMemoryFoals.removeWhere((f) => f.id == id);
+    if (c != null) {
+      try {
+        await c.from('foals').delete().eq('id', id);
+      } catch (e) {
+        debugPrint('Supabase deleteFoal error: $e');
+      }
     }
   }
 }

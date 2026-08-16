@@ -1,6 +1,6 @@
 class Markings {
   final String id;
-  final String ownerType; // 'mare', 'recipient_mare', 'foal'
+  final String ownerType; // 'animal', 'foal'
   final String ownerId;
   final String? leftSideImageUrl;
   final String? rightSideImageUrl;
@@ -37,19 +37,43 @@ class Markings {
 
   factory Markings.fromJson(Map<String, dynamic> json) {
     return Markings(
-      id: json['id'] as String,
-      ownerType: json['owner_type'] as String,
-      ownerId: json['owner_id'] as String,
+      id: json['id'] as String? ?? '',
+      ownerType: json['owner_type'] as String? ?? 'animal',
+      ownerId: json['owner_id'] as String? ?? '',
       leftSideImageUrl: json['left_side_image_url'] as String?,
       rightSideImageUrl: json['right_side_image_url'] as String?,
       headViewImageUrl: json['head_view_image_url'] as String?,
       headViewNotes: json['head_view_notes'] as String?,
       createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
+          ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),
       updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
+          ? DateTime.tryParse(json['updated_at'] as String) ?? DateTime.now()
           : DateTime.now(),
+    );
+  }
+
+  Markings copyWith({
+    String? id,
+    String? ownerType,
+    String? ownerId,
+    String? leftSideImageUrl,
+    String? rightSideImageUrl,
+    String? headViewImageUrl,
+    String? headViewNotes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Markings(
+      id: id ?? this.id,
+      ownerType: ownerType ?? this.ownerType,
+      ownerId: ownerId ?? this.ownerId,
+      leftSideImageUrl: leftSideImageUrl ?? this.leftSideImageUrl,
+      rightSideImageUrl: rightSideImageUrl ?? this.rightSideImageUrl,
+      headViewImageUrl: headViewImageUrl ?? this.headViewImageUrl,
+      headViewNotes: headViewNotes ?? this.headViewNotes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

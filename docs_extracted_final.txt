@@ -1,0 +1,392 @@
+ABP — Animal BirthDay Predictor
+Complete Consolidated Application & Database Documentation
+Scope: Horse module, end to end (Onboarding → Auth → Animal Registration → Breeding → Pregnancy → Foaling → Certificate). Dog/Cat/Other are structurally reserved but not built yet.
+This document supersedes and consolidates all prior partial documentation (Onboarding+Auth, Mare/Breeding/Pregnancy/Foal) plus every field extracted from the client's shared reference screens, combined with the application-wide workflow described below. It is written to be handed directly to an AI coding agent as a single source of truth — no images are included, per instruction; every visual reference has been translated into explicit written field lists, layout direction, and data flow.
+Follow the existing project architecture, design system, and UI patterns already established (Flutter, Supabase, Feature-First folders, Riverpod) rather than introducing new patterns. Where this document changes a detail from earlier partial docs (see Section 11), the change is called out explicitly.
+1. Global Application Flow
+This is the core structural requirement that shapes the entire data model and navigation — read this section before any screen-level spec below.
+1.1 Registration → Animal-First Flow
+After Sign Up / Sign In, a user with no animals yet is guided to add their first animal before anything else — this isn't optional busywork, it's the foundation every other feature (breeding, pregnancy, foal records) is built on.
+Adding an animal always starts with a species choice: Horse, Dog, Cat, or Other. The species selected determines which fields appear next.
+For this build, only Horse has its full field set defined and implemented. Dog/Cat/Other should be selectable in the UI and stored correctly (species column), but their species-specific screens are out of scope until those field sets are provided separately.
+Once saved, every animal appears in that user's Saved Animals list, scoped by species.
+1.2 The "Select Existing vs. Add New" Pattern (applies everywhere an animal is referenced)
+This is the single most important reusable interaction pattern in the app. Anywhere the app needs to reference an animal — the mare in a Breeding Record, the recipient in an embryo transfer, the dam/mare linked to a Foal — the user is offered exactly two choices, never a blank form by default:
+"Select Existing" — opens a picker over the user's Saved Animals (filtered to the relevant species), and choosing one auto-fills all of that animal's already-known fields (name, breed, colour, microchip, etc.). The user then only fills in the fields specific to the new context (e.g. a breeding method and cover date), never re-typing what's already known.
+"Add New" — opens a blank Animal Details form (Section 6.5), which on save both creates a new row in the animal registry AND is immediately usable in the current context.
+Concretely: a horse that was registered as a mare in one season could legitimately be selected as a recipient the next — the registry doesn't force an animal into a single fixed role. The `animals` table (Section 3) is deliberately designed around this: one universal record per real animal, referenced by ID from breeding/pregnancy/foal records rather than being copied or hard-typed as "mare-only" or "recipient-only".
+The Stallion field on Breeding Details stays free text rather than a picker — in practice the stallion is usually owned by a different stud, not by this account, so there's normally nothing to select from.
+1.3 Camera & Gallery — applies to every photo field in this document
+Every photo/image field listed anywhere below must offer both: capture directly via the device camera, and choose from the device gallery. Neither is optional; build both entry points on every image field, not just the ones explicitly called out.
+Markings photos specifically should default to opening the camera first (matching the client's explicit ask to take a photo directly from that point in the flow), with gallery as a secondary option.
+1.4 Responsive UI & Stability — non-negotiable baseline for every screen below
+No hardcoded pixel widths/heights; use MediaQuery/LayoutBuilder-based responsive sizing. Verify layout at small phone (~360dp), standard phone (390–430dp), and tablet (768dp+) widths, portrait and landscape.
+No text or data overflow anywhere: long values (names, notes, vet details) must wrap, truncate with ellipsis, or sit in a container that grows — never clip or push other elements off-screen.
+Every screen with more content than fits one viewport must scroll (SingleChildScrollView/ListView) — nothing should silently overflow.
+Every screen that loads data must explicitly handle loading, error, and empty states — never assume data is present.
+Image widgets must handle the "no photo uploaded yet" case with a placeholder, never a crash on a null URL.
+On-screen keyboard opening must not cause layout overflow — the active field should stay visible and scrollable into view.
+2. Design System & Architecture (recap)
+Unchanged from the earlier Onboarding/Auth documentation — reuse these exactly, do not introduce a second design language for the Horse module.
+
+--- TABLE START ---
+Token | Value | Usage
+background | #0A192F | Primary app background (dark navy)
+surface | #112240 | Icon containers, elevated surfaces
+inputField | #131B2D | Text field background
+primaryGold | #D4AF37 | Headings, labels, links, active states
+goldGradientStart / End | #D6B23F → #EDD086 | Primary CTA button gradient
+textPrimary / Secondary / Muted | #FFFFFF / #8A8F98 / #525358 | Text hierarchy
+--- TABLE END ---
+
+Token
+Value
+Usage
+background
+#0A192F
+Primary app background (dark navy)
+surface
+#112240
+Icon containers, elevated surfaces
+inputField
+#131B2D
+Text field background
+primaryGold
+#D4AF37
+Headings, labels, links, active states
+goldGradientStart / End
+#D6B23F → #EDD086
+Primary CTA button gradient
+textPrimary / Secondary / Muted
+#FFFFFF / #8A8F98 / #525358
+Text hierarchy
+Reusable components already established: GradientCtaButton, SectionDividerLabel, CustomTextField, SocialAuthButton, FeatureListItem, AuthHeaderBanner. New components needed for this scope are listed in Section 7.
+Feature-First Folder Structure (extended)
+lib/├── core/                     # unchanged from Part A└── features/    ├── onboarding/           # existing    ├── auth/                 # existing    ├── animals/              # NEW — species selection, animal registry,    │                         #        saved animals list, select-existing-or-new picker    ├── markings/             # NEW — shared component, used by animals/ and foals/    ├── breeding/             # NEW    ├── pregnancy/            # NEW — covers both Pregnancy Details and Pregnancy Scans screens    ├── preventative_care/    # NEW — shared by animals/ and foals/    ├── foals/                # NEW    └── certificates/         # NEW — generation/rendering only, no persisted state of its own
+Each of the new feature folders follows the same domain/data/presentation split already used in auth — a repository interface in domain, the Supabase implementation in data, screens/widgets/providers in presentation.
+3. Data Model Overview
+Full runnable SQL is provided as two separate files alongside this document: 01_schema.sql (tables, constraints, indexes, triggers) and 02_rls_policies.sql (Row-Level Security). Run 01 first, then 02. Below is the plain-English map of what each table is for and how they connect.
+
+--- TABLE START ---
+Table | Purpose
+animals | Universal animal registry — one row per real animal, any species. Powers the Saved Animals list and the Select-Existing picker.
+markings | Left/Right/Head-view photos + notes. One row per owner (an animal or a foal), reused identically across both.
+breeding_records | One breeding event for a mare. Holds method, stallion, dates, and — only if an embryo transfer is involved — the recipient animal and the embryo's genetic parents.
+pregnancy_records | One pregnancy, tracked against whichever animal is actually carrying (donor mare or recipient). Powers both the Pregnancy Details and Pregnancy Scans screens.
+advanced_pregnancy_info | Caslick / Fetal Sex Scan / FFS Result — one row per pregnancy.
+preventative_care | One combined record (Wormer + 9 vaccinations + Dental + Farrier) per owner — an animal or a foal.
+foals | One record per foal, linked to its dam (and recipient, if applicable).
+calendar_reminders | Generic — one row per reminder, pointing at any date field on any table above.
+--- TABLE END ---
+
+Table
+Purpose
+animals
+Universal animal registry — one row per real animal, any species. Powers the Saved Animals list and the Select-Existing picker.
+markings
+Left/Right/Head-view photos + notes. One row per owner (an animal or a foal), reused identically across both.
+breeding_records
+One breeding event for a mare. Holds method, stallion, dates, and — only if an embryo transfer is involved — the recipient animal and the embryo's genetic parents.
+pregnancy_records
+One pregnancy, tracked against whichever animal is actually carrying (donor mare or recipient). Powers both the Pregnancy Details and Pregnancy Scans screens.
+advanced_pregnancy_info
+Caslick / Fetal Sex Scan / FFS Result — one row per pregnancy.
+preventative_care
+One combined record (Wormer + 9 vaccinations + Dental + Farrier) per owner — an animal or a foal.
+foals
+One record per foal, linked to its dam (and recipient, if applicable).
+calendar_reminders
+Generic — one row per reminder, pointing at any date field on any table above.
+Deliberately not a table: Certificate. It's a generated document — one universal template whose title/terminology changes per species ("Puppy Certificate", "Foal Certificate", etc.), assembled at render time from animals + foals + preventative_care, so the breeder never re-types information already in the app. See Section 6.9.
+Deliberately not a table: Congratulations screen. It has no fields of its own — it reads pregnancy_records.foaling_due_date and the relevant animal's name directly.
+4. Calculation Logic — Scan Dates & Foaling Due Date
+Unchanged, carried forward from the client's own written scan-date notes.
+Natural / Chilled / Frozen (no embryo transfer): dates calculated from breeding_records.cover_or_transfer_date, carrier = the donor mare.
+Any embryo transfer (including ICSI, which by nature of the procedure requires one): dates calculated from the recipient's transfer date, carrier = the recipient animal.
+
+--- TABLE START ---
+Path | Carrier | Scan 1 | Scan 2 | Scan 3 | Foaling Due
+Natural | Donor mare | cover +14d | +30d | +45d | cover +341d
+Chilled | Donor mare | cover +14d | +30d | +45d | cover +341d
+Frozen | Donor mare | cover +14d | +30d | +45d | cover +340d
+Embryo Transfer / ICSI | Recipient | transfer +7d | +30d | +45d | transfer +332d
+--- TABLE END ---
+
+Path
+Carrier
+Scan 1
+Scan 2
+Scan 3
+Foaling Due
+Natural
+Donor mare
+cover +14d
++30d
++45d
+cover +341d
+Chilled
+Donor mare
+cover +14d
++30d
++45d
+cover +341d
+Frozen
+Donor mare
+cover +14d
++30d
++45d
+cover +340d
+Embryo Transfer / ICSI
+Recipient
+transfer +7d
++30d
++45d
+transfer +332d
+Implement as one pure function calculatePregnancyDates(carrierType, baseDate), called once when the breeding_record (or its recipient) is saved, writing results into pregnancy_records. Never recalculate on read — a vet-adjusted date must not be silently overwritten.
+5. Vaccination & Preventative Care Logic
+Per the client's own conclusion in their notes ("this is very very complicated, I think we are best to let the client add the date then allow them to sync a calendar app and alert"), Preventative Care is built as user-entered dates + calendar reminders — not an auto-calculating priming-schedule engine. The detailed interval guidance the client provided (e.g. "Tetanus booster 12 months = alert for 360 days") is reference/helper text shown near each field, not logic the app enforces.
+Species difference to flag for later: the Dog module's preventative care needs a Date Given + Date Due pair per item (two dates), whereas Horse uses a single date + done checkbox per item, confirmed as the final layout for this build. Do not force Dog into the Horse table structure when that work starts — extend or add a parallel table.
+Foal-specific note: the Foal Preventative Care screen should look up the dam's own preventative_care record and surface a small reference note (e.g. "Mare's Tetanus recorded [date]") next to the matching foal field — this is what the disclaimer text ("the Vaccination Status of the pregnant mare will affect the start date of the priming program") is describing, and it should be a visible UI connection, not just printed text.
+6. Screens — Full Specification
+6.1 Onboarding & Auth (recap — unchanged from Part A)
+One onboarding screen ("Animal BirthDay Predictor" hero + 3 feature highlights + trust card + Get Started), then Sign Up / Sign In / Password Reset. Full field lists and layout direction are unchanged from the earlier Part A documentation — carry that forward as-is.
+6.2 Species Selection (NEW)
+Shown when the user taps "Add Animal" (from an empty Saved Animals list, or explicitly from that list's add action). A simple choice screen: Horse / Dog / Cat / Other, styled as large tappable option cards matching the app's icon-container visual language.
+Selecting Horse proceeds to Animal Details (Section 6.5) with species='horse' set.
+Selecting Dog/Cat/Other should still write the species value and proceed to a placeholder/"coming soon" state for now, rather than a dead end or a crash — those field sets are not yet defined.
+6.3 Saved Animals List (NEW)
+A list screen (per species, or with a species filter/tab) showing every animal the account has registered — name, thumbnail photo, and breed as the row summary. Empty state: friendly prompt to add the first animal. This is the entry point for the Select-Existing pattern (Section 1.2) and also just a general browse/manage screen reachable from the app's main navigation.
+Tapping an animal opens its Animal Details screen (Section 6.5) in edit mode.
+An explicit "Add New Animal" action always available from this screen, routing to Species Selection.
+6.4 Select Existing vs. Add New (NEW — reusable dialog/screen)
+A small reusable component invoked from Breeding Details (choosing the mare) and from the embryo-transfer step (choosing/creating the recipient). Two large buttons: "Select Existing Animal" (opens the Saved Animals picker, filtered to species='horse') and "Add New Animal" (opens a blank Animal Details form). Whichever path is taken ends with a concrete animals.id being attached to the current context (a breeding_records.mare_animal_id or recipient_animal_id).
+6.5 Animal Details (the `animals` record — used for both mares and recipients)
+
+--- TABLE START ---
+Field | Source | DB Column
+Photo | User input (camera/gallery) | animals.photo_url
+Name | User input, required | animals.name
+Breed | User input | animals.breed
+Colour | User input | animals.colour
+Date of Birth | User input | animals.date_of_birth
+Brand | User input | animals.brand
+DNA | User input | animals.dna
+Microchip No. | User input | animals.microchip_no
+Owner/Client Name | User input | animals.owner_client_name
+Owner/Client Phone | User input | animals.owner_client_phone
+--- TABLE END ---
+
+Field
+Source
+DB Column
+Photo
+User input (camera/gallery)
+animals.photo_url
+Name
+User input, required
+animals.name
+Breed
+User input
+animals.breed
+Colour
+User input
+animals.colour
+Date of Birth
+User input
+animals.date_of_birth
+Brand
+User input
+animals.brand
+DNA
+User input
+animals.dna
+Microchip No.
+User input
+animals.microchip_no
+Owner/Client Name
+User input
+animals.owner_client_name
+Owner/Client Phone
+User input
+animals.owner_client_phone
+This single screen/form serves every horse in the registry — there is no separate "Recipient Details" form; a recipient is simply an animal, selected or created through Section 6.4, with the embryo-specific details (DAM/Stallion of Embryo, Transfer Date) captured on Breeding Details instead (Section 6.7), since those describe the breeding event, not the animal itself.
+A "Markings" entry point belongs on this screen, opening the shared Markings screen (Section 6.6) scoped to owner_type='animal'.
+Data flow — Save: insert/update one row in animals. Load: fetch by id, populate all fields for editing.
+6.6 Markings (shared — Animal or Foal)
+Left Side Markings — photo (camera-first, per Section 1.3).
+Right Side Markings — photo.
+Head View — photo + free-text notes.
+Static disclaimer: "The diagrams provided are intended as a general guide only. Markings and brands should be recorded as accurately as possible, however always refer to official breed registration when in doubt."
+Data flow — Save: upsert the single markings row keyed by (owner_type, owner_id). Load: query by the same key; show empty capture placeholders if no row exists yet.
+6.7 Breeding Details
+Mare — selected via Section 6.4 (Select Existing / Add New), not typed.
+Stallion — free text (see Section 1.2 for why).
+"How was your mare bred" — Natural / Chilled / Frozen / ICSI, single-select.
+"Was the resulting embryo transferred to a recipient mare?" — Yes/No, available after any method (not ICSI-only).
+If Yes: Recipient — selected via Section 6.4; DAM of Embryo (text); Stallion of Embryo (text); Transfer Date.
+Date of cover/insemination (if known).
+Photo.
+Layout: the 4 method options as single-select chips; the transfer question appears once a method is chosen; the recipient sub-section appears only if the answer is Yes.
+Data flow — Save: insert breeding_records (and, if applicable, set recipient_animal_id/dam_of_embryo/stallion_of_embryo/is_embryo_transfer). Immediately run the Section 4 calculation — carrier = mare if no transfer, carrier = recipient if there is one — and insert the resulting pregnancy_records row.
+6.8 Pregnancy Details
+1st / 2nd / 3rd Preg Scan due on — system-calculated, read-only, each with its own Pregnancy Confirmed checkbox and scan photo.
+Static warning: "Early Pregnancy Scan Day 14-16 post cover/insemination. To reduce the risk of muliple pregnancies, it is strongly recommended to have your mare scanned by your veterinarian. Multiple pregnancies are dangerous and early detection is your best chance to safely manage them."
+Vet Name / Vet Mobile — user input, with a Save action; shows "No Vet Added" until saved.
+Data flow: reads/writes the same pregnancy_records row used by Pregnancy Scans (Section 6.9) — these are two UI views of one dataset, not two separate tables.
+6.9 Pregnancy Scans (separate screen, same data as 6.8)
+Confirmed by the client as a distinct screen in the flow, not a replacement for Pregnancy Details. It presents the same three scan due-date/confirmed fields, Vet Name, Vet Number, and adds a "Call Vet" action (opens the phone dialer via the vet's number) — a faster, action-oriented view for updating scan status and contacting the vet, versus Pregnancy Details' fuller view with the warning text and ultrasound image.
+Open item: the exact navigational relationship between these two screens (e.g. does Pregnancy Details link into Pregnancy Scans, or are they parallel tabs?) wasn't fully specified — build them as two screens over the same pregnancy_records row so nothing needs to change once that's decided; see Section 11.
+6.10 Advanced Pregnancy Info
+Caslick — date + Yes toggle.
+Fetal Sex Scan — date + Yes toggle.
+FFS Result — date + Filly/Colt toggle.
+Ultrasound image.
+Static disclaimer: "Fetal sexing is a specialised procedure that relies on optimal timing and imaging conditions. While every effort is made to provide accurate information, results are not guaranteed and may be subject to misinterpretation due to fetal positioning, natural variation etc. We recommend discussing any findings with a qualified veterinarian. This feature is provided for informational purposes only."
+Data flow: one row in advanced_pregnancy_info per pregnancy_records.id.
+6.11 Preventative Care — combined single screen (confirmed layout)
+One continuously scrollable screen, used identically for an animal or a foal (owner_type set accordingly):
+Wormer — date + done checkbox.
+Vaccinations, in order: Tetanus, Strangles, Equine Herpes Virus, Rotavirus, Hendra (AUS), EQ Influenza (EU & UK), EEE/WEE (USA), WNV (USA), Rabies (USA) — each a date + done checkbox.
+Dental — date + done checkbox; Dentist Number — text + Save action + "No Dentist Number Added" empty state + Call action.
+Farrier — date + done checkbox; Farrier Number — text + Save action + "No Farrier Number Added" empty state + Call action.
+Footer disclaimer text (general vaccination-requirements-vary notice).
+Data flow — Save: update the single preventative_care row for this owner (create on first save). Every date entered also writes a calendar_reminders row. Load: fetch that one row and populate every field.
+6.12 Congratulations
+Triggered when a pregnancy's foaling_due_date is reached or foaling is confirmed. Header binds the carrying animal's name ("Congratulations [Mare/Recipient Name]"); body shows "Your [foal] is due on [foaling_due_date]" and a Complete action. Keep the wording species-agnostic/parameterized ("foal"/"puppy"/etc.) since this same screen template is reused by future species modules. General disclaimer text (standard-practices/consult-a-vet notice) shown at the bottom.
+Open item: an "Item1/Item2/Item3/Item4" list appeared in one reference alongside this screen with no clear meaning — not enough information to spec it; flag with the client before building anything beyond the core fields above.
+6.13 Foal Details
+
+--- TABLE START ---
+Field | Source | DB Column
+Photo | User input | foals.photo_url
+Foal Name | User input | foals.foal_name
+Date of Birth | User input | foals.date_of_birth
+Mare Name / Microchip | Linked — picker, not typed | foals.mare_animal_id → animals.name/microchip_no
+Stallion | User input | foals.stallion
+Recip Mare Name / Microchip | Linked — picker, if applicable | foals.recipient_animal_id → animals.name/microchip_no
+Breed | User input | foals.breed
+Filly / Colt | User input | foals.sex
+IGG | User input | foals.igg_value
+Notes | User input | foals.notes
+Sold / Keep / Transferred | User input | foals.status
+Foal Microchip No. / DNA | User input | foals.foal_microchip_no / foals.dna
+Gelded (+ date) | User input | foals.gelded / foals.gelded_date
+Stud Book/Breeding Association | User input | foals.stud_book_association
+--- TABLE END ---
+
+Field
+Source
+DB Column
+Photo
+User input
+foals.photo_url
+Foal Name
+User input
+foals.foal_name
+Date of Birth
+User input
+foals.date_of_birth
+Mare Name / Microchip
+Linked — picker, not typed
+foals.mare_animal_id → animals.name/microchip_no
+Stallion
+User input
+foals.stallion
+Recip Mare Name / Microchip
+Linked — picker, if applicable
+foals.recipient_animal_id → animals.name/microchip_no
+Breed
+User input
+foals.breed
+Filly / Colt
+User input
+foals.sex
+IGG
+User input
+foals.igg_value
+Notes
+User input
+foals.notes
+Sold / Keep / Transferred
+User input
+foals.status
+Foal Microchip No. / DNA
+User input
+foals.foal_microchip_no / foals.dna
+Gelded (+ date)
+User input
+foals.gelded / foals.gelded_date
+Stud Book/Breeding Association
+User input
+foals.stud_book_association
+A Markings entry point belongs here too (owner_type='foal'), and a Preventative Care entry point (Section 6.11, owner_type='foal').
+6.14 Certificate (generated, universal template)
+One template, title and terminology swapped by species at render time ("Foal Certificate" for horses, "Puppy Certificate" for dogs, etc.), populated entirely from existing records — the breeder never re-enters data here.
+
+--- TABLE START ---
+Section | Fields shown
+Identity | Photo, Name, Breed, Sex, Date of Birth, Colour/Markings, Microchip Number — from foals + linked animals
+Birth Details | Birth Weight (optional), Current/Departure Weight (optional), Sire, Dam
+Health & Preventative Care | Vaccination / Parasite Treatment / Veterinary Health Check — each with Date Given/Checked and Next Due/Result, pulled from preventative_care
+Breeder Details | Breeder/Kennel/Stud/Cattery, Contact, Date of Transfer
+--- TABLE END ---
+
+Section
+Fields shown
+Identity
+Photo, Name, Breed, Sex, Date of Birth, Colour/Markings, Microchip Number — from foals + linked animals
+Birth Details
+Birth Weight (optional), Current/Departure Weight (optional), Sire, Dam
+Health & Preventative Care
+Vaccination / Parasite Treatment / Veterinary Health Check — each with Date Given/Checked and Next Due/Result, pulled from preventative_care
+Breeder Details
+Breeder/Kennel/Stud/Cattery, Contact, Date of Transfer
+Explicitly excluded from the certificate (kept in the app record only): birth order, time of birth, detailed labour notes, full weight history, every individual treatment note, internal breeder observations. The certificate is a polished take-home summary, not a data dump — this distinction came directly from the client's own design notes and should be respected exactly.
+Footer text (fixed, always shown): "This certificate is a summary of information recorded by the breeder/owner. It is not a substitute for veterinary records, veterinary examination or professional veterinary advice."
+7. New Reusable Components Needed
+
+--- TABLE START ---
+Component | Used in
+SpeciesSelectCard | Species Selection screen
+AnimalListTile | Saved Animals list, Select-Existing picker
+SelectOrAddAnimal | Breeding Details (mare), Recipient step — the Section 6.4 pattern
+VaccinationRow | Preventative Care — one row per vaccine, reused 9x plus Wormer
+ContactNumberBlock | Preventative Care (Dentist/Farrier), Pregnancy Details/Scans (Vet) — number field + Save + empty state + Call action, same shape every time
+ScanDueBlock | Pregnancy Details and Pregnancy Scans — due date (read-only) + confirmed checkbox + photo slot
+--- TABLE END ---
+
+Component
+Used in
+SpeciesSelectCard
+Species Selection screen
+AnimalListTile
+Saved Animals list, Select-Existing picker
+SelectOrAddAnimal
+Breeding Details (mare), Recipient step — the Section 6.4 pattern
+VaccinationRow
+Preventative Care — one row per vaccine, reused 9x plus Wormer
+ContactNumberBlock
+Preventative Care (Dentist/Farrier), Pregnancy Details/Scans (Vet) — number field + Save + empty state + Call action, same shape every time
+ScanDueBlock
+Pregnancy Details and Pregnancy Scans — due date (read-only) + confirmed checkbox + photo slot
+8. State Management
+Continues the Riverpod pattern established in auth. Each new feature folder (Section 2) gets its own repository interface + Supabase implementation + provider. Two points specific to this scope:
+The Select-Existing-or-New component (Section 6.4) needs a shared provider that any calling feature (breeding, foal) can invoke and get back a chosen/created animals.id — build it once, not once per caller.
+The pregnancy calculation function (Section 4) lives in the pregnancy feature and is called from breeding's and the recipient flow's save logic — not duplicated in both places.
+9. Assets Needed
+Icon set: species icons (horse/dog/cat/other), vaccine/health icons, markings placeholder graphics, camera/gallery icons — extend the existing icon set from Part A rather than introducing a new style.
+No new background/hero images required for this scope beyond what Part A already covers.
+10. Open Items — Confirm Before/During Build
+Pregnancy Details vs. Pregnancy Scans — exact navigation relationship between the two screens (Section 6.9).
+Congratulations screen's "Item1–4" list — meaning not established; don't build beyond the core fields until clarified.
+Onboarding photo licensing — still unresolved from the earlier documentation.
+Password rules, ToS/Privacy Policy destination pages, "Keep me signed in" real behavior, post-signup email-confirmation flow — carried forward unresolved from Part A.
+Mare-count package tiers and paid vet/farrier/dentist advertising — flagged as future monetization, no pricing/rules defined, not built now.
+Dog/Cat/Other field sets — intentionally out of scope; species selector must not dead-end or crash when one of these is picked, but their screens are a future deliverable.
+11. Changes From Earlier Partial Documentation
+For anyone comparing against the previous two documents, here's exactly what changed and why:
+mares and recipient_mares are merged into one animals table. Reason: the client's real workflow lets the same physical horse serve as a mare in one season and a recipient in another — one registry with a species column reflects that; separate tables didn't.
+DAM of Embryo / Stallion of Embryo moved from the (now-removed) recipient-specific table onto breeding_records. Reason: these describe the embryo's genetic origin — an attribute of the breeding event, not of the recipient animal carrying it.
+pregnancy_records.carrier_type (mare/recipient_mare) was removed — no longer needed since both are just animals rows now; carrier_animal_id alone is sufficient.
+Preventative Care confirmed as one combined scrollable screen (not split into Vaccinations/Dentistry sub-screens as an earlier reference suggested).
+Pregnancy Details and Pregnancy Scans confirmed as two separate screens sharing one data model, not one screen renamed/replaced by the other.

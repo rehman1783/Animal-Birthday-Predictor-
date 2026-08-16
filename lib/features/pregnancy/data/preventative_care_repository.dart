@@ -62,7 +62,14 @@ class PreventativeCareRepository {
       return PreventativeCareRecord.fromJson(data);
     } catch (e) {
       debugPrint('Supabase savePreventativeCare error: $e');
-      _inMemoryRecords.add(record);
+      final index = _inMemoryRecords.indexWhere(
+        (r) => r.ownerType == record.ownerType && r.ownerId == record.ownerId,
+      );
+      if (index >= 0) {
+        _inMemoryRecords[index] = record;
+      } else {
+        _inMemoryRecords.add(record);
+      }
       return record;
     }
   }

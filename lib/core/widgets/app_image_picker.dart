@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../constants/app_colors.dart';
@@ -14,16 +15,19 @@ class AppImagePicker extends StatelessWidget {
   final bool isRequired;
   final String? errorText;
 
-  const AppImagePicker({
+  AppImagePicker({
     super.key,
-    required this.currentImagePath,
+    String? currentImagePath,
+    String? initialImageUrl,
     required this.label,
-    required this.onImagePicked,
+    ValueChanged<String?>? onImagePicked,
+    ValueChanged<String?>? onImageSelected,
     this.height = 160,
     this.icon = Icons.camera_alt,
     this.isRequired = false,
     this.errorText,
-  });
+  })  : currentImagePath = currentImagePath ?? initialImageUrl,
+        onImagePicked = onImagePicked ?? onImageSelected ?? ((_) {});
 
   Future<void> _showPickerOptions(BuildContext context) async {
     final picker = ImagePicker();
@@ -69,7 +73,7 @@ class AppImagePicker extends StatelessWidget {
                         onImagePicked(picked.path);
                       }
                     } catch (e) {
-                      debugPrint('Error picking image from camera: $e');
+                      debugPrint('Camera picker error: $e');
                     }
                   },
                 ),
@@ -87,17 +91,14 @@ class AppImagePicker extends StatelessWidget {
                         onImagePicked(picked.path);
                       }
                     } catch (e) {
-                      debugPrint('Error picking image from gallery: $e');
+                      debugPrint('Gallery picker error: $e');
                     }
                   },
                 ),
                 if (currentImagePath != null && currentImagePath!.isNotEmpty)
                   ListTile(
-                    leading: const Icon(Icons.delete_outline, color: AppColors.error),
-                    title: Text(
-                      'Remove Photo',
-                      style: AppTypography.bodyMedium.copyWith(color: AppColors.error),
-                    ),
+                    leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                    title: const Text('Remove Photo', style: TextStyle(color: Colors.redAccent)),
                     onTap: () {
                       Navigator.pop(ctx);
                       onImagePicked(null);
@@ -111,116 +112,121 @@ class AppImagePicker extends StatelessWidget {
     );
   }
 
-  ImageProvider? _getImageProvider() {
-    if (currentImagePath == null || currentImagePath!.trim().isEmpty) {
-      return null;
-    }
-    final path = currentImagePath!.trim();
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return NetworkImage(path);
-    }
-    final file = File(path);
-    if (file.existsSync()) {
-      return FileImage(file);
-    }
-    return NetworkImage(path);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final imageProvider = _getImageProvider();
-    final hasError = errorText != null && errorText!.isNotEmpty;
+    final hasImage = currentImagePath != null && currentImagePath!.isNotEmpty;
+    final isNetwork = hasImage && (currentImagePath!.startsWith('http://') || currentImagePath!.startsWith('https://'));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: AppTypography.inputLabel,
+            ),
+            if (isRequired)
+              const Text(
+                ' *',
+                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6.0),
         GestureDetector(
           onTap: () => _showPickerOptions(context),
           child: Container(
             height: height,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusL),
+              color: AppColors.inputField,
+              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
               border: Border.all(
-                color: hasError
-                    ? AppColors.error
-                    : (imageProvider != null
+                color: errorText != null
+                    ? Colors.redAccent
+                    : hasImage
                         ? AppColors.primaryGold
-                        : AppColors.primaryGold.withValues(alpha: 0.3)),
-                width: hasError ? 1.5 : 1.0,
+                        : AppColors.surface,
+                width: 1.5,
               ),
-              image: imageProvider != null
-                  ? DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                    )
-                  : null,
             ),
-            child: imageProvider == null
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(icon, color: AppColors.primaryGold, size: 36),
-                      const SizedBox(height: 8),
-                      Text(
-                        label,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.primaryGold,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Tap to capture with camera or choose from gallery',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
-                        ),
-                      ),
-                      if (isRequired) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          '* Photo required',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.error,
-                            fontSize: 10,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppSpacing.cardRadius - 1),
+              child: hasImage
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (isNetwork)
+                          Image.network(
+                            currentImagePath!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Center(
+                              child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+                            ),
+                          )
+                        else if (kIsWeb)
+                          Image.network(
+                            currentImagePath!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Center(
+                              child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+                            ),
+                          )
+                        else
+                          Image.file(
+                            File(currentImagePath!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Center(
+                              child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+                            ),
+                          ),
+                        Positioned(
+                          right: 8,
+                          bottom: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColors.background.withValues(alpha: 0.8),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.primaryGold),
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              color: AppColors.primaryGold,
+                              size: 16,
+                            ),
                           ),
                         ),
                       ],
-                    ],
-                  )
-                : Stack(
-                    children: [
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.6),
-                            shape: BoxShape.circle,
+                    )
+                  : Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            icon,
+                            color: AppColors.primaryGold,
+                            size: 36,
                           ),
-                          child: const Icon(Icons.edit, color: AppColors.primaryGold, size: 18),
-                        ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tap to take photo or choose image',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+            ),
           ),
         ),
-        if (hasError) ...[
-          const SizedBox(height: 6),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Text(
-              errorText!,
-              style: const TextStyle(
-                color: AppColors.error,
-                fontSize: 12,
-              ),
-            ),
+        if (errorText != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            errorText!,
+            style: const TextStyle(color: Colors.redAccent, fontSize: 12),
           ),
         ],
       ],

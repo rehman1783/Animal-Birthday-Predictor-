@@ -1,7 +1,8 @@
 class FoalRecord {
   final String id;
-  final String mareId;
-  final String? recipientMareId;
+  final String accountId;
+  final String mareAnimalId;
+  final String? recipientAnimalId;
   final String? foalName;
   final DateTime? dateOfBirth;
   final String? stallion;
@@ -17,11 +18,13 @@ class FoalRecord {
   final String? status; // 'sold', 'keep', 'transferred'
   final String? photoUrl;
   final DateTime createdAt;
+  final DateTime updatedAt;
 
   const FoalRecord({
     required this.id,
-    required this.mareId,
-    this.recipientMareId,
+    required this.accountId,
+    required this.mareAnimalId,
+    this.recipientAnimalId,
     this.foalName,
     this.dateOfBirth,
     this.stallion,
@@ -37,15 +40,17 @@ class FoalRecord {
     this.status,
     this.photoUrl,
     required this.createdAt,
+    required this.updatedAt,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'mare_id': mareId,
-      'recipient_mare_id': recipientMareId,
+      'account_id': accountId,
+      'mare_animal_id': mareAnimalId,
+      'recipient_animal_id': recipientAnimalId,
       'foal_name': foalName,
-      'date_of_birth': dateOfBirth?.toIso8601String(),
+      'date_of_birth': dateOfBirth?.toIso8601String().split('T').first,
       'stallion': stallion,
       'breed': breed,
       'sex': sex,
@@ -53,23 +58,25 @@ class FoalRecord {
       'foal_microchip_no': foalMicrochipNo,
       'dna': dna,
       'gelded': gelded,
-      'gelded_date': geldedDate?.toIso8601String(),
+      'gelded_date': geldedDate?.toIso8601String().split('T').first,
       'stud_book_association': studBookAssociation,
       'notes': notes,
       'status': status,
       'photo_url': photoUrl,
       'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
     };
   }
 
   factory FoalRecord.fromJson(Map<String, dynamic> json) {
     return FoalRecord(
-      id: json['id'] as String,
-      mareId: json['mare_id'] as String,
-      recipientMareId: json['recipient_mare_id'] as String?,
+      id: json['id'] as String? ?? '',
+      accountId: json['account_id'] as String? ?? '',
+      mareAnimalId: json['mare_animal_id'] as String? ?? json['mare_id'] as String? ?? '',
+      recipientAnimalId: json['recipient_animal_id'] as String? ?? json['recipient_mare_id'] as String?,
       foalName: json['foal_name'] as String?,
       dateOfBirth: json['date_of_birth'] != null
-          ? DateTime.parse(json['date_of_birth'] as String)
+          ? DateTime.tryParse(json['date_of_birth'] as String)
           : null,
       stallion: json['stallion'] as String?,
       breed: json['breed'] as String?,
@@ -79,15 +86,64 @@ class FoalRecord {
       dna: json['dna'] as String?,
       gelded: json['gelded'] as bool? ?? false,
       geldedDate: json['gelded_date'] != null
-          ? DateTime.parse(json['gelded_date'] as String)
+          ? DateTime.tryParse(json['gelded_date'] as String)
           : null,
       studBookAssociation: json['stud_book_association'] as String?,
       notes: json['notes'] as String?,
       status: json['status'] as String?,
       photoUrl: json['photo_url'] as String?,
       createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
+          ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'] as String) ?? DateTime.now()
+          : DateTime.now(),
+    );
+  }
+
+  FoalRecord copyWith({
+    String? id,
+    String? accountId,
+    String? mareAnimalId,
+    String? recipientAnimalId,
+    String? foalName,
+    DateTime? dateOfBirth,
+    String? stallion,
+    String? breed,
+    String? sex,
+    String? iggValue,
+    String? foalMicrochipNo,
+    String? dna,
+    bool? gelded,
+    DateTime? geldedDate,
+    String? studBookAssociation,
+    String? notes,
+    String? status,
+    String? photoUrl,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return FoalRecord(
+      id: id ?? this.id,
+      accountId: accountId ?? this.accountId,
+      mareAnimalId: mareAnimalId ?? this.mareAnimalId,
+      recipientAnimalId: recipientAnimalId ?? this.recipientAnimalId,
+      foalName: foalName ?? this.foalName,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      stallion: stallion ?? this.stallion,
+      breed: breed ?? this.breed,
+      sex: sex ?? this.sex,
+      iggValue: iggValue ?? this.iggValue,
+      foalMicrochipNo: foalMicrochipNo ?? this.foalMicrochipNo,
+      dna: dna ?? this.dna,
+      gelded: gelded ?? this.gelded,
+      geldedDate: geldedDate ?? this.geldedDate,
+      studBookAssociation: studBookAssociation ?? this.studBookAssociation,
+      notes: notes ?? this.notes,
+      status: status ?? this.status,
+      photoUrl: photoUrl ?? this.photoUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

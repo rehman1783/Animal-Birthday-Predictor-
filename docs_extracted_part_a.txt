@@ -1,0 +1,227 @@
+ABP — Milestone 1, Part A: Onboarding + Authentication
+Build Documentation (UI-Only Build — for AI coding agent / developer handoff)
+Scope of this document: Onboarding screen + Authentication UI (Sign Up, Sign In, Password Reset) — pixel/UI layer only.
+Supabase is intentionally NOT wired up in this step. Buttons, forms, and navigation should all work using local/mock state (form validation, loading spinners triggered by a fake delay, etc.), so the UI is fully clickable and demo-able on its own. Real Supabase auth calls are a separate next step, once this UI is approved.
+Mare / Breeding / Embryo Transfer / Camera & Gallery / Schema work will be delivered as a separate documentation part once those Figma screens are finalized.
+Architecture: Flutter, Feature-First folder structure, built so later milestones (Mare, Dog module, multi-user, offline, notifications) slot in cleanly.
+1. Design System (extracted directly from the Figma exports)
+1.1 Colors
+
+--- TABLE START ---
+Token | Hex | Usage
+background | #0A192F | Primary app background (dark navy)
+surface | #112240 | Icon containers, elevated surfaces
+inputField | #131B2D | Text field background
+inputBorder | #080E1A | Text field border (default state)
+primaryGold | #D4AF37 | Headings, labels, links, active states
+goldGradientStart | #D6B23F | CTA button gradient start
+goldGradientEnd | #EDD086 | CTA button gradient end
+textPrimary | #FFFFFF | Titles on dark background
+textSecondary | #8A8F98 | Body copy / descriptions
+textMuted | #525358 | Fine print, footer captions
+--- TABLE END ---
+
+Token
+Hex
+Usage
+background
+#0A192F
+Primary app background (dark navy)
+surface
+#112240
+Icon containers, elevated surfaces
+inputField
+#131B2D
+Text field background
+inputBorder
+#080E1A
+Text field border (default state)
+primaryGold
+#D4AF37
+Headings, labels, links, active states
+goldGradientStart
+#D6B23F
+CTA button gradient start
+goldGradientEnd
+#EDD086
+CTA button gradient end
+textPrimary
+#FFFFFF
+Titles on dark background
+textSecondary
+#8A8F98
+Body copy / descriptions
+textMuted
+#525358
+Fine print, footer captions
+1.2 Typography
+Display/Headline ("Animal BirthDay Predictor", "Welcome Back"): Serif display face, ~28–32sp, gold or white.
+Section Label ("WHY ABP?", "OR CONTINUE WITH"): Small caps, letter-spaced, gold, ~11–12sp.
+Feature Title ("Precision Tracking" etc.): Sans-serif, semi-bold, gold, ~16sp.
+Body (descriptions, subtitles): Sans-serif regular, textSecondary, ~14sp, line-height ~1.5.
+Button label: Sans-serif bold, dark navy text on gold gradient buttons.
+Build these as AppTypography constants — don't inline sizes per screen.
+1.3 Shape & Spacing
+Card / button corner radius: ~16px (pill-style on the primary CTA).
+Icon containers: ~48x48px, rounded square (~12px radius), surface background, gold icon glyph.
+Screen horizontal padding: ~24px.
+Section vertical spacing: ~32–40px between major blocks.
+1.4 Core Reusable Components (core/widgets/)
+
+--- TABLE START ---
+Component | Used in
+GradientCtaButton | Onboarding CTA, Sign Up, Sign In, Password Reset
+SectionDividerLabel | "WHY ABP?", "OR CONTINUE WITH", "SOCIAL ACCESS"
+FeatureListItem | Onboarding's 3 feature rows
+AuthHeaderBanner | One component, reused 3x with different image/icon/title/subtitle — not three separate widgets
+CustomTextField | All form fields (leading icon, label, placeholder, optional trailing action)
+SocialAuthButton | Apple / Google buttons
+TrustCard | Onboarding testimonial image block
+--- TABLE END ---
+
+Component
+Used in
+GradientCtaButton
+Onboarding CTA, Sign Up, Sign In, Password Reset
+SectionDividerLabel
+"WHY ABP?", "OR CONTINUE WITH", "SOCIAL ACCESS"
+FeatureListItem
+Onboarding's 3 feature rows
+AuthHeaderBanner
+One component, reused 3x with different image/icon/title/subtitle — not three separate widgets
+CustomTextField
+All form fields (leading icon, label, placeholder, optional trailing action)
+SocialAuthButton
+Apple / Google buttons
+TrustCard
+Onboarding testimonial image block
+2. Screens
+2.1 Onboarding Screen
+Reference: onboarding_screen.png — selected base design (3 alternate concepts shared earlier are not being built — see Section 7)
+Layout (top to bottom):
+Full-bleed hero image (horse + foal), dark gradient overlay so text stays readable.
+Pill badge: PREMIUM BREEDER TOOLS.
+Title: "Animal BirthDay Predictor" — serif, gold, two lines.
+Subtitle: "Tired of sleepless nights, worry and uncertainty? Let ABP take the guesswork out and give you peace of mind."
+SectionDividerLabel: WHY ABP?
+Feature — Precision Tracking (bullseye icon): "ABP is a must-have tool for every serious breeder, stud, hobbyist, and veterinarian. From one to 1,000 foalings, accurately predict dates and minimize nightly wake-ups."
+Feature — Stay Prepared (calendar-check icon): "Be organized and prepared with built-in reminders, calendar synchronization, and contacts management. Never miss a critical moment."
+Feature — Instant Documentation (camera icon): "Seamlessly follow up with a foal photo and detailed information with just one click. Keep your records pristine and professional."
+TrustCard: rounded horse close-up image, overlay text "TRUSTED GLOBALLY" + "Empowering breeders with data."
+GradientCtaButton: "Get Started →" — full width.
+Footer caption: JOIN THE ELITE NETWORK OF BREEDERS.
+UI-only behavior for this step:
+Screen scrolls vertically.
+"Get Started" navigates to Sign Up screen (plain navigation call — no session/state check needed yet).
+Skip the "only show once" local-storage logic for now; that's a small addition wired in alongside the real auth logic next step.
+2.2 Authentication Screens
+The three AuthHeaderBanner images below are one reusable component — build it once with backgroundImage, icon, title, subtitle as parameters, not three separate widgets. The blue dashed box visible on the "Welcome Back" export is a Figma selection marker, not part of the actual UI — ignore it.
+
+--- TABLE START ---
+Join the Mystery | Welcome Back | Lost Your Way?
+ |  | 
+--- TABLE END ---
+
+Join the Mystery
+Welcome Back
+Lost Your Way?
+A. Sign Up Screen
+Header banner: forest/firefly background, gold paw icon, title "Join the Mystery", subtitle "ANIMAL BIRTHDAY PREDICTOR".
+Fields: Full Name ("Alex Sterling"), Email Address ("your@email.com"), Password ("Create a password", show/hide toggle).
+Primary CTA: "Create Account →"
+Divider: OR CONTINUE WITH
+Social buttons: Apple, Google
+Footer: "Already have an account? Sign In" → navigates to Sign In screen.
+Fine print: "By creating an account, you agree to our Terms of Service and Privacy Policy" (no destination page yet — leave as plain text or a disabled link for now).
+UI-only behavior for this step:
+Validate Full Name (non-empty), Email (format), Password (min 8 characters — placeholder rule, confirm final rule later).
+"Create Account" button: show a loading state briefly (mock/fake delay), then navigate to a placeholder next screen (real Supabase signUp call comes in the next step).
+Apple/Google buttons: wire up the tap target and pressed state; the actual OAuth call is deferred.
+B. Sign In Screen
+Header banner: starry sky, gold crescent-moon icon, title "Welcome Back", subtitle "THE STARS HAVE MISSED YOU".
+Fields: Email Address ("alex.sterling@example.com"), Password (with "Forgot" link), "Keep me signed in" toggle.
+Primary CTA: "Begin Journey ✦"
+Divider: SOCIAL ACCESS
+Social buttons: Apple, Google
+Footer: "New to the celestial cycle? Join the Pride →" → navigates to Sign Up.
+Small trust line: "Encrypted & Secure Session"
+UI-only behavior for this step:
+Validate Email + Password required.
+"Forgot" link → navigates to Password Reset screen.
+"Begin Journey" button: mock loading state → placeholder navigation (real signInWithPassword call deferred).
+"Keep me signed in" toggle: just needs to visually switch state for now; real persistence behavior decided before the logic step.
+C. Password Reset Screen
+Header banner: starry sky, gold key icon, title "Lost Your Way?", subtitle "RECOVER YOUR CELESTIAL ACCESS".
+Body copy: "Enter your email address below. We'll send you a mystical link to reset your journey's password."
+Field: Email Address ("Enter your registered email").
+Primary CTA: "Send Reset Link ➤"
+Info note box: "If you don't receive an email in a few minutes, please check your spam folder or ensure the address matches your account."
+Footer: ← Back to Sign In
+Small trust line: Secure Recovery Protocol
+UI-only behavior for this step:
+Validate email format.
+"Send Reset Link": mock loading state → swap the form for a "check your email" confirmation UI (this state-swap should be built now, even though the actual email isn't sent yet — it's a UI state, not a backend call).
+3. Feature-First Folder Structure (Flutter)
+Feature-first: each feature owns its own screens/widgets/state, with only truly shared pieces (design tokens, shared widgets) living in core/. This step only needs the presentation layer per feature — domain/data folders are stubbed as empty placeholders now and filled in during the Supabase/logic step, so the structure doesn't need to be reshuffled later.
+lib/
+├── main.dart
+├── core/
+│   ├── constants/
+│   │   ├── app_colors.dart
+│   │   ├── app_typography.dart
+│   │   └── app_spacing.dart
+│   ├── theme/
+│   │   └── app_theme.dart
+│   ├── router/
+│   │   └── app_router.dart
+│   └── widgets/
+│       ├── gradient_cta_button.dart
+│       ├── section_divider_label.dart
+│       ├── feature_list_item.dart
+│       ├── auth_header_banner.dart
+│       ├── custom_text_field.dart
+│       ├── social_auth_button.dart
+│       └── trust_card.dart
+│
+└── features/
+    ├── onboarding/
+    │   └── presentation/
+    │       ├── screens/
+    │       │   └── onboarding_screen.dart
+    │       └── widgets/
+    │           └── (onboarding-specific widgets, if any)
+    │
+    └── auth/
+        └── presentation/
+            ├── screens/
+            │   ├── sign_up_screen.dart
+            │   ├── sign_in_screen.dart
+            │   └── password_reset_screen.dart
+            ├── widgets/
+            │   └── (auth-specific widgets, if any)
+            └── state/
+                └── auth_form_state.dart   # local-only form/loading state (no network) for this step
+        # domain/ and data/ folders intentionally deferred to the Supabase step
+Why this ordering works: because domain/data for auth are just not created yet (rather than created empty and unused), there's nothing to rip out later — the next step adds those folders and swaps auth_form_state.dart's fake-delay logic for real repository calls, without touching how the screens are built.
+4. State Management (UI-only step)
+Use simple local state (StatefulWidget + setState, or a lightweight ChangeNotifier/StateNotifier scoped to each screen) to handle:
+Form field values and validation errors.
+An isLoading boolean toggled by a fake Future.delayed(...) when a button is tapped, so the loading spinner/disabled-button UI can be built and tested now.
+Password-reset success state swap (form → confirmation view).
+No app-wide auth state, no Riverpod/Bloc provider wiring to a backend yet — that architecture decision can be made in the next step once real Supabase calls are being introduced, since it affects the app more broadly than this UI-only pass does.
+5. Open Items (flagged, not blockers for this UI-only step)
+Password minimum-length/complexity rule — using 8 characters as a placeholder; confirm before the logic step.
+Terms of Service / Privacy Policy destination pages — don't exist yet; leave as plain text/disabled link.
+"Keep me signed in" toggle's real behavior — decide before wiring actual session persistence.
+Whether Sign Up leads to an email-confirmation state or straight into the app — depends on Supabase project settings, decided in the next step.
+6. Assets Needed
+onboarding_screen.png (hero + trust card imagery)
+auth_header_join_the_mystery.png, auth_header_welcome_back.png, auth_header_lost_your_way.png (the 3 AuthHeaderBanner backgrounds)
+Icon set: paw, crescent moon, key, target/bullseye, calendar-check, camera, Apple logo, Google "G" logo, eye/eye-off
+Export all at 2x/3x from Figma into assets/images/ and assets/icons/, registered in pubspec.yaml.
+All reference screen exports for this document are embedded above at each relevant section.
+7. Design Variants Not Used (for reference only)
+Three alternate onboarding concepts were shared alongside the selected one — logged here for traceability, not part of this build:
+"Precision Breeding" concept (avatar row + "Trusted by Elite Studs")
+"Redefining Excellence" concept (testimonial card, "500+ Elite Studs Registered")
+"Elevating the Standard of Care" concept (icon set variant, "Join 500+ Elite Studs")
