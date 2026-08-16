@@ -88,6 +88,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
     if (success) {
       final userEmail = _emailController.text.trim();
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       Navigator.pushReplacementNamed(
         context,
         '/email-verification',
@@ -97,6 +98,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       final errorState = ref.read(authControllerProvider);
       final errorMsg = errorState.error?.toString() ?? 'An error occurred during sign up.';
       
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMsg),

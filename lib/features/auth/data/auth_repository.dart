@@ -12,19 +12,42 @@ class AuthExceptionCustom implements Exception {
 }
 
 class AuthRepository {
-  final SupabaseClient _supabase;
+  final SupabaseClient? _supabaseClient;
 
-  AuthRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? Supabase.instance.client;
+  AuthRepository({SupabaseClient? supabase}) : _supabaseClient = supabase;
+
+  SupabaseClient get _supabase {
+    final client = _supabaseClient;
+    if (client != null) return client;
+    return Supabase.instance.client;
+  }
 
   /// Get the current authenticated Supabase session
-  Session? get currentSession => _supabase.auth.currentSession;
+  Session? get currentSession {
+    try {
+      return _supabase.auth.currentSession;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Get current user ID
-  String? get currentUserId => _supabase.auth.currentUser?.id;
+  String? get currentUserId {
+    try {
+      return _supabase.auth.currentUser?.id;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Stream of Auth State changes
-  Stream<AuthState> get onAuthStateChange => _supabase.auth.onAuthStateChange;
+  Stream<AuthState> get onAuthStateChange {
+    try {
+      return _supabase.auth.onAuthStateChange;
+    } catch (_) {
+      return const Stream.empty();
+    }
+  }
 
   /// Helper to convert technical exceptions into clean, user-friendly error messages
   AuthExceptionCustom _handleError(dynamic e) {
@@ -233,35 +256,48 @@ class AuthRepository {
     }
   }
 
-  /// Check if the user's email is confirmed by refreshing session / fetching live user from Supabase
+  /// Check if the user's email is confirmed by querying Supabase RPC / refreshing session / fetching live user
   Future<bool> isEmailVerified([String? email]) async {
-    try {
-      // 1. Force refresh session from Supabase backend
+    final cleanEmail = email?.trim().toLowerCase();
+
+    // 1. Try Supabase RPC: check_email_verified (checks auth.users directly via security definer)
+    if (cleanEmail != null && cleanEmail.isNotEmpty) {
       try {
-        final res = await _supabase.auth.refreshSession();
-        final user = res.user ?? _supabase.auth.currentUser;
-        if (user != null && user.emailConfirmedAt != null && user.emailConfirmedAt!.isNotEmpty) {
+        final response = await _supabase.rpc<bool>(
+          'check_email_verified',
+          params: {'email_to_check': cleanEmail},
+        );
+        if (response == true) {
           return true;
         }
-      } catch (_) {}
-
-      // 2. Query live user endpoint from Supabase server
-      try {
-        final freshUserRes = await _supabase.auth.getUser();
-        final freshUser = freshUserRes.user;
-        if (freshUser != null && freshUser.emailConfirmedAt != null && freshUser.emailConfirmedAt!.isNotEmpty) {
-          return true;
-        }
-      } catch (_) {}
-
-      // 3. Fallback check on active session user object
-      final currentUser = _supabase.auth.currentUser;
-      return currentUser != null &&
-          currentUser.emailConfirmedAt != null &&
-          currentUser.emailConfirmedAt!.isNotEmpty;
-    } catch (_) {
-      return false;
+      } catch (e) {
+        debugPrint('check_email_verified RPC fallback: $e');
+      }
     }
+
+    // 2. Force refresh session from Supabase backend
+    try {
+      final res = await _supabase.auth.refreshSession();
+      final user = res.user ?? _supabase.auth.currentUser;
+      if (user != null && user.emailConfirmedAt != null && user.emailConfirmedAt!.isNotEmpty) {
+        return true;
+      }
+    } catch (_) {}
+
+    // 3. Query live user endpoint from Supabase server
+    try {
+      final freshUserRes = await _supabase.auth.getUser();
+      final freshUser = freshUserRes.user;
+      if (freshUser != null && freshUser.emailConfirmedAt != null && freshUser.emailConfirmedAt!.isNotEmpty) {
+        return true;
+      }
+    } catch (_) {}
+
+    // 4. Fallback check on active session user object
+    final currentUser = _supabase.auth.currentUser;
+    return currentUser != null &&
+        currentUser.emailConfirmedAt != null &&
+        currentUser.emailConfirmedAt!.isNotEmpty;
   }
 
   /// Sign Out

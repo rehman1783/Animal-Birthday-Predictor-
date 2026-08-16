@@ -1,0 +1,164 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:animal_birthday_predictor/features/auth/data/auth_repository.dart';
+import 'package:animal_birthday_predictor/features/auth/domain/user_profile.dart';
+import 'package:animal_birthday_predictor/features/auth/presentation/providers/auth_provider.dart';
+import 'package:animal_birthday_predictor/features/auth/presentation/screens/email_verification_screen.dart';
+
+class FakeAuthRepository extends AuthRepository {
+  bool isVerifiedResponse = false;
+  bool resendSuccessResponse = true;
+  int checkVerifiedCalls = 0;
+  int resendCalls = 0;
+
+  @override
+  Future<bool> isEmailVerified([String? email]) async {
+    checkVerifiedCalls++;
+    return isVerifiedResponse;
+  }
+
+  @override
+  Future<void> resendVerificationEmail(String email) async {
+    resendCalls++;
+    if (!resendSuccessResponse) {
+      throw const AuthExceptionCustom('Failed to resend verification email.');
+    }
+  }
+
+  @override
+  Future<UserProfile?> getUserProfile(String userId) async {
+    return UserProfile(
+      id: userId,
+      email: 'test@example.com',
+      fullName: 'Test User',
+      createdAt: DateTime.now(),
+    );
+  }
+}
+
+void main() {
+  group('EmailVerificationScreen Flow Tests', () {
+    late FakeAuthRepository fakeAuthRepository;
+
+    setUp(() {
+      fakeAuthRepository = FakeAuthRepository();
+    });
+
+    testWidgets('Displays target email address and Verify Link CTA button', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(fakeAuthRepository),
+          ],
+          child: const MaterialApp(
+            home: EmailVerificationScreen(email: 'alex.sterling@example.com'),
+          ),
+        ),
+      );
+
+      expect(find.text('Verify Your Email'), findsOneWidget);
+      expect(find.text('alex.sterling@example.com'), findsOneWidget);
+      expect(find.text('Verify Link'), findsOneWidget);
+      expect(find.text('Resend Verification Email'), findsOneWidget);
+    });
+
+    testWidgets('Shows error message when email is not verified yet and stays on screen', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      fakeAuthRepository.isVerifiedResponse = false;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(fakeAuthRepository),
+          ],
+          child: const MaterialApp(
+            home: EmailVerificationScreen(email: 'alex.sterling@example.com'),
+          ),
+        ),
+      );
+
+      final verifyBtn = find.text('Verify Link');
+      await tester.ensureVisible(verifyBtn);
+      await tester.tap(verifyBtn);
+      await tester.pumpAndSettle();
+
+      expect(fakeAuthRepository.checkVerifiedCalls, 1);
+      expect(
+        find.textContaining('Your email has not been verified yet'),
+        findsOneWidget,
+      );
+      // Stays on email verification screen
+      expect(find.text('Verify Your Email'), findsOneWidget);
+    });
+
+    testWidgets('Shows success message and navigates to /home when email is verified', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      fakeAuthRepository.isVerifiedResponse = true;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(fakeAuthRepository),
+          ],
+          child: MaterialApp(
+            routes: {
+              '/': (context) => const EmailVerificationScreen(email: 'alex.sterling@example.com'),
+              '/home': (context) => const Scaffold(body: Text('Home Screen Content')),
+            },
+            initialRoute: '/',
+          ),
+        ),
+      );
+
+      final verifyBtn = find.text('Verify Link');
+      await tester.ensureVisible(verifyBtn);
+      await tester.tap(verifyBtn);
+      await tester.pumpAndSettle();
+
+      expect(fakeAuthRepository.checkVerifiedCalls, 1);
+      expect(
+        find.textContaining('Email verified successfully!'),
+        findsOneWidget,
+      );
+      expect(find.text('Home Screen Content'), findsOneWidget);
+    });
+
+    testWidgets('Resend verification email triggers cooldown timer and single message', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      fakeAuthRepository.resendSuccessResponse = true;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(fakeAuthRepository),
+          ],
+          child: const MaterialApp(
+            home: EmailVerificationScreen(email: 'alex.sterling@example.com'),
+          ),
+        ),
+      );
+
+      final resendBtn = find.text('Resend Verification Email');
+      await tester.ensureVisible(resendBtn);
+      await tester.tap(resendBtn);
+      await tester.pump();
+
+      expect(fakeAuthRepository.resendCalls, 1);
+      expect(
+        find.textContaining('Verification email resent!'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Resend in'), findsOneWidget);
+    });
+  });
+}

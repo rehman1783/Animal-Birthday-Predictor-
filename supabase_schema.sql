@@ -82,7 +82,27 @@ $$;
 -- Grant execution to anon and authenticated roles
 GRANT EXECUTE ON FUNCTION public.check_email_exists(TEXT) TO anon, authenticated;
 
--- 6. Trigger for updated_at column
+-- 6. Helper Function: Check Email Verified (Security Definer)
+-- Checks auth.users directly to see if email is confirmed even without an active session
+CREATE OR REPLACE FUNCTION public.check_email_verified(email_to_check TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 
+    FROM auth.users 
+    WHERE LOWER(email) = LOWER(TRIM(email_to_check))
+      AND email_confirmed_at IS NOT NULL
+  );
+END;
+$$;
+
+-- Grant execution to anon and authenticated roles
+GRANT EXECUTE ON FUNCTION public.check_email_verified(TEXT) TO anon, authenticated;
+
+-- 7. Trigger for updated_at column
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -96,3 +116,4 @@ CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
+

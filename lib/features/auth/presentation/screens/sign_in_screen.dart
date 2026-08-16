@@ -74,6 +74,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     if (!mounted) return;
 
     if (success) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       final errorState = ref.read(authControllerProvider);
@@ -86,7 +87,28 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           _emailError = 'This account does not exist. Please create an account first.';
         } else if (errorMsg.contains('Incorrect password')) {
           _passwordError = 'Incorrect password. Please try again.';
+        } else if (errorMsg.contains('verify your email')) {
+          _emailError = 'Please verify your email address before signing in.';
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Please verify your email address before signing in.'),
+              backgroundColor: AppColors.error,
+              action: SnackBarAction(
+                label: 'Verify Now',
+                textColor: AppColors.primaryGold,
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/email-verification',
+                    arguments: _emailController.text.trim(),
+                  );
+                },
+              ),
+            ),
+          );
         } else {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMsg),

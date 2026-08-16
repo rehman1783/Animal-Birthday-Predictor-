@@ -130,7 +130,11 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
   }
 
   Future<bool> checkIsEmailVerified([String? email]) async {
-    return await _authRepository.isEmailVerified(email);
+    final verified = await _authRepository.isEmailVerified(email);
+    if (verified) {
+      await _loadCurrentUser();
+    }
+    return verified;
   }
 
   Future<void> signOut() async {

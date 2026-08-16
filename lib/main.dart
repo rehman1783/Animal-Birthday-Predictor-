@@ -21,16 +21,27 @@ Future<void> main() async {
     // Quietly continue if asset bundle has not reloaded
   }
 
-  // Initialize Supabase using project credentials from .env
-  await Supabase.initialize(
-    url: AppEnv.supabaseUrl,
-    anonKey: AppEnv.supabaseKey,
-  );
+  // Initialize Supabase safely (avoids duplicate init exceptions on hot restart)
+  try {
+    await Supabase.initialize(
+      url: AppEnv.supabaseUrl,
+      anonKey: AppEnv.supabaseKey,
+    );
+  } catch (e) {
+    debugPrint('Supabase init notice: $e');
+  }
 
   // Check initial route conditions (Onboarding + Session)
-  final prefs = await SharedPreferences.getInstance();
-  final bool hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
-  final session = Supabase.instance.client.auth.currentSession;
+  bool hasSeenOnboarding = false;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+  } catch (_) {}
+
+  Session? session;
+  try {
+    session = Supabase.instance.client.auth.currentSession;
+  } catch (_) {}
 
   String initialRoute;
   if (!hasSeenOnboarding) {
