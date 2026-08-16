@@ -7,8 +7,6 @@ import '../../../../core/widgets/auth_header_banner.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
-import '../../../../core/widgets/section_divider_label.dart';
-import '../../../../core/widgets/social_auth_button.dart';
 import '../providers/auth_provider.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
@@ -241,26 +239,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       text: 'Begin Journey ✦',
                       isLoading: isLoading,
                       onPressed: _handleSignIn,
-                    ),
-
-                    const SizedBox(height: 28.0),
-
-                    // Divider: SOCIAL ACCESS
-                    const SectionDividerLabel(label: 'SOCIAL ACCESS'),
-
-                    const SizedBox(height: 20.0),
-
-                    // Social Auth Button (Google)
-                    SocialAuthButton(
-                      provider: SocialProvider.google,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Google sign in (Mock state trigger)'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-                      },
                     ),
 
                     const SizedBox(height: 32.0),

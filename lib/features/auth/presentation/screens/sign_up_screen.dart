@@ -7,8 +7,6 @@ import '../../../../core/widgets/auth_header_banner.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
-import '../../../../core/widgets/section_divider_label.dart';
-import '../../../../core/widgets/social_auth_button.dart';
 import '../providers/auth_provider.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
@@ -190,26 +188,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         size: 20,
                       ),
                       onPressed: _handleSignUp,
-                    ),
-
-                    const SizedBox(height: 28.0),
-
-                    // Divider: OR CONTINUE WITH
-                    const SectionDividerLabel(label: 'OR CONTINUE WITH'),
-
-                    const SizedBox(height: 20.0),
-
-                    // Social Auth Button (Google)
-                    SocialAuthButton(
-                      provider: SocialProvider.google,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Google sign in (Mock state trigger)'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-                      },
                     ),
 
                     const SizedBox(height: 32.0),
