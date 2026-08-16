@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/utils/app_uuid.dart';
 import '../domain/animal.dart';
 
 class AnimalRepository {
@@ -63,8 +64,9 @@ class AnimalRepository {
   Future<Animal> saveAnimal(Animal animal) async {
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (animal.accountId.isNotEmpty ? animal.accountId : '00000000-0000-0000-0000-000000000000');
-    final toSave = animal.copyWith(accountId: accountId);
+    final accountId = user?.id ?? (AppUuid.isValid(animal.accountId) ? animal.accountId : '00000000-0000-0000-0000-000000000000');
+    final validId = AppUuid.isValid(animal.id) ? animal.id : AppUuid.generate();
+    final toSave = animal.copyWith(id: validId, accountId: accountId);
 
     if (c == null) {
       final index = _inMemoryAnimals.indexWhere((a) => a.id == toSave.id);

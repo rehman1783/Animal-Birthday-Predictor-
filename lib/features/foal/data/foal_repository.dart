@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/app_uuid.dart';
 import '../domain/foal_record.dart';
 
 class FoalRepository {
@@ -52,8 +53,9 @@ class FoalRepository {
   Future<FoalRecord> saveFoal(FoalRecord foal) async {
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (foal.accountId.isNotEmpty ? foal.accountId : '00000000-0000-0000-0000-000000000000');
-    final toSave = foal.copyWith(accountId: accountId);
+    final accountId = user?.id ?? (AppUuid.isValid(foal.accountId) ? foal.accountId : '00000000-0000-0000-0000-000000000000');
+    final validId = AppUuid.isValid(foal.id) ? foal.id : AppUuid.generate();
+    final toSave = foal.copyWith(id: validId, accountId: accountId);
 
     if (c == null) {
       final index = _inMemoryFoals.indexWhere((f) => f.id == toSave.id);

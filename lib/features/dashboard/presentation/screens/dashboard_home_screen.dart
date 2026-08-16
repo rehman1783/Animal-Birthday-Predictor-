@@ -124,14 +124,23 @@ class DashboardHomeScreen extends ConsumerWidget {
                   Expanded(
                     child: GradientCtaButton(
                       text: '+ Add Animal',
-                      onPressed: () => Navigator.pushNamed(context, '/species-select'),
+                      onPressed: () async {
+                        await Navigator.pushNamed(context, '/species-select');
+                        ref.invalidate(animalsListProvider('horse'));
+                        ref.invalidate(animalsListProvider(null));
+                        ref.invalidate(foalsListProvider);
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: GradientCtaButton(
                       text: '+ Record Breeding',
-                      onPressed: () => Navigator.pushNamed(context, '/breeding-details'),
+                      onPressed: () async {
+                        await Navigator.pushNamed(context, '/breeding-details');
+                        ref.invalidate(animalsListProvider('horse'));
+                        ref.invalidate(animalsListProvider(null));
+                      },
                     ),
                   ),
                 ],
@@ -142,7 +151,10 @@ class DashboardHomeScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => Navigator.pushNamed(context, '/foal-details'),
+                      onPressed: () async {
+                        await Navigator.pushNamed(context, '/foal-details');
+                        ref.invalidate(foalsListProvider);
+                      },
                       icon: const Icon(Icons.child_care, color: AppColors.primaryGold),
                       label: Text(
                         '+ NEW FOAL',
@@ -158,7 +170,11 @@ class DashboardHomeScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => Navigator.pushNamed(context, '/saved-animals'),
+                      onPressed: () async {
+                        await Navigator.pushNamed(context, '/saved-animals');
+                        ref.invalidate(animalsListProvider('horse'));
+                        ref.invalidate(animalsListProvider(null));
+                      },
                       icon: const Icon(Icons.list_alt, color: AppColors.primaryGold),
                       label: Text(
                         'SAVED ANIMALS',

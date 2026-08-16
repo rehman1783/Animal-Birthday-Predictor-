@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/app_uuid.dart';
 import '../domain/breeding_record.dart';
 import '../domain/pregnancy_record.dart';
 import '../domain/advanced_pregnancy_info.dart';
@@ -27,8 +28,9 @@ class PregnancyRepository {
   Future<BreedingRecord> saveBreedingRecord(BreedingRecord record) async {
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (record.accountId.isNotEmpty ? record.accountId : '00000000-0000-0000-0000-000000000000');
-    final toSave = record.copyWith(accountId: accountId);
+    final accountId = user?.id ?? (AppUuid.isValid(record.accountId) ? record.accountId : '00000000-0000-0000-0000-000000000000');
+    final validId = AppUuid.isValid(record.id) ? record.id : AppUuid.generate();
+    final toSave = record.copyWith(id: validId, accountId: accountId);
 
     if (c == null) {
       final index = _inMemoryBreeding.indexWhere((b) => b.id == toSave.id);
@@ -119,8 +121,9 @@ class PregnancyRepository {
   Future<PregnancyRecord> savePregnancyRecord(PregnancyRecord record) async {
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (record.accountId.isNotEmpty ? record.accountId : '00000000-0000-0000-0000-000000000000');
-    final toSave = record.copyWith(accountId: accountId);
+    final accountId = user?.id ?? (AppUuid.isValid(record.accountId) ? record.accountId : '00000000-0000-0000-0000-000000000000');
+    final validId = AppUuid.isValid(record.id) ? record.id : AppUuid.generate();
+    final toSave = record.copyWith(id: validId, accountId: accountId);
 
     if (c == null) {
       final index = _inMemoryPregnancies.indexWhere((p) => p.id == toSave.id);
@@ -161,7 +164,7 @@ class PregnancyRepository {
     );
 
     final record = PregnancyRecord(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: AppUuid.generate(),
       accountId: '',
       breedingRecordId: breedingRecordId,
       carrierAnimalId: carrierAnimalId,
@@ -207,21 +210,24 @@ class PregnancyRepository {
 
   Future<AdvancedPregnancyInfo> saveAdvancedPregnancyInfo(AdvancedPregnancyInfo info) async {
     final c = client;
+    final validId = AppUuid.isValid(info.id) ? info.id : AppUuid.generate();
+    final toSave = info.copyWith(id: validId);
+
     if (c == null) {
-      final index = _inMemoryAdvanced.indexWhere((a) => a.id == info.id || a.pregnancyRecordId == info.pregnancyRecordId);
+      final index = _inMemoryAdvanced.indexWhere((a) => a.id == toSave.id || a.pregnancyRecordId == toSave.pregnancyRecordId);
       if (index >= 0) {
-        _inMemoryAdvanced[index] = info;
+        _inMemoryAdvanced[index] = toSave;
       } else {
-        _inMemoryAdvanced.add(info);
+        _inMemoryAdvanced.add(toSave);
       }
-      return info;
+      return toSave;
     }
     try {
-      final data = await c.from('advanced_pregnancy_info').upsert(info.toJson()).select().single();
+      final data = await c.from('advanced_pregnancy_info').upsert(toSave.toJson()).select().single();
       return AdvancedPregnancyInfo.fromJson(data);
     } catch (e) {
       debugPrint('Supabase saveAdvancedPregnancyInfo error: $e');
-      return info;
+      return toSave;
     }
   }
 }

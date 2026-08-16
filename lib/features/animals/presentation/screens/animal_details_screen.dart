@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/utils/app_uuid.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -14,13 +15,18 @@ import '../providers/animal_provider.dart';
 
 class AnimalDetailsScreen extends ConsumerStatefulWidget {
   final Animal? animal;
+  final String? animalId;
   final String species;
 
-  const AnimalDetailsScreen({super.key, this.animal, this.species = 'horse'});
+  const AnimalDetailsScreen({
+    super.key,
+    this.animal,
+    this.animalId,
+    this.species = 'horse',
+  });
 
   @override
-  ConsumerState<AnimalDetailsScreen> createState() =>
-      _AnimalDetailsScreenState();
+  ConsumerState<AnimalDetailsScreen> createState() => _AnimalDetailsScreenState();
 }
 
 class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
@@ -36,25 +42,46 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
   DateTime? _dateOfBirth;
   String? _photoUrl;
   bool _isSaving = false;
+  Animal? _loadedAnimal;
 
   @override
   void initState() {
     super.initState();
-    final a = widget.animal;
-    _nameController = TextEditingController(text: a?.name ?? '');
-    _breedController = TextEditingController(text: a?.breed ?? '');
-    _colourController = TextEditingController(text: a?.colour ?? '');
-    _brandController = TextEditingController(text: a?.brand ?? '');
-    _dnaController = TextEditingController(text: a?.dna ?? '');
-    _microchipController = TextEditingController(text: a?.microchipNo ?? '');
-    _ownerNameController = TextEditingController(
-      text: a?.ownerClientName ?? '',
-    );
-    _ownerPhoneController = TextEditingController(
-      text: a?.ownerClientPhone ?? '',
-    );
-    _dateOfBirth = a?.dateOfBirth;
-    _photoUrl = a?.photoUrl;
+    _loadedAnimal = widget.animal;
+    _nameController = TextEditingController(text: _loadedAnimal?.name ?? '');
+    _breedController = TextEditingController(text: _loadedAnimal?.breed ?? '');
+    _colourController = TextEditingController(text: _loadedAnimal?.colour ?? '');
+    _brandController = TextEditingController(text: _loadedAnimal?.brand ?? '');
+    _dnaController = TextEditingController(text: _loadedAnimal?.dna ?? '');
+    _microchipController = TextEditingController(text: _loadedAnimal?.microchipNo ?? '');
+    _ownerNameController = TextEditingController(text: _loadedAnimal?.ownerClientName ?? '');
+    _ownerPhoneController = TextEditingController(text: _loadedAnimal?.ownerClientPhone ?? '');
+    _dateOfBirth = _loadedAnimal?.dateOfBirth;
+    _photoUrl = _loadedAnimal?.photoUrl;
+
+    if (_loadedAnimal == null && widget.animalId != null && widget.animalId!.isNotEmpty) {
+      _loadAnimalById(widget.animalId!);
+    }
+  }
+
+  Future<void> _loadAnimalById(String id) async {
+    final repo = ref.read(animalRepositoryProvider);
+    final a = await repo.getAnimalById(id);
+    if (a != null && mounted) {
+      setState(() {
+        _loadedAnimal = a;
+        _nameController.text = a.name;
+        _breedController.text = a.breed ?? '';
+        _colourController.text = a.colour ?? '';
+        _brandController.text = a.brand ?? '';
+        _dnaController.text = a.dna ?? '';
+        _microchipController.text = a.microchipNo ?? '';
+        _ownerNameController.text = a.ownerClientName ?? '';
+        _ownerPhoneController.text = a.ownerClientPhone ?? '';
+        _dateOfBirth = a.dateOfBirth;
+        _photoUrl = a.photoUrl;
+      });
+    }
   }
 
   @override
@@ -103,9 +130,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Please complete all required fields (* Name is required).',
-          ),
+          content: Text('Please complete all required fields (* Name is required).'),
         ),
       );
       return;
@@ -114,14 +139,15 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
 
     try {
       final repo = ref.read(animalRepositoryProvider);
-      final animalId = widget.animal?.id.isNotEmpty == true
-          ? widget.animal!.id
-          : DateTime.now().millisecondsSinceEpoch.toString();
+      final currentAnimal = _loadedAnimal ?? widget.animal;
+      final animalId = currentAnimal?.id.isNotEmpty == true && AppUuid.isValid(currentAnimal!.id)
+          ? currentAnimal.id
+          : AppUuid.generate();
 
       final updatedAnimal = Animal(
         id: animalId,
-        accountId: widget.animal?.accountId ?? '',
-        species: widget.animal?.species ?? widget.species,
+        accountId: currentAnimal?.accountId ?? '',
+        species: currentAnimal?.species ?? widget.species,
         name: _nameController.text.trim(),
         breed: _breedController.text.trim(),
         colour: _colourController.text.trim(),
@@ -132,24 +158,29 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
         ownerClientName: _ownerNameController.text.trim(),
         ownerClientPhone: _ownerPhoneController.text.trim(),
         photoUrl: _photoUrl,
-        createdAt: widget.animal?.createdAt ?? DateTime.now(),
+        createdAt: currentAnimal?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
       final saved = await repo.saveAnimal(updatedAnimal);
+
+      // Invalidate state to immediately reload everywhere in the app
       ref.invalidate(animalsListProvider(updatedAnimal.species));
+      ref.invalidate(animalsListProvider('horse'));
+      ref.invalidate(animalsListProvider(null));
+      ref.invalidate(animalByIdProvider(saved.id));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${saved.name} details saved successfully!')),
+          SnackBar(content: Text('${saved.name} details saved to registry successfully!')),
         );
         Navigator.pop(context, saved);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to save animal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save animal: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -158,8 +189,9 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.animal != null;
-    final animalId = widget.animal?.id ?? '';
+    final currentAnimal = _loadedAnimal ?? widget.animal;
+    final isEditing = currentAnimal != null && currentAnimal.name.isNotEmpty;
+    final animalId = currentAnimal?.id ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -167,17 +199,11 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textPrimary,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.maybePop(context),
         ),
         title: Text(
-          isEditing
-              ? 'EDIT ${widget.animal!.name.toUpperCase()}'
-              : 'ANIMAL DETAILS',
+          isEditing ? 'EDIT ${currentAnimal.name.toUpperCase()}' : 'ANIMAL DETAILS',
           style: AppTypography.sectionLabel,
         ),
         centerTitle: true,
@@ -211,8 +237,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                     hintText: 'e.g. Starlight Eclipse',
                     controller: _nameController,
                     validator: (val) {
-                      if (val == null || val.trim().isEmpty)
-                        return 'Animal Name is required';
+                      if (val == null || val.trim().isEmpty) return 'Animal Name is required';
                       return null;
                     },
                   ),
@@ -243,27 +268,17 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Date of Birth',
-                        style: AppTypography.inputLabel,
-                      ),
+                      const Text('Date of Birth', style: AppTypography.inputLabel),
                       const SizedBox(height: 6),
                       GestureDetector(
                         onTap: _pickDateOfBirth,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           decoration: BoxDecoration(
                             color: AppColors.inputField,
-                            borderRadius: BorderRadius.circular(
-                              AppSpacing.cardRadius,
-                            ),
+                            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
                             border: Border.all(
-                              color: _dateOfBirth != null
-                                  ? AppColors.primaryGold
-                                  : AppColors.surface,
+                              color: _dateOfBirth != null ? AppColors.primaryGold : AppColors.surface,
                             ),
                           ),
                           child: Row(
@@ -272,16 +287,10 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                               Text(
                                 _formatDate(_dateOfBirth),
                                 style: TextStyle(
-                                  color: _dateOfBirth != null
-                                      ? AppColors.textPrimary
-                                      : AppColors.textMuted,
+                                  color: _dateOfBirth != null ? AppColors.textPrimary : AppColors.textMuted,
                                 ),
                               ),
-                              const Icon(
-                                Icons.calendar_today_outlined,
-                                size: 18,
-                                color: AppColors.primaryGold,
-                              ),
+                              const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primaryGold),
                             ],
                           ),
                         ),
@@ -342,9 +351,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
 
                   // 4. Action Shortcuts (Physical Markings & Preventative Care)
                   if (isEditing && animalId.isNotEmpty) ...[
-                    const SectionDividerLabel(
-                      label: 'ANIMAL HEALTH & MARKINGS',
-                    ),
+                    const SectionDividerLabel(label: 'ANIMAL HEALTH & MARKINGS'),
                     const SizedBox(height: 16.0),
 
                     Row(
@@ -355,34 +362,18 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                               Navigator.pushNamed(
                                 context,
                                 '/markings',
-                                arguments: {
-                                  'ownerType': 'animal',
-                                  'ownerId': animalId,
-                                },
+                                arguments: {'ownerType': 'animal', 'ownerId': animalId},
                               );
                             },
-                            icon: const Icon(
-                              Icons.photo_library_outlined,
-                              color: AppColors.primaryGold,
-                              size: 18,
-                            ),
+                            icon: const Icon(Icons.photo_library_outlined, color: AppColors.primaryGold, size: 18),
                             label: Text(
                               'MARKINGS',
-                              style: AppTypography.buttonLabel.copyWith(
-                                color: AppColors.primaryGold,
-                                fontSize: 13,
-                              ),
+                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 13),
                             ),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(
-                                color: AppColors.primaryGold,
-                              ),
+                              side: const BorderSide(color: AppColors.primaryGold),
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.cardRadius,
-                                ),
-                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                             ),
                           ),
                         ),
@@ -393,35 +384,18 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                               Navigator.pushNamed(
                                 context,
                                 '/preventative-care',
-                                arguments: {
-                                  'ownerType': 'animal',
-                                  'ownerId': animalId,
-                                  'title': widget.animal!.name,
-                                },
+                                arguments: {'ownerType': 'animal', 'ownerId': animalId, 'title': currentAnimal.name},
                               );
                             },
-                            icon: const Icon(
-                              Icons.healing_outlined,
-                              color: AppColors.primaryGold,
-                              size: 18,
-                            ),
+                            icon: const Icon(Icons.healing_outlined, color: AppColors.primaryGold, size: 18),
                             label: Text(
                               'HEALTH CARE',
-                              style: AppTypography.buttonLabel.copyWith(
-                                color: AppColors.primaryGold,
-                                fontSize: 13,
-                              ),
+                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 13),
                             ),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(
-                                color: AppColors.primaryGold,
-                              ),
+                              side: const BorderSide(color: AppColors.primaryGold),
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.cardRadius,
-                                ),
-                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                             ),
                           ),
                         ),
@@ -432,11 +406,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
 
                   // 5. Submit CTA
                   GradientCtaButton(
-                    text: _isSaving
-                        ? 'SAVING DETAILS...'
-                        : (isEditing
-                              ? 'UPDATE ANIMAL DETAILS'
-                              : 'SAVE TO REGISTRY'),
+                    text: _isSaving ? 'SAVING DETAILS...' : (isEditing ? 'UPDATE ANIMAL DETAILS' : 'SAVE TO REGISTRY'),
                     onPressed: _isSaving ? null : _handleSave,
                   ),
                   const SizedBox(height: 24.0),

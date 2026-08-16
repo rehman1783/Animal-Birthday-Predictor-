@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/app_uuid.dart';
 import '../domain/preventative_care_record.dart';
 
 class PreventativeCareRepository {
@@ -46,31 +47,34 @@ class PreventativeCareRepository {
 
   Future<PreventativeCareRecord> savePreventativeCare(PreventativeCareRecord record) async {
     final c = client;
+    final validId = AppUuid.isValid(record.id) ? record.id : AppUuid.generate();
+    final toSave = record.copyWith(id: validId);
+
     if (c == null) {
       final index = _inMemoryRecords.indexWhere(
-        (r) => r.ownerType == record.ownerType && r.ownerId == record.ownerId,
+        (r) => r.ownerType == toSave.ownerType && r.ownerId == toSave.ownerId,
       );
       if (index >= 0) {
-        _inMemoryRecords[index] = record;
+        _inMemoryRecords[index] = toSave;
       } else {
-        _inMemoryRecords.add(record);
+        _inMemoryRecords.add(toSave);
       }
-      return record;
+      return toSave;
     }
     try {
-      final data = await c.from('preventative_care').upsert(record.toJson()).select().single();
+      final data = await c.from('preventative_care').upsert(toSave.toJson()).select().single();
       return PreventativeCareRecord.fromJson(data);
     } catch (e) {
       debugPrint('Supabase savePreventativeCare error: $e');
       final index = _inMemoryRecords.indexWhere(
-        (r) => r.ownerType == record.ownerType && r.ownerId == record.ownerId,
+        (r) => r.ownerType == toSave.ownerType && r.ownerId == toSave.ownerId,
       );
       if (index >= 0) {
-        _inMemoryRecords[index] = record;
+        _inMemoryRecords[index] = toSave;
       } else {
-        _inMemoryRecords.add(record);
+        _inMemoryRecords.add(toSave);
       }
-      return record;
+      return toSave;
     }
   }
 }

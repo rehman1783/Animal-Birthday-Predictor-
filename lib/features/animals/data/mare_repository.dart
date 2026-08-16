@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/app_uuid.dart';
 import '../domain/animal.dart';
 import '../domain/mare.dart';
 import '../domain/markings.dart';
@@ -53,8 +54,9 @@ class MareRepository {
   Future<Animal> saveMare(Animal animal) async {
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (animal.accountId.isNotEmpty ? animal.accountId : '00000000-0000-0000-0000-000000000000');
-    final toSave = animal.copyWith(accountId: accountId, species: 'horse');
+    final accountId = user?.id ?? (AppUuid.isValid(animal.accountId) ? animal.accountId : '00000000-0000-0000-0000-000000000000');
+    final validId = AppUuid.isValid(animal.id) ? animal.id : AppUuid.generate();
+    final toSave = animal.copyWith(id: validId, accountId: accountId, species: 'horse');
 
     if (c == null) {
       final index = _inMemoryMares.indexWhere((m) => m.id == toSave.id);
@@ -117,23 +119,26 @@ class MareRepository {
 
   Future<Markings> saveMarkings(Markings markings) async {
     final c = client;
+    final validId = AppUuid.isValid(markings.id) ? markings.id : AppUuid.generate();
+    final toSave = markings.copyWith(id: validId);
+
     if (c == null) {
       final index = _inMemoryMarkings.indexWhere(
-        (m) => m.ownerType == markings.ownerType && m.ownerId == markings.ownerId,
+        (m) => m.ownerType == toSave.ownerType && m.ownerId == toSave.ownerId,
       );
       if (index >= 0) {
-        _inMemoryMarkings[index] = markings;
+        _inMemoryMarkings[index] = toSave;
       } else {
-        _inMemoryMarkings.add(markings);
+        _inMemoryMarkings.add(toSave);
       }
-      return markings;
+      return toSave;
     }
     try {
-      final data = await c.from('markings').upsert(markings.toJson()).select().single();
+      final data = await c.from('markings').upsert(toSave.toJson()).select().single();
       return Markings.fromJson(data);
     } catch (e) {
       debugPrint('Supabase saveMarkings error: $e');
-      return markings;
+      return toSave;
     }
   }
 }

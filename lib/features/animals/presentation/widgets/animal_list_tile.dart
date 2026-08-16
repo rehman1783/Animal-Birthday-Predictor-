@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -18,8 +20,18 @@ class AnimalListTile extends StatelessWidget {
     this.isSelected = false,
   });
 
+  ImageProvider? _getImageProvider(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://') || kIsWeb) {
+      return NetworkImage(path);
+    }
+    return FileImage(File(path));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final imageProvider = _getImageProvider(animal.photoUrl);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -43,14 +55,14 @@ class AnimalListTile extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: AppColors.inputField,
                 border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
-                image: animal.photoUrl != null && animal.photoUrl!.isNotEmpty
+                image: imageProvider != null
                     ? DecorationImage(
-                        image: NetworkImage(animal.photoUrl!),
+                        image: imageProvider,
                         fit: BoxFit.cover,
                       )
                     : null,
               ),
-              child: animal.photoUrl == null || animal.photoUrl!.isEmpty
+              child: imageProvider == null
                   ? const Icon(Icons.pets, color: AppColors.primaryGold, size: 24)
                   : null,
             ),
@@ -107,13 +119,14 @@ class AnimalListTile extends StatelessWidget {
               ),
             ),
 
+            // Trailing widget or arrow
             if (trailing != null)
               trailing!
             else
               const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.primaryGold,
-                size: 20,
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.textMuted,
+                size: 14,
               ),
           ],
         ),

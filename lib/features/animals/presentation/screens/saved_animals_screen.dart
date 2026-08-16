@@ -32,6 +32,12 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
     super.dispose();
   }
 
+  void _refreshCurrentTab() {
+    final currentSpecies = _speciesTabs[_tabController.index];
+    ref.invalidate(animalsListProvider(currentSpecies));
+    ref.invalidate(animalsListProvider(null));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,8 +72,11 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
         foregroundColor: AppColors.background,
         icon: const Icon(Icons.add, color: AppColors.background),
         label: const Text('Add Animal', style: TextStyle(fontWeight: FontWeight.bold)),
-        onPressed: () {
-          Navigator.pushNamed(context, '/species-select');
+        onPressed: () async {
+          final result = await Navigator.pushNamed(context, '/species-select');
+          if (result != null) {
+            _refreshCurrentTab();
+          }
         },
       ),
     );
@@ -120,12 +129,16 @@ class _SpeciesAnimalList extends ConsumerWidget {
                       width: 220,
                       child: GradientCtaButton(
                         text: '+ Add ${species.toUpperCase()}',
-                        onPressed: () {
-                          Navigator.pushNamed(
+                        onPressed: () async {
+                          final result = await Navigator.pushNamed(
                             context,
                             '/animal-details',
                             arguments: {'species': species},
                           );
+                          if (result != null) {
+                            ref.invalidate(animalsListProvider(species));
+                            ref.invalidate(animalsListProvider(null));
+                          }
                         },
                       ),
                     ),
@@ -141,6 +154,7 @@ class _SpeciesAnimalList extends ConsumerWidget {
           backgroundColor: AppColors.surface,
           onRefresh: () async {
             ref.invalidate(animalsListProvider(species));
+            ref.invalidate(animalsListProvider(null));
           },
           child: ResponsiveBody(
             child: ListView.builder(
@@ -150,12 +164,16 @@ class _SpeciesAnimalList extends ConsumerWidget {
                 final animal = animals[index];
                 return AnimalListTile(
                   animal: animal,
-                  onTap: () {
-                    Navigator.pushNamed(
+                  onTap: () async {
+                    final updated = await Navigator.pushNamed(
                       context,
                       '/animal-details',
                       arguments: {'animal': animal, 'species': species},
                     );
+                    if (updated != null) {
+                      ref.invalidate(animalsListProvider(species));
+                      ref.invalidate(animalsListProvider(null));
+                    }
                   },
                 );
               },

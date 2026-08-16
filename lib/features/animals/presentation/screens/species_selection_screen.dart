@@ -47,17 +47,21 @@ class _SpeciesSelectionScreenState extends ConsumerState<SpeciesSelectionScreen>
     ),
   ];
 
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
     ref.read(selectedSpeciesFilterProvider.notifier).state = _selectedSpecies;
 
     if (_selectedSpecies == 'horse') {
-      Navigator.pushNamed(
+      final created = await Navigator.pushNamed(
         context,
         '/animal-details',
         arguments: {'species': 'horse'},
       );
+
+      if (created != null && mounted) {
+        Navigator.pop(context, created);
+      }
     } else {
-      // Friendly coming soon banner without crashing or dead-ending
+      // Friendly coming soon dialog without crashing or dead-ending
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
