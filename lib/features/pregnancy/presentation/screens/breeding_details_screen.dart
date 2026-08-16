@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -162,8 +163,10 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Breeding and pregnancy record calculated successfully!')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Breeding Recorded',
+          message: 'Pregnancy scans and foaling due date calculated successfully!',
         );
 
         Navigator.pushReplacementNamed(
@@ -178,8 +181,10 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save breeding: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Breeding Save Failed',
+          error: e,
         );
       }
     } finally {
@@ -279,12 +284,31 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                 const SizedBox(height: 24.0),
 
                 // 2. Sire / Stallion Field
-                const SectionDividerLabel(label: 'STALLION (FATHER)'),
-                const SizedBox(height: 12.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SectionDividerLabel(label: 'STALLION (FATHER)'),
+                    TextButton.icon(
+                      onPressed: () async {
+                        final chosen = await SelectOrAddAnimalModal.show(
+                          context,
+                          title: 'Select Stallion (Father)',
+                          species: 'horse',
+                        );
+                        if (chosen != null) {
+                          setState(() => _stallionController.text = chosen.name);
+                        }
+                      },
+                      icon: const Icon(Icons.pets, size: 14, color: AppColors.primaryGold),
+                      label: const Text('Pick Saved', style: TextStyle(color: AppColors.primaryGold, fontSize: 12)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8.0),
 
                 CustomTextField(
-                  label: 'Stallion Name',
-                  hintText: 'e.g. Northern Dancer (External Stud)',
+                  label: 'Stallion Name / Stud',
+                  hintText: 'e.g. Northern Dancer (External Stud or Saved)',
                   controller: _stallionController,
                   prefixIcon: Icons.pets_outlined,
                 ),

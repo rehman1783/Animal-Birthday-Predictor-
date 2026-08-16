@@ -17,6 +17,13 @@ class FoalRecord {
   final String? notes;
   final String? status; // 'sold', 'keep', 'transferred'
   final String? photoUrl;
+  // Buyer / New Owner Fields
+  final String? buyerName;
+  final String? buyerPhone;
+  final String? buyerAddress;
+  final DateTime? saleDate;
+  final String? salePrice;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -39,6 +46,11 @@ class FoalRecord {
     this.notes,
     this.status,
     this.photoUrl,
+    this.buyerName,
+    this.buyerPhone,
+    this.buyerAddress,
+    this.saleDate,
+    this.salePrice,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -63,6 +75,11 @@ class FoalRecord {
       'notes': notes,
       'status': status,
       'photo_url': photoUrl,
+      'buyer_name': buyerName,
+      'buyer_phone': buyerPhone,
+      'buyer_address': buyerAddress,
+      'sale_date': saleDate?.toIso8601String().split('T').first,
+      'sale_price': salePrice,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -92,6 +109,13 @@ class FoalRecord {
       notes: json['notes'] as String?,
       status: json['status'] as String?,
       photoUrl: json['photo_url'] as String?,
+      buyerName: json['buyer_name'] as String?,
+      buyerPhone: json['buyer_phone'] as String?,
+      buyerAddress: json['buyer_address'] as String?,
+      saleDate: json['sale_date'] != null
+          ? DateTime.tryParse(json['sale_date'] as String)
+          : null,
+      salePrice: json['sale_price'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),
@@ -120,6 +144,11 @@ class FoalRecord {
     String? notes,
     String? status,
     String? photoUrl,
+    String? buyerName,
+    String? buyerPhone,
+    String? buyerAddress,
+    DateTime? saleDate,
+    String? salePrice,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -142,6 +171,11 @@ class FoalRecord {
       notes: notes ?? this.notes,
       status: status ?? this.status,
       photoUrl: photoUrl ?? this.photoUrl,
+      buyerName: buyerName ?? this.buyerName,
+      buyerPhone: buyerPhone ?? this.buyerPhone,
+      buyerAddress: buyerAddress ?? this.buyerAddress,
+      saleDate: saleDate ?? this.saleDate,
+      salePrice: salePrice ?? this.salePrice,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

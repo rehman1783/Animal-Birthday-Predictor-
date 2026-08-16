@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -88,6 +89,44 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
   }
 
+  Future<void> _confirmDeleteRecord() async {
+    if (_record == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('Delete Pregnancy Record', style: AppTypography.displayHeadline.copyWith(fontSize: 18)),
+        content: const Text(
+          'Are you sure you want to delete this pregnancy record? This will remove all associated scans and due dates.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('CANCEL', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('DELETE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final repo = ref.read(pregnancyRepositoryProvider);
+      await repo.deletePregnancyRecord(_record!.id);
+      ref.invalidate(pregnancyRecordForCarrierProvider(widget.carrierAnimalId));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pregnancy record deleted successfully.')),
+        );
+        Navigator.pop(context);
+      }
+    }
+  }
+
   Future<void> _handleSave() async {
     if (_record == null) return;
     setState(() => _isSaving = true);
@@ -110,14 +149,18 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
       ref.invalidate(pregnancyRecordForCarrierProvider(widget.carrierAnimalId));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pregnancy scan details saved successfully!')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Pregnancy Details Saved',
+          message: 'Ultrasound scans & veterinarian details saved successfully!',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save pregnancy record: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Save Failed',
+          error: e,
         );
       }
     } finally {
@@ -152,6 +195,12 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
               );
             },
           ),
+          if (_record != null)
+            IconButton(
+              tooltip: 'Delete Record',
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              onPressed: _confirmDeleteRecord,
+            ),
         ],
       ),
       body: SafeArea(
@@ -275,6 +324,8 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                       title: 'Veterinarian',
                       hintText: 'e.g. +1 555 019 3820',
                       controller: _vetNumberController,
+                      nameController: _vetNameController,
+                      contactRole: 'vet',
                       icon: Icons.medical_services_outlined,
                       onSave: _handleSave,
                     ),

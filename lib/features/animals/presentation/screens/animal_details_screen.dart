@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/app_uuid.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -171,19 +172,68 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
       ref.invalidate(animalByIdProvider(saved.id));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${saved.name} details saved to registry successfully!')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Animal Saved',
+          message: '${saved.name} details saved to registry successfully!',
         );
         Navigator.pop(context, saved);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save animal: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Animal Save Failed',
+          error: e,
         );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _confirmDeleteAnimal() async {
+    final currentAnimal = _loadedAnimal ?? widget.animal;
+    if (currentAnimal == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('Delete Animal', style: AppTypography.displayHeadline.copyWith(fontSize: 18)),
+        content: Text(
+          'Are you sure you want to delete ${currentAnimal.name}? This will remove this animal and all associated breeding, pregnancy, and markings records from your registry.',
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('CANCEL', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('DELETE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final repo = ref.read(animalRepositoryProvider);
+      await repo.deleteAnimal(currentAnimal.id);
+      ref.invalidate(animalsListProvider(currentAnimal.species));
+      ref.invalidate(animalsListProvider('horse'));
+      ref.invalidate(animalsListProvider('dog'));
+      ref.invalidate(animalsListProvider(null));
+      ref.invalidate(animalByIdProvider(currentAnimal.id));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${currentAnimal.name} deleted from registry.')),
+        );
+        Navigator.pop(context, true);
+      }
     }
   }
 
@@ -207,6 +257,14 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
           style: AppTypography.sectionLabel,
         ),
         centerTitle: true,
+        actions: [
+          if (isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              tooltip: 'Delete Animal',
+              onPressed: _confirmDeleteAnimal,
+            ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -221,15 +222,19 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
       ref.invalidate(preventativeCareForOwnerProvider((ownerType: widget.ownerType, ownerId: widget.ownerId)));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preventative care details saved successfully!')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Care Details Saved',
+          message: 'Preventative care protocols saved successfully!',
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save preventative care: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Save Failed',
+          error: e,
         );
       }
     } finally {
@@ -409,6 +414,7 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
                       title: 'Equine Dentist',
                       hintText: 'e.g. +1 555 019 4920',
                       controller: _dentistNumberController,
+                      contactRole: 'dentist',
                       icon: Icons.medical_information_outlined,
                       onSave: _handleSave,
                     ),
@@ -427,6 +433,7 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
                       title: 'Farrier',
                       hintText: 'e.g. +1 555 019 7291',
                       controller: _farrierNumberController,
+                      contactRole: 'farrier',
                       icon: Icons.handyman_outlined,
                       onSave: _handleSave,
                     ),

@@ -182,6 +182,31 @@ class PregnancyRepository {
     return savePregnancyRecord(record);
   }
 
+  Future<void> deletePregnancyRecord(String id) async {
+    final c = client;
+    _inMemoryPregnancies.removeWhere((p) => p.id == id);
+    _inMemoryAdvanced.removeWhere((a) => a.pregnancyRecordId == id);
+    if (c != null) {
+      try {
+        await c.from('pregnancy_records').delete().eq('id', id);
+      } catch (e) {
+        debugPrint('Supabase deletePregnancyRecord error: $e');
+      }
+    }
+  }
+
+  Future<void> deleteBreedingRecord(String id) async {
+    final c = client;
+    _inMemoryBreeding.removeWhere((b) => b.id == id);
+    if (c != null) {
+      try {
+        await c.from('breeding_records').delete().eq('id', id);
+      } catch (e) {
+        debugPrint('Supabase deleteBreedingRecord error: $e');
+      }
+    }
+  }
+
   // --- ADVANCED PREGNANCY INFO ---
   Future<AdvancedPregnancyInfo?> getAdvancedPregnancyInfo(String pregnancyRecordId) async {
     final c = client;

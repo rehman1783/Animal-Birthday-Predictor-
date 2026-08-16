@@ -22,6 +22,12 @@ import '../../features/foal/presentation/screens/foal_details_screen.dart';
 import '../../features/foal/presentation/screens/congratulations_screen.dart';
 import '../../features/certificates/presentation/screens/certificate_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
+import '../../features/contacts/presentation/screens/contacts_directory_screen.dart';
+import '../../features/puppy/domain/puppy.dart';
+import '../../features/puppy/presentation/screens/puppy_details_screen.dart';
+import '../../features/puppy/presentation/screens/puppy_list_screen.dart';
+import '../../features/puppy/presentation/screens/puppy_weight_tracker_screen.dart';
+import '../../features/puppy/presentation/screens/dog_preventative_care_screen.dart';
 
 abstract class AppRouter {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -68,6 +74,45 @@ abstract class AppRouter {
           builder: (_) => MarkingsScreen(
             ownerType: args['ownerType'] as String? ?? 'animal',
             ownerId: args['ownerId'] as String? ?? '',
+          ),
+          settings: settings,
+        );
+
+      case '/contacts':
+        return MaterialPageRoute(
+          builder: (_) => const ContactsDirectoryScreen(),
+          settings: settings,
+        );
+
+      case '/puppies':
+        final damId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => PuppyListScreen(damId: damId),
+          settings: settings,
+        );
+
+      case '/puppy-details':
+        final puppy = settings.arguments as Puppy?;
+        return MaterialPageRoute(
+          builder: (_) => PuppyDetailsScreen(puppy: puppy),
+          settings: settings,
+        );
+
+      case '/puppy-weight-tracker':
+        final puppy = settings.arguments as Puppy;
+        return MaterialPageRoute(
+          builder: (_) => PuppyWeightTrackerScreen(puppy: puppy),
+          settings: settings,
+        );
+
+      case '/dog-preventative-care':
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        return MaterialPageRoute(
+          builder: (_) => DogPreventativeCareScreen(
+            ownerType: (args['ownerType'] as String?) ?? 'puppy',
+            ownerId: (args['ownerId'] as String?) ?? '',
+            title: (args['title'] as String?) ?? 'Canine',
+            dateOfBirth: args['dateOfBirth'] as DateTime?,
           ),
           settings: settings,
         );
@@ -151,14 +196,10 @@ abstract class AppRouter {
       case '/certificate':
         final args = settings.arguments as Map<String, dynamic>? ?? {};
         final foal = args['foal'] as FoalRecord?;
+        final puppy = args['puppy'] as Puppy?;
         final dam = args['dam'] as Animal?;
-        if (foal == null) {
-          return MaterialPageRoute(
-            builder: (_) => const Scaffold(body: Center(child: Text('No foal selected'))),
-          );
-        }
         return MaterialPageRoute(
-          builder: (_) => CertificateScreen(foal: foal, dam: dam),
+          builder: (_) => CertificateScreen(foal: foal, puppy: puppy, dam: dam),
           settings: settings,
         );
     }
@@ -185,6 +226,8 @@ abstract class AppRouter {
       '/saved-animals': (context) => const SavedAnimalsScreen(),
       '/animal-details': (context) => const AnimalDetailsScreen(),
       '/settings': (context) => const SettingsScreen(),
+      '/contacts': (context) => const ContactsDirectoryScreen(),
+      '/puppies': (context) => const PuppyListScreen(),
     };
   }
 }

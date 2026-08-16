@@ -27,6 +27,7 @@ class PregnancyScansScreen extends ConsumerStatefulWidget {
 }
 
 class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
+  final _vetNameController = TextEditingController();
   final _vetNumberController = TextEditingController();
   PregnancyRecord? _record;
   bool _scan1Confirmed = false;
@@ -62,6 +63,7 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
         _scan1Image = r.scan1ImageUrl;
         _scan2Image = r.scan2ImageUrl;
         _scan3Image = r.scan3ImageUrl;
+        _vetNameController.text = r.vetName ?? '';
         _vetNumberController.text = r.vetNumber ?? '';
         _isLoaded = true;
       });
@@ -72,6 +74,7 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
 
   @override
   void dispose() {
+    _vetNameController.dispose();
     _vetNumberController.dispose();
     super.dispose();
   }
@@ -88,6 +91,7 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
         scan2ImageUrl: _scan2Image,
         scan3Confirmed: _scan3Confirmed,
         scan3ImageUrl: _scan3Image,
+        vetName: _vetNameController.text.trim(),
         vetNumber: _vetNumberController.text.trim(),
         updatedAt: DateTime.now(),
       );
@@ -97,13 +101,13 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Scan updates saved successfully!')),
+          const SnackBar(content: Text('Ultrasound scans & vet info saved!')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
+          SnackBar(content: Text('Failed to save scans: $e')),
         );
       }
     } finally {
@@ -134,46 +138,53 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
                   child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SectionDividerLabel(label: 'QUICK SCAN UPDATE & VET CALL'),
+                    const SectionDividerLabel(label: 'ULTRASOUND SCANS CONFIRMATION'),
                     const SizedBox(height: 14.0),
 
-                    // Quick Scans Block
+                    // Scan 1
                     ScanDueBlock(
                       scanNumber: 1,
                       dueDate: _record?.scan1DueDate,
                       isConfirmed: _scan1Confirmed,
                       imageUrl: _scan1Image,
-                      helperGuidance: 'Scan 1 — Day 14-16 post cover.',
+                      helperGuidance: 'Day 14-16. Checks pregnancy & twin detection.',
                       onToggleConfirmed: (val) => setState(() => _scan1Confirmed = val ?? false),
                       onImageSelected: (url) => setState(() => _scan1Image = url),
                     ),
 
+                    // Scan 2
                     ScanDueBlock(
                       scanNumber: 2,
                       dueDate: _record?.scan2DueDate,
                       isConfirmed: _scan2Confirmed,
                       imageUrl: _scan2Image,
-                      helperGuidance: 'Scan 2 — Day 30 heartbeat confirmation.',
+                      helperGuidance: 'Day 28-30. Confirms heartbeat.',
                       onToggleConfirmed: (val) => setState(() => _scan2Confirmed = val ?? false),
                       onImageSelected: (url) => setState(() => _scan2Image = url),
                     ),
 
+                    // Scan 3
                     ScanDueBlock(
                       scanNumber: 3,
                       dueDate: _record?.scan3DueDate,
                       isConfirmed: _scan3Confirmed,
                       imageUrl: _scan3Image,
-                      helperGuidance: 'Scan 3 — Day 45 organogenesis.',
+                      helperGuidance: 'Day 45. Verifies organogenesis & endometrial cups.',
                       onToggleConfirmed: (val) => setState(() => _scan3Confirmed = val ?? false),
                       onImageSelected: (url) => setState(() => _scan3Image = url),
                     ),
+                    const SizedBox(height: 20.0),
+
+                    const SectionDividerLabel(label: 'VETERINARIAN CONTACT'),
                     const SizedBox(height: 14.0),
 
-                    // Quick Vet Contact
+                    // Quick Vet Contact (Name and Contact Phone)
                     ContactNumberBlock(
-                      title: 'Veterinarian Call Dialer',
+                      title: 'Veterinarian',
                       hintText: 'e.g. +1 555 019 3820',
                       controller: _vetNumberController,
+                      nameController: _vetNameController,
+                      contactRole: 'vet',
                       icon: Icons.medical_services_outlined,
                       onSave: _handleSave,
                     ),

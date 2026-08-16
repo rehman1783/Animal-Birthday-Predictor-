@@ -9,7 +9,9 @@ import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../contacts/presentation/providers/contact_provider.dart';
 import '../../../foal/presentation/providers/foal_provider.dart';
+import '../../../puppy/presentation/providers/puppy_provider.dart';
 
 class DashboardHomeScreen extends ConsumerWidget {
   final Function(int)? onNavigateTab;
@@ -25,10 +27,12 @@ class DashboardHomeScreen extends ConsumerWidget {
     final userProfile = authState.value;
     final horsesAsync = ref.watch(animalsListProvider('horse'));
     final foalsAsync = ref.watch(foalsListProvider);
+    final puppiesAsync = ref.watch(puppiesListProvider(null));
+    final contactsAsync = ref.watch(contactsListProvider(null));
 
     final userName = userProfile?.fullName.isNotEmpty == true
         ? userProfile!.fullName
-        : 'Equine Breeder';
+        : 'Animal Breeder';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -40,189 +44,267 @@ class DashboardHomeScreen extends ConsumerWidget {
           ),
           child: ResponsiveBody(
             child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Header Welcome Banner
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'WELCOME TO ABP',
-                          style: AppTypography.sectionLabel,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Header Welcome Banner
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'WELCOME TO ABP',
+                            style: AppTypography.sectionLabel,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            userName,
+                            style: AppTypography.displayHeadline.copyWith(fontSize: 22),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primaryGold, width: 1.5),
+                      ),
+                      child: const Icon(
+                        Icons.pets_rounded,
+                        color: AppColors.primaryGold,
+                        size: 22,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24.0),
+
+                // 2. Overview Stats Cards Grid (Horses, Foals, Dogs/Puppies, Contacts)
+                Row(
+                  children: [
+                    Expanded(
+                      child: horsesAsync.when(
+                        data: (horses) => _StatCard(
+                          title: 'Saved Horses',
+                          count: '${horses.length}',
+                          icon: Icons.pets,
+                          accentColor: AppColors.primaryGold,
+                          onTap: () => Navigator.pushNamed(context, '/saved-animals'),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          userName,
-                          style: AppTypography.displayHeadline.copyWith(fontSize: 22),
-                          overflow: TextOverflow.ellipsis,
+                        loading: () => const _StatCard(title: 'Saved Horses', count: '...', icon: Icons.pets, accentColor: AppColors.primaryGold),
+                        error: (err, stack) => const _StatCard(title: 'Saved Horses', count: '0', icon: Icons.pets, accentColor: AppColors.primaryGold),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: foalsAsync.when(
+                        data: (foals) => _StatCard(
+                          title: 'Foal Records',
+                          count: '${foals.length}',
+                          icon: Icons.child_care,
+                          accentColor: AppColors.primaryGold,
+                          onTap: () => onNavigateTab?.call(2),
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primaryGold, width: 1.5),
-                    ),
-                    child: const Icon(
-                      Icons.pets_rounded,
-                      color: AppColors.primaryGold,
-                      size: 22,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24.0),
-
-              // 2. Overview Stats Cards Grid
-              Row(
-                children: [
-                  Expanded(
-                    child: horsesAsync.when(
-                      data: (horses) => _StatCard(
-                        title: 'Saved Horses',
-                        count: '${horses.length}',
-                        icon: Icons.pets,
-                        accentColor: AppColors.primaryGold,
-                        onTap: () => Navigator.pushNamed(context, '/saved-animals'),
-                      ),
-                      loading: () => const _StatCard(title: 'Saved Horses', count: '...', icon: Icons.pets, accentColor: AppColors.primaryGold),
-                      error: (err, stack) => const _StatCard(title: 'Saved Horses', count: '0', icon: Icons.pets, accentColor: AppColors.primaryGold),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: foalsAsync.when(
-                      data: (foals) => _StatCard(
-                        title: 'Foal Records',
-                        count: '${foals.length}',
-                        icon: Icons.child_care,
-                        accentColor: AppColors.primaryGold,
-                        onTap: () => onNavigateTab?.call(2),
-                      ),
-                      loading: () => const _StatCard(title: 'Foal Records', count: '...', icon: Icons.child_care, accentColor: AppColors.primaryGold),
-                      error: (err, stack) => const _StatCard(title: 'Foal Records', count: '0', icon: Icons.child_care, accentColor: AppColors.primaryGold),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28.0),
-
-              // 3. Primary Quick Actions
-              const SectionDividerLabel(label: 'CORE WORKFLOWS'),
-              const SizedBox(height: 14.0),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: GradientCtaButton(
-                      text: '+ Add Animal',
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, '/species-select');
-                        ref.invalidate(animalsListProvider('horse'));
-                        ref.invalidate(animalsListProvider(null));
-                        ref.invalidate(foalsListProvider);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GradientCtaButton(
-                      text: '+ Record Breeding',
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, '/breeding-details');
-                        ref.invalidate(animalsListProvider('horse'));
-                        ref.invalidate(animalsListProvider(null));
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12.0),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, '/foal-details');
-                        ref.invalidate(foalsListProvider);
-                      },
-                      icon: const Icon(Icons.child_care, color: AppColors.primaryGold),
-                      label: Text(
-                        '+ NEW FOAL',
-                        style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.primaryGold),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                        loading: () => const _StatCard(title: 'Foal Records', count: '...', icon: Icons.child_care, accentColor: AppColors.primaryGold),
+                        error: (err, stack) => const _StatCard(title: 'Foal Records', count: '0', icon: Icons.child_care, accentColor: AppColors.primaryGold),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, '/saved-animals');
-                        ref.invalidate(animalsListProvider('horse'));
-                        ref.invalidate(animalsListProvider(null));
-                      },
-                      icon: const Icon(Icons.list_alt, color: AppColors.primaryGold),
-                      label: Text(
-                        'SAVED ANIMALS',
-                        style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.primaryGold),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: puppiesAsync.when(
+                        data: (puppies) => _StatCard(
+                          title: 'Puppy Registry',
+                          count: '${puppies.length}',
+                          icon: Icons.bedroom_baby_outlined,
+                          accentColor: AppColors.primaryGold,
+                          onTap: () => Navigator.pushNamed(context, '/puppies'),
+                        ),
+                        loading: () => const _StatCard(title: 'Puppy Registry', count: '...', icon: Icons.bedroom_baby_outlined, accentColor: AppColors.primaryGold),
+                        error: (err, stack) => const _StatCard(title: 'Puppy Registry', count: '0', icon: Icons.bedroom_baby_outlined, accentColor: AppColors.primaryGold),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28.0),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: contactsAsync.when(
+                        data: (contacts) => _StatCard(
+                          title: 'Contacts Directory',
+                          count: '${contacts.length}',
+                          icon: Icons.contacts_outlined,
+                          accentColor: AppColors.primaryGold,
+                          onTap: () => Navigator.pushNamed(context, '/contacts'),
+                        ),
+                        loading: () => const _StatCard(title: 'Contacts Directory', count: '...', icon: Icons.contacts_outlined, accentColor: AppColors.primaryGold),
+                        error: (err, stack) => const _StatCard(title: 'Contacts Directory', count: '0', icon: Icons.contacts_outlined, accentColor: AppColors.primaryGold),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28.0),
 
-              // 4. Species Modules Overview
-              const SectionDividerLabel(label: 'AVAILABLE SPECIES MODULES'),
-              const SizedBox(height: 14.0),
+                // 3. Primary Quick Actions
+                const SectionDividerLabel(label: 'CORE WORKFLOWS'),
+                const SizedBox(height: 14.0),
 
-              _SpeciesModuleCard(
-                title: 'Horse / Equine Module',
-                subtitle: 'Natural, Chilled, Frozen & ICSI pregnancy tracking with embryo transfer support.',
-                icon: Icons.pets_rounded,
-                isAvailable: true,
-                onTap: () => Navigator.pushNamed(context, '/saved-animals'),
-              ),
-              const SizedBox(height: 10.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GradientCtaButton(
+                        text: '+ Add Animal',
+                        onPressed: () async {
+                          final newAnimal = await Navigator.pushNamed(context, '/species-select');
+                          ref.invalidate(animalsListProvider(null));
+                          ref.invalidate(animalsListProvider('horse'));
+                          ref.invalidate(animalsListProvider('dog'));
+                          if (newAnimal != null && context.mounted) {
+                            Navigator.pushNamed(context, '/saved-animals');
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GradientCtaButton(
+                        text: '+ Record Breeding',
+                        onPressed: () async {
+                          await Navigator.pushNamed(context, '/breeding-details');
+                          ref.invalidate(animalsListProvider(null));
+                          ref.invalidate(animalsListProvider('horse'));
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
 
-              _SpeciesModuleCard(
-                title: 'Dog / Canine Module',
-                subtitle: 'Canine whelping & ovulation schedule predictor.',
-                icon: Icons.bedroom_baby_outlined,
-                isAvailable: false,
-                onTap: () => Navigator.pushNamed(context, '/species-select'),
-              ),
-              const SizedBox(height: 10.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final newFoal = await Navigator.pushNamed(context, '/foal-details');
+                          ref.invalidate(foalsListProvider);
+                          if (newFoal != null && onNavigateTab != null) {
+                            onNavigateTab!(2); // Navigate directly to Foals overview tab
+                          }
+                        },
+                        icon: const Icon(Icons.child_care, color: AppColors.primaryGold),
+                        label: Text(
+                          '+ NEW FOAL',
+                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.primaryGold),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final newPuppy = await Navigator.pushNamed(context, '/puppy-details');
+                          ref.invalidate(puppiesListProvider(null));
+                          if (newPuppy != null && context.mounted) {
+                            Navigator.pushNamed(context, '/puppies'); // Navigate directly to Puppies overview
+                          }
+                        },
+                        icon: const Icon(Icons.bedroom_baby_outlined, color: AppColors.primaryGold),
+                        label: Text(
+                          '+ NEW PUPPY',
+                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.primaryGold),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
 
-              _SpeciesModuleCard(
-                title: 'Cat / Feline Module',
-                subtitle: 'Feline kittening & queen gestation tracker.',
-                icon: Icons.catching_pokemon,
-                isAvailable: false,
-                onTap: () => Navigator.pushNamed(context, '/species-select'),
-              ),
-              const SizedBox(height: 24.0),
-            ],
-          ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.pushNamed(context, '/saved-animals'),
+                        icon: const Icon(Icons.list_alt, color: AppColors.primaryGold),
+                        label: Text(
+                          'SAVED ANIMALS',
+                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.surface),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.pushNamed(context, '/contacts'),
+                        icon: const Icon(Icons.contacts_outlined, color: AppColors.primaryGold),
+                        label: Text(
+                          'CONTACTS',
+                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.surface),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28.0),
+
+                // 4. Species Modules Overview
+                const SectionDividerLabel(label: 'AVAILABLE SPECIES MODULES'),
+                const SizedBox(height: 14.0),
+
+                _SpeciesModuleCard(
+                  title: 'Horse / Equine Module',
+                  subtitle: 'Natural, Chilled, Frozen & ICSI pregnancy tracking with embryo transfer support.',
+                  icon: Icons.pets_rounded,
+                  isAvailable: true,
+                  onTap: () => Navigator.pushNamed(context, '/saved-animals'),
+                ),
+                const SizedBox(height: 10.0),
+
+                _SpeciesModuleCard(
+                  title: 'Dog / Canine Module',
+                  subtitle: 'Puppy litters, collar tags, weight logs & dual-date health protocols.',
+                  icon: Icons.bedroom_baby_outlined,
+                  isAvailable: true,
+                  onTap: () => Navigator.pushNamed(context, '/puppies'),
+                ),
+                const SizedBox(height: 10.0),
+
+                _SpeciesModuleCard(
+                  title: 'Cat / Feline Module',
+                  subtitle: 'Feline kittening & queen gestation tracker.',
+                  icon: Icons.catching_pokemon,
+                  isAvailable: false,
+                  onTap: () => Navigator.pushNamed(context, '/species-select'),
+                ),
+                const SizedBox(height: 24.0),
+              ],
+            ),
           ),
         ),
       ),

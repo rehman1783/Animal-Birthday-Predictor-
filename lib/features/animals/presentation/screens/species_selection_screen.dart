@@ -30,7 +30,7 @@ class _SpeciesSelectionScreenState extends ConsumerState<SpeciesSelectionScreen>
     (
       key: 'dog',
       title: 'Dog / Canine',
-      subtitle: 'Canine whelping & breeding predictor (Coming soon)',
+      subtitle: 'Canine dam/sire registration, puppy litters & dual-date health protocols',
       icon: Icons.pets,
     ),
     (
@@ -50,11 +50,11 @@ class _SpeciesSelectionScreenState extends ConsumerState<SpeciesSelectionScreen>
   Future<void> _handleContinue() async {
     ref.read(selectedSpeciesFilterProvider.notifier).state = _selectedSpecies;
 
-    if (_selectedSpecies == 'horse') {
+    if (_selectedSpecies == 'horse' || _selectedSpecies == 'dog') {
       final created = await Navigator.pushNamed(
         context,
         '/animal-details',
-        arguments: {'species': 'horse'},
+        arguments: {'species': _selectedSpecies},
       );
 
       if (created != null && mounted) {
