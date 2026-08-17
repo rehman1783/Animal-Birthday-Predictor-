@@ -114,4 +114,33 @@ class Animal {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  static String normalizeSpecies(String? raw) {
+    if (raw == null) return 'other';
+    final s = raw.toLowerCase().trim();
+    if (s == 'horse' || s == 'horses' || s == 'equine' || s == 'mare' || s == 'stallion' || s == 'foal') {
+      return 'horse';
+    }
+    if (s == 'dog' || s == 'dogs' || s == 'canine' || s == 'puppy' || s == 'bitch' || s == 'hound' || s == 'dam' || s == 'sire') {
+      return 'dog';
+    }
+    if (s == 'cat' || s == 'cats' || s == 'feline' || s == 'kitten') {
+      return 'cat';
+    }
+    if (s.isEmpty) return 'other';
+    return s;
+  }
+
+  static bool matchesSpeciesFilter(String? animalSpecies, String? filterTab) {
+    if (filterTab == null || filterTab.isEmpty) return true;
+    final normalized = normalizeSpecies(animalSpecies);
+    final target = filterTab.toLowerCase().trim();
+    if (target == 'horse') return normalized == 'horse';
+    if (target == 'dog') return normalized == 'dog';
+    if (target == 'cat') return normalized == 'cat';
+    if (target == 'other') {
+      return normalized != 'horse' && normalized != 'dog' && normalized != 'cat';
+    }
+    return normalized == target;
+  }
 }

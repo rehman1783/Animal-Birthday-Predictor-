@@ -84,5 +84,29 @@ void main() {
       // Verify Save All CTA
       expect(find.text('SAVE ALL SCAN & VET UPDATES'), findsOneWidget);
     });
+
+    test('Animal.matchesSpeciesFilter correctly matches horses, dogs, cats, and other', () {
+      expect(Animal.matchesSpeciesFilter('horse', 'horse'), isTrue);
+      expect(Animal.matchesSpeciesFilter('Horse', 'horse'), isTrue);
+      expect(Animal.matchesSpeciesFilter('Equine', 'horse'), isTrue);
+      expect(Animal.matchesSpeciesFilter('mare', 'horse'), isTrue);
+      expect(Animal.matchesSpeciesFilter('dog', 'horse'), isFalse);
+
+      expect(Animal.matchesSpeciesFilter('dog', 'dog'), isTrue);
+      expect(Animal.matchesSpeciesFilter('Dog', 'dog'), isTrue);
+      expect(Animal.matchesSpeciesFilter('Canine', 'dog'), isTrue);
+      expect(Animal.matchesSpeciesFilter('puppy', 'dog'), isTrue);
+      expect(Animal.matchesSpeciesFilter('horse', 'dog'), isFalse);
+
+      expect(Animal.matchesSpeciesFilter('cat', 'cat'), isTrue);
+      expect(Animal.matchesSpeciesFilter('Feline', 'cat'), isTrue);
+      expect(Animal.matchesSpeciesFilter('dog', 'cat'), isFalse);
+
+      expect(Animal.matchesSpeciesFilter('sheep', 'other'), isTrue);
+      expect(Animal.matchesSpeciesFilter('goat', 'other'), isTrue);
+      expect(Animal.matchesSpeciesFilter('other', 'other'), isTrue);
+      expect(Animal.matchesSpeciesFilter('horse', 'other'), isFalse);
+      expect(Animal.matchesSpeciesFilter('dog', 'other'), isFalse);
+    });
   });
 }

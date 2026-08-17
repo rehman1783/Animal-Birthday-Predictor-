@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
+import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
 import '../widgets/animal_list_tile.dart';
 
@@ -95,7 +96,7 @@ class _SpeciesAnimalList extends ConsumerWidget {
     return animalsAsync.when(
       data: (allAnimals) {
         final animals = allAnimals
-            .where((a) => a.species.toLowerCase().trim() == species.toLowerCase().trim())
+            .where((a) => Animal.matchesSpeciesFilter(a.species, species))
             .toList();
 
         if (animals.isEmpty) {

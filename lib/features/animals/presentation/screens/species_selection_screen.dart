@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -50,57 +49,14 @@ class _SpeciesSelectionScreenState extends ConsumerState<SpeciesSelectionScreen>
   Future<void> _handleContinue() async {
     ref.read(selectedSpeciesFilterProvider.notifier).state = _selectedSpecies;
 
-    if (_selectedSpecies == 'horse' || _selectedSpecies == 'dog') {
-      final created = await Navigator.pushNamed(
-        context,
-        '/animal-details',
-        arguments: {'species': _selectedSpecies},
-      );
+    final created = await Navigator.pushNamed(
+      context,
+      '/animal-details',
+      arguments: {'species': _selectedSpecies},
+    );
 
-      if (created != null && mounted) {
-        Navigator.pop(context, created);
-      }
-    } else {
-      // Friendly coming soon dialog without crashing or dead-ending
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
-          title: Row(
-            children: [
-              const Icon(Icons.info_outline, color: AppColors.primaryGold),
-              const SizedBox(width: 10),
-              Text(
-                '${_selectedSpecies.toUpperCase()} Module',
-                style: AppTypography.displayHeadline.copyWith(fontSize: 18),
-              ),
-            ],
-          ),
-          content: Text(
-            'The ${_selectedSpecies.toUpperCase()} specific field set and breeding calculator is structurally reserved and scheduled for the next milestone release. You can register your horses right now!',
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('GOT IT', style: TextStyle(color: AppColors.primaryGold)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                setState(() => _selectedSpecies = 'horse');
-                _handleContinue();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryGold,
-                foregroundColor: AppColors.background,
-              ),
-              child: const Text('CONTINUE WITH HORSE'),
-            ),
-          ],
-        ),
-      );
+    if (created != null && mounted) {
+      Navigator.pop(context, created);
     }
   }
 

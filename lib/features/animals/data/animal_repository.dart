@@ -20,28 +20,23 @@ class AnimalRepository {
 
   Future<List<Animal>> getAnimals({String? species}) async {
     final c = client;
-    final normalizedSpecies = species?.toLowerCase().trim();
     if (c == null) {
-      if (normalizedSpecies != null && normalizedSpecies.isNotEmpty) {
-        return _inMemoryAnimals.where((a) => a.species.toLowerCase().trim() == normalizedSpecies).toList();
+      if (species != null && species.isNotEmpty) {
+        return _inMemoryAnimals.where((a) => Animal.matchesSpeciesFilter(a.species, species)).toList();
       }
       return List.unmodifiable(_inMemoryAnimals);
     }
     try {
-      var query = c.from('animals').select();
-      if (normalizedSpecies != null && normalizedSpecies.isNotEmpty) {
-        query = query.eq('species', normalizedSpecies);
-      }
-      final data = await query.order('created_at', ascending: false);
+      final data = await c.from('animals').select().order('created_at', ascending: false);
       final list = (data as List).map((json) => Animal.fromJson(json)).toList();
-      if (normalizedSpecies != null && normalizedSpecies.isNotEmpty) {
-        return list.where((a) => a.species.toLowerCase().trim() == normalizedSpecies).toList();
+      if (species != null && species.isNotEmpty) {
+        return list.where((a) => Animal.matchesSpeciesFilter(a.species, species)).toList();
       }
       return list;
     } catch (e) {
       debugPrint('Supabase getAnimals error: $e');
-      if (normalizedSpecies != null && normalizedSpecies.isNotEmpty) {
-        return _inMemoryAnimals.where((a) => a.species.toLowerCase().trim() == normalizedSpecies).toList();
+      if (species != null && species.isNotEmpty) {
+        return _inMemoryAnimals.where((a) => Animal.matchesSpeciesFilter(a.species, species)).toList();
       }
       return List.unmodifiable(_inMemoryAnimals);
     }
@@ -74,7 +69,7 @@ class AnimalRepository {
     final toSave = animal.copyWith(
       id: validId,
       accountId: accountId,
-      species: animal.species.toLowerCase().trim(),
+      species: Animal.normalizeSpecies(animal.species),
     );
 
     if (c == null) {
