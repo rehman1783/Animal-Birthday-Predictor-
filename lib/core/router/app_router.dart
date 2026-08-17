@@ -107,15 +107,18 @@ abstract class AppRouter {
         final args = settings.arguments;
         Animal? animal;
         String species = 'horse';
+        String? initialSex;
         if (args is Animal) {
           animal = args;
           species = args.species;
+          initialSex = args.sex;
         } else if (args is Map) {
           animal = args['animal'] as Animal?;
           species = (args['species'] as String?) ?? animal?.species ?? 'horse';
+          initialSex = (args['initialSex'] as String?) ?? (args['sex'] as String?) ?? animal?.sex;
         }
         return MaterialPageRoute(
-          builder: (_) => AnimalDetailsScreen(animal: animal, species: species),
+          builder: (_) => AnimalDetailsScreen(animal: animal, species: species, initialSex: initialSex),
           settings: settings,
         );
 

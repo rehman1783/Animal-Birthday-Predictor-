@@ -228,6 +228,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                       context,
                       title: 'Select Donor Mare',
                       species: 'horse',
+                      requiredSex: 'mare',
                       currentSelectedId: _selectedMare?.id,
                     );
                     if (chosen != null) setState(() => _selectedMare = chosen);
@@ -296,6 +297,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                           context,
                           title: 'Select Stallion (Father)',
                           species: 'horse',
+                          requiredSex: 'stallion',
                         );
                         if (chosen != null) {
                           setState(() => _stallionController.text = chosen.name);
@@ -425,6 +427,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                         context,
                         title: 'Select Recipient Mare',
                         species: 'horse',
+                        requiredSex: 'mare',
                         currentSelectedId: _selectedRecipient?.id,
                       );
                       if (chosen != null) setState(() => _selectedRecipient = chosen);

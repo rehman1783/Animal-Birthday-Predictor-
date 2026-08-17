@@ -75,16 +75,40 @@ class AnimalListTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: animal.isStallion
+                              ? Colors.blueAccent.withValues(alpha: 0.15)
+                              : AppColors.primaryGold.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: animal.isStallion
+                                ? Colors.blueAccent.withValues(alpha: 0.6)
+                                : AppColors.primaryGold.withValues(alpha: 0.6),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          animal.displaySex.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            color: animal.isStallion ? Colors.lightBlueAccent : AppColors.primaryGold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
                       if (animal.breed?.isNotEmpty == true) ...[
                         Flexible(
                           child: Text(
                             animal.breed!,
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.primaryGold),
+                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                       ],
                       if (animal.microchipNo?.isNotEmpty == true)
                         Flexible(

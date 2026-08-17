@@ -3,6 +3,7 @@ class Animal {
   final String accountId;
   final String species; // 'horse', 'dog', 'cat', 'other'
   final String name;
+  final String? sex; // 'mare', 'stallion', 'gelding', 'female', 'male'
   final String? breed;
   final String? colour;
   final DateTime? dateOfBirth;
@@ -20,6 +21,7 @@ class Animal {
     required this.accountId,
     required this.species,
     required this.name,
+    this.sex,
     this.breed,
     this.colour,
     this.dateOfBirth,
@@ -33,12 +35,42 @@ class Animal {
     required this.updatedAt,
   });
 
+  bool get isMare {
+    if (species != 'horse') return false;
+    final s = sex?.toLowerCase().trim();
+    if (s == null || s.isEmpty) return true; // Default horse is Mare
+    return s == 'mare' || s == 'female' || s == 'dam';
+  }
+
+  bool get isStallion {
+    final s = sex?.toLowerCase().trim();
+    if (s == null) return false;
+    return s == 'stallion' || s == 'male' || s == 'stud' || s == 'sire';
+  }
+
+  bool get isGelding {
+    final s = sex?.toLowerCase().trim();
+    return s == 'gelding';
+  }
+
+  String get displaySex {
+    if (species == 'horse') {
+      if (isStallion) return 'Stallion';
+      if (isGelding) return 'Gelding';
+      return 'Mare';
+    } else {
+      final s = sex?.toLowerCase().trim();
+      return (s == 'male' || s == 'dog' || s == 'tom') ? 'Male' : 'Female';
+    }
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'account_id': accountId,
       'species': species,
       'name': name,
+      if (sex != null) 'sex': sex,
       'breed': breed,
       'colour': colour,
       'date_of_birth': dateOfBirth?.toIso8601String().split('T').first,
@@ -64,6 +96,7 @@ class Animal {
       accountId: json['account_id']?.toString() ?? '',
       species: normalized,
       name: json['name']?.toString() ?? '',
+      sex: json['sex']?.toString() ?? json['gender']?.toString() ?? json['horse_type']?.toString(),
       breed: json['breed']?.toString(),
       colour: json['colour']?.toString(),
       dateOfBirth: json['date_of_birth'] != null
@@ -89,6 +122,7 @@ class Animal {
     String? accountId,
     String? species,
     String? name,
+    String? sex,
     String? breed,
     String? colour,
     DateTime? dateOfBirth,
@@ -106,6 +140,7 @@ class Animal {
       accountId: accountId ?? this.accountId,
       species: species ?? this.species,
       name: name ?? this.name,
+      sex: sex ?? this.sex,
       breed: breed ?? this.breed,
       colour: colour ?? this.colour,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,

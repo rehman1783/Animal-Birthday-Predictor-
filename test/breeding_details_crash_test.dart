@@ -70,4 +70,35 @@ void main() {
 
     expect(find.text('BREEDING DETAILS'), findsOneWidget);
   });
+
+  testWidgets('Selecting stallion on BreedingDetailsScreen shows ADD NEW STALLION and pre-selects STALLION in AnimalDetailsScreen', (tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          onGenerateRoute: AppRouter.onGenerateRoute,
+          home: BreedingDetailsScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap Pick Saved on Stallion section
+    final pickStallionBtn = find.text('Pick Saved');
+    expect(pickStallionBtn, findsOneWidget);
+    await tester.ensureVisible(pickStallionBtn);
+    await tester.tap(pickStallionBtn);
+    await tester.pumpAndSettle();
+
+    // Modal opens with title and ADD NEW STALLION button
+    expect(find.text('Select Stallion (Father)'), findsOneWidget);
+    expect(find.text('ADD NEW STALLION'), findsOneWidget);
+
+    // Tap ADD NEW STALLION
+    await tester.tap(find.text('ADD NEW STALLION'));
+    await tester.pumpAndSettle();
+
+    // AnimalDetailsScreen opens with STALLION selected
+    expect(find.text('ANIMAL DETAILS'), findsOneWidget);
+    expect(find.text('STALLION'), findsOneWidget);
+  });
 }

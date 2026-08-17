@@ -65,7 +65,12 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
       body: SafeArea(
         child: TabBarView(
           controller: _tabController,
-          children: _speciesTabs.map((species) => _SpeciesAnimalList(species: species)).toList(),
+          children: _speciesTabs
+              .map((species) => _SpeciesAnimalList(
+                    key: ValueKey('saved_animals_list_$species'),
+                    species: species,
+                  ))
+              .toList(),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -84,22 +89,40 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
   }
 }
 
-class _SpeciesAnimalList extends ConsumerWidget {
+class _SpeciesAnimalList extends ConsumerStatefulWidget {
   final String species;
 
-  const _SpeciesAnimalList({required this.species});
+  const _SpeciesAnimalList({super.key, required this.species});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final animalsAsync = ref.watch(animalsListProvider(species));
+  ConsumerState<_SpeciesAnimalList> createState() => _SpeciesAnimalListState();
+}
+
+class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
+  String _selectedSubFilter = 'all'; // 'all', 'mares', 'stallions'
+
+  @override
+  Widget build(BuildContext context) {
+    final animalsAsync = ref.watch(animalsListProvider(widget.species));
 
     return animalsAsync.when(
       data: (allAnimals) {
-        final animals = allAnimals
-            .where((a) => Animal.matchesSpeciesFilter(a.species, species))
+        final speciesAnimals = allAnimals
+            .where((a) => Animal.matchesSpeciesFilter(a.species, widget.species))
             .toList();
 
-        if (animals.isEmpty) {
+        final isHorseTab = widget.species.toLowerCase() == 'horse';
+        
+        List<Animal> displayedAnimals = speciesAnimals;
+        if (isHorseTab) {
+          if (_selectedSubFilter == 'mares') {
+            displayedAnimals = speciesAnimals.where((a) => a.isMare).toList();
+          } else if (_selectedSubFilter == 'stallions') {
+            displayedAnimals = speciesAnimals.where((a) => a.isStallion).toList();
+          }
+        }
+
+        if (speciesAnimals.isEmpty) {
           return Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(32.0),
@@ -119,13 +142,13 @@ class _SpeciesAnimalList extends ConsumerWidget {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'No ${species.toUpperCase()}s Registered',
+                      'No ${widget.species.toUpperCase()}s Registered',
                       style: AppTypography.displayHeadline.copyWith(fontSize: 20),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Register your ${species.toLowerCase()}s in the registry and view their complete profile, breeding history, and health logs.',
+                      'Register your ${widget.species.toLowerCase()}s in the registry and view their complete profile, breeding history, and health logs.',
                       style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                       textAlign: TextAlign.center,
                     ),
@@ -133,15 +156,15 @@ class _SpeciesAnimalList extends ConsumerWidget {
                     SizedBox(
                       width: 220,
                       child: GradientCtaButton(
-                        text: '+ Add ${species.toUpperCase()}',
+                        text: '+ Add ${widget.species.toUpperCase()}',
                         onPressed: () async {
                           final result = await Navigator.pushNamed(
                             context,
                             '/animal-details',
-                            arguments: {'species': species},
+                            arguments: {'species': widget.species},
                           );
                           if (result != null) {
-                            ref.invalidate(animalsListProvider(species));
+                            ref.invalidate(animalsListProvider(widget.species));
                             ref.invalidate(animalsListProvider(null));
                           }
                         },
@@ -154,34 +177,134 @@ class _SpeciesAnimalList extends ConsumerWidget {
           );
         }
 
+        final mareCount = speciesAnimals.where((a) => a.isMare).length;
+        final stallionCount = speciesAnimals.where((a) => a.isStallion).length;
+
         return RefreshIndicator(
           color: AppColors.primaryGold,
           backgroundColor: AppColors.surface,
           onRefresh: () async {
-            ref.invalidate(animalsListProvider(species));
+            ref.invalidate(animalsListProvider(widget.species));
             ref.invalidate(animalsListProvider(null));
           },
           child: ResponsiveBody(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-              itemCount: animals.length,
-              itemBuilder: (context, index) {
-                final animal = animals[index];
-                return AnimalListTile(
-                  animal: animal,
-                  onTap: () async {
-                    final updated = await Navigator.pushNamed(
-                      context,
-                      '/animal-profile',
-                      arguments: animal,
-                    );
-                    if (updated != null) {
-                      ref.invalidate(animalsListProvider(species));
-                      ref.invalidate(animalsListProvider(null));
-                    }
-                  },
-                );
-              },
+            child: Column(
+              children: [
+                // Sub-filter bar for Horses (ALL, MARES, STALLIONS)
+                if (isHorseTab) ...[
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        ChoiceChip(
+                          label: Text('ALL (${speciesAnimals.length})'),
+                          selected: _selectedSubFilter == 'all',
+                          selectedColor: AppColors.primaryGold,
+                          backgroundColor: AppColors.surface,
+                          labelStyle: TextStyle(
+                            color: _selectedSubFilter == 'all' ? AppColors.background : AppColors.textPrimary,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          onSelected: (_) => setState(() => _selectedSubFilter = 'all'),
+                        ),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          avatar: Icon(
+                            Icons.female,
+                            size: 14,
+                            color: _selectedSubFilter == 'mares' ? AppColors.background : AppColors.primaryGold,
+                          ),
+                          label: Text('MARES ($mareCount)'),
+                          selected: _selectedSubFilter == 'mares',
+                          selectedColor: AppColors.primaryGold,
+                          backgroundColor: AppColors.surface,
+                          labelStyle: TextStyle(
+                            color: _selectedSubFilter == 'mares' ? AppColors.background : AppColors.textPrimary,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          onSelected: (_) => setState(() => _selectedSubFilter = 'mares'),
+                        ),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          avatar: Icon(
+                            Icons.male,
+                            size: 14,
+                            color: _selectedSubFilter == 'stallions' ? AppColors.background : AppColors.primaryGold,
+                          ),
+                          label: Text('STALLIONS ($stallionCount)'),
+                          selected: _selectedSubFilter == 'stallions',
+                          selectedColor: AppColors.primaryGold,
+                          backgroundColor: AppColors.surface,
+                          labelStyle: TextStyle(
+                            color: _selectedSubFilter == 'stallions' ? AppColors.background : AppColors.textPrimary,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          onSelected: (_) => setState(() => _selectedSubFilter = 'stallions'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                if (displayedAnimals.isEmpty) ...[
+                  Expanded(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _selectedSubFilter == 'mares' ? Icons.female : Icons.male,
+                              size: 48,
+                              color: AppColors.primaryGold.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'No ${_selectedSubFilter.toUpperCase()} Found',
+                              style: AppTypography.displayHeadline.copyWith(fontSize: 17),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Register a new ${_selectedSubFilter == 'mares' ? "Mare" : "Stallion"} to view it here.',
+                              style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                      itemCount: displayedAnimals.length,
+                      itemBuilder: (context, index) {
+                        final animal = displayedAnimals[index];
+                        return AnimalListTile(
+                          animal: animal,
+                          onTap: () async {
+                            final updated = await Navigator.pushNamed(
+                              context,
+                              '/animal-profile',
+                              arguments: animal,
+                            );
+                            if (updated != null) {
+                              ref.invalidate(animalsListProvider(widget.species));
+                              ref.invalidate(animalsListProvider(null));
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         );

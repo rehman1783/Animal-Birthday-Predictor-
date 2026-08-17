@@ -251,6 +251,11 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                             icon: _getSpeciesIcon(_currentAnimal.species),
                             isGold: true,
                           ),
+                          _buildBadge(
+                            label: _currentAnimal.displaySex.toUpperCase(),
+                            icon: _currentAnimal.isStallion ? Icons.male : Icons.female,
+                            isGold: false,
+                          ),
                           if (_currentAnimal.breed?.isNotEmpty == true)
                             _buildBadge(
                               label: _currentAnimal.breed!,
@@ -281,6 +286,12 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                   ),
                   child: Column(
                     children: [
+                      _buildInfoRow(
+                        icon: _currentAnimal.isStallion ? Icons.male : Icons.female,
+                        label: _currentAnimal.species == 'horse' ? 'Horse Classification' : 'Sex / Gender',
+                        value: _currentAnimal.displaySex,
+                      ),
+                      const Divider(color: AppColors.inputField, height: 20),
                       _buildInfoRow(
                         icon: Icons.cake_outlined,
                         label: 'Date of Birth',

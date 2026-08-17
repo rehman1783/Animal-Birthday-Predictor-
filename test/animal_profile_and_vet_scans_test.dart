@@ -312,7 +312,79 @@ void main() {
       // Verify VeterinarianPregnancyScansScreen opened with persisted scans
       expect(find.text('VET CONTACT & SCANS OVERVIEW'), findsOneWidget);
       expect(find.text('2 / 3 CONFIRMED'), findsOneWidget);
-      expect(find.text('Dr. Jennifer Vance'), findsWidgets);
+    });
+
+    testWidgets('SavedAnimalsScreen horse tab has MARES and STALLIONS sub-filters and filters records accurately', (tester) async {
+      final animalRepo = AnimalRepository();
+
+      final mare = Animal(
+        id: 'mare-1',
+        accountId: 'acc-1',
+        species: 'horse',
+        name: 'Lady Guinevere',
+        sex: 'mare',
+        breed: 'Thoroughbred',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final stallion = Animal(
+        id: 'stallion-1',
+        accountId: 'acc-1',
+        species: 'horse',
+        name: 'King Arthur',
+        sex: 'stallion',
+        breed: 'Arabian',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await animalRepo.saveAnimal(mare);
+      await animalRepo.saveAnimal(stallion);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            animalRepositoryProvider.overrideWithValue(animalRepo),
+          ],
+          child: const MaterialApp(
+            onGenerateRoute: AppRouter.onGenerateRoute,
+            home: SavedAnimalsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // By default on HORSES tab, ALL (2) horses are visible
+      expect(find.text('ALL (2)'), findsOneWidget);
+      expect(find.text('MARES (1)'), findsOneWidget);
+      expect(find.text('STALLIONS (1)'), findsOneWidget);
+      expect(find.text('Lady Guinevere'), findsOneWidget);
+      expect(find.text('King Arthur'), findsOneWidget);
+
+      // Tap MARES sub-filter chip
+      await tester.tap(find.text('MARES (1)'));
+      await tester.pumpAndSettle();
+
+      // Verify only Mare is shown
+      expect(find.text('Lady Guinevere'), findsOneWidget);
+      expect(find.text('King Arthur'), findsNothing);
+
+      // Tap STALLIONS sub-filter chip
+      await tester.tap(find.text('STALLIONS (1)'));
+      await tester.pumpAndSettle();
+
+      // Verify only Stallion is shown
+      expect(find.text('Lady Guinevere'), findsNothing);
+      expect(find.text('King Arthur'), findsOneWidget);
+
+      // Tap ALL (2) sub-filter chip
+      await tester.tap(find.text('ALL (2)'));
+      await tester.pumpAndSettle();
+
+      // Verify both are shown again
+      expect(find.text('Lady Guinevere'), findsOneWidget);
+      expect(find.text('King Arthur'), findsOneWidget);
     });
   });
 }

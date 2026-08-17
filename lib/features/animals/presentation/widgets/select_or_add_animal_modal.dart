@@ -13,6 +13,7 @@ class SelectOrAddAnimalModal {
     BuildContext context, {
     required String title,
     String species = 'horse',
+    String? requiredSex,
     String? currentSelectedId,
   }) {
     return showModalBottomSheet<Animal>(
@@ -22,6 +23,7 @@ class SelectOrAddAnimalModal {
       builder: (ctx) => _SelectOrAddAnimalSheet(
         title: title,
         species: species,
+        requiredSex: requiredSex,
         currentSelectedId: currentSelectedId,
       ),
     );
@@ -31,11 +33,13 @@ class SelectOrAddAnimalModal {
 class _SelectOrAddAnimalSheet extends ConsumerStatefulWidget {
   final String title;
   final String species;
+  final String? requiredSex;
   final String? currentSelectedId;
 
   const _SelectOrAddAnimalSheet({
     required this.title,
     required this.species,
+    this.requiredSex,
     this.currentSelectedId,
   });
 
@@ -122,7 +126,11 @@ class _SelectOrAddAnimalSheetState extends ConsumerState<_SelectOrAddAnimalSheet
                 final createdAnimal = await Navigator.pushNamed(
                   context,
                   '/animal-details',
-                  arguments: {'species': widget.species},
+                  arguments: {
+                    'species': widget.species,
+                    if (widget.requiredSex != null) 'sex': widget.requiredSex,
+                    if (widget.requiredSex != null) 'initialSex': widget.requiredSex,
+                  },
                 ) as Animal?;
 
                 if (createdAnimal != null && context.mounted) {
@@ -131,7 +139,15 @@ class _SelectOrAddAnimalSheetState extends ConsumerState<_SelectOrAddAnimalSheet
               },
               icon: const Icon(Icons.add_circle_outline, color: AppColors.primaryGold),
               label: Text(
-                'ADD NEW ${widget.species.toUpperCase()}',
+                () {
+                  if (widget.requiredSex != null) {
+                    final req = widget.requiredSex!.toLowerCase();
+                    if (req == 'stallion') return 'ADD NEW STALLION';
+                    if (req == 'mare') return 'ADD NEW MARE';
+                    return 'ADD NEW ${widget.requiredSex!.toUpperCase()}';
+                  }
+                  return 'ADD NEW ${widget.species.toUpperCase()}';
+                }(),
                 style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
               ),
               style: OutlinedButton.styleFrom(
@@ -152,6 +168,13 @@ class _SelectOrAddAnimalSheetState extends ConsumerState<_SelectOrAddAnimalSheet
             child: animalsAsync.when(
               data: (animals) {
                 final filtered = animals.where((a) {
+                  if (widget.requiredSex != null) {
+                    final req = widget.requiredSex!.toLowerCase();
+                    if (req == 'mare' && !a.isMare) return false;
+                    if (req == 'stallion' && !a.isStallion) return false;
+                    if (req == 'female' && a.isStallion) return false;
+                    if (req == 'male' && !a.isStallion) return false;
+                  }
                   if (_searchQuery.isEmpty) return true;
                   final nameMatch = a.name.toLowerCase().contains(_searchQuery);
                   final breedMatch = a.breed?.toLowerCase().contains(_searchQuery) ?? false;

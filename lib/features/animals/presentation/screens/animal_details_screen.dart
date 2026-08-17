@@ -18,12 +18,14 @@ class AnimalDetailsScreen extends ConsumerStatefulWidget {
   final Animal? animal;
   final String? animalId;
   final String species;
+  final String? initialSex;
 
   const AnimalDetailsScreen({
     super.key,
     this.animal,
     this.animalId,
     this.species = 'horse',
+    this.initialSex,
   });
 
   @override
@@ -45,12 +47,14 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
   bool _isSaving = false;
   Animal? _loadedAnimal;
   late String _currentSpecies;
+  late String _selectedSex;
 
   @override
   void initState() {
     super.initState();
     _loadedAnimal = widget.animal;
     _currentSpecies = Animal.normalizeSpecies(_loadedAnimal?.species ?? widget.species);
+    _selectedSex = _loadedAnimal?.sex ?? widget.initialSex ?? (_currentSpecies == 'horse' ? 'mare' : 'female');
     _nameController = TextEditingController(text: _loadedAnimal?.name ?? '');
     _breedController = TextEditingController(text: _loadedAnimal?.breed ?? '');
     _colourController = TextEditingController(text: _loadedAnimal?.colour ?? '');
@@ -74,6 +78,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
       setState(() {
         _loadedAnimal = a;
         _currentSpecies = Animal.normalizeSpecies(a.species);
+        _selectedSex = a.sex ?? (_currentSpecies == 'horse' ? 'mare' : 'female');
         _nameController.text = a.name;
         _breedController.text = a.breed ?? '';
         _colourController.text = a.colour ?? '';
@@ -153,6 +158,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
         accountId: currentAnimal?.accountId ?? '',
         species: _currentSpecies,
         name: _nameController.text.trim(),
+        sex: _selectedSex,
         breed: _breedController.text.trim(),
         colour: _colourController.text.trim(),
         dateOfBirth: _dateOfBirth,
@@ -317,7 +323,20 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 3),
                                 child: InkWell(
-                                  onTap: () => setState(() => _currentSpecies = sp.$1),
+                                  onTap: () {
+                                    setState(() {
+                                      _currentSpecies = sp.$1;
+                                      if (_currentSpecies == 'horse') {
+                                        if (_selectedSex != 'mare' && _selectedSex != 'stallion' && _selectedSex != 'gelding') {
+                                          _selectedSex = 'mare';
+                                        }
+                                      } else {
+                                        if (_selectedSex != 'female' && _selectedSex != 'male') {
+                                          _selectedSex = (_selectedSex == 'stallion') ? 'male' : 'female';
+                                        }
+                                      }
+                                    });
+                                  },
                                   borderRadius: BorderRadius.circular(8),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -359,6 +378,137 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                     ],
                   ),
                   const SizedBox(height: 16.0),
+
+                  // Horse Classification / Gender Selector
+                  if (_currentSpecies == 'horse') ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Horse Classification / Sex *', style: AppTypography.inputLabel),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            for (final hOpt in const [
+                              ('mare', 'MARE', 'Female / Dam', Icons.female),
+                              ('stallion', 'STALLION', 'Male / Stud', Icons.male),
+                              ('gelding', 'GELDING', 'Castrated', Icons.pets_outlined),
+                            ])
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                                  child: InkWell(
+                                    onTap: () => setState(() => _selectedSex = hOpt.$1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                                      decoration: BoxDecoration(
+                                        color: _selectedSex == hOpt.$1
+                                            ? AppColors.primaryGold.withValues(alpha: 0.18)
+                                            : AppColors.surface,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.surface,
+                                          width: _selectedSex == hOpt.$1 ? 1.8 : 1.0,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            hOpt.$4,
+                                            size: 20,
+                                            color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            hOpt.$2,
+                                            style: TextStyle(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textPrimary,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            hOpt.$3,
+                                            style: TextStyle(
+                                              fontSize: 10.5,
+                                              color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textMuted,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16.0),
+                  ] else ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Sex / Gender *', style: AppTypography.inputLabel),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            for (final gOpt in const [
+                              ('female', 'FEMALE', Icons.female),
+                              ('male', 'MALE', Icons.male),
+                            ])
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: InkWell(
+                                    onTap: () => setState(() => _selectedSex = gOpt.$1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                                      decoration: BoxDecoration(
+                                        color: _selectedSex == gOpt.$1
+                                            ? AppColors.primaryGold.withValues(alpha: 0.18)
+                                            : AppColors.surface,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.surface,
+                                          width: _selectedSex == gOpt.$1 ? 1.8 : 1.0,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            gOpt.$3,
+                                            size: 20,
+                                            color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            gOpt.$2,
+                                            style: TextStyle(
+                                              fontSize: 14.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.textPrimary,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16.0),
+                  ],
 
                   CustomTextField(
                     label: 'Animal Name *',
