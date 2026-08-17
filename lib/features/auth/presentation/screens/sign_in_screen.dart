@@ -158,27 +158,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Password',
-                              style: AppTypography.inputLabel,
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(context, '/reset-password');
-                              },
-                              child: Text(
-                                'Forgot Password?',
-                                style: AppTypography.inputLabel.copyWith(
-                                  color: AppColors.primaryGold,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                       
                         const SizedBox(height: 8.0),
                         CustomTextField(
                           label: '',
@@ -206,7 +186,27 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     ),
 
                     const SizedBox(height: 12.0),
-
+ Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Password',
+                              style: AppTypography.inputLabel,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(context, '/reset-password');
+                              },
+                              child: Text(
+                                'Forgot Password?',
+                                style: AppTypography.inputLabel.copyWith(
+                                  color: AppColors.primaryGold,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                     // Keep me signed in Toggle
                     Row(
                       children: [
