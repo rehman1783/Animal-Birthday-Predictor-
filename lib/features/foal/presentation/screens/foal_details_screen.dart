@@ -647,45 +647,39 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                     children: [
                       const Text('Foal Status *', style: AppTypography.inputLabel),
                       const SizedBox(height: 8),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
                         children: [
-                          Expanded(
-                            child: ChoiceChip(
-                              label: const Text('KEEP', style: TextStyle(fontWeight: FontWeight.bold)),
-                              selected: _status == 'keep',
-                              selectedColor: AppColors.primaryGold,
-                              backgroundColor: AppColors.surface,
-                              labelStyle: TextStyle(
-                                color: _status == 'keep' ? AppColors.background : AppColors.textPrimary,
-                              ),
-                              onSelected: (_) => setState(() => _status = 'keep'),
+                          ChoiceChip(
+                            label: const Text('KEEP', style: TextStyle(fontWeight: FontWeight.bold)),
+                            selected: _status == 'keep',
+                            selectedColor: AppColors.primaryGold,
+                            backgroundColor: AppColors.surface,
+                            labelStyle: TextStyle(
+                              color: _status == 'keep' ? AppColors.background : AppColors.textPrimary,
                             ),
+                            onSelected: (_) => setState(() => _status = 'keep'),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ChoiceChip(
-                              label: const Text('SOLD', style: TextStyle(fontWeight: FontWeight.bold)),
-                              selected: _status == 'sold',
-                              selectedColor: AppColors.primaryGold,
-                              backgroundColor: AppColors.surface,
-                              labelStyle: TextStyle(
-                                color: _status == 'sold' ? AppColors.background : AppColors.textPrimary,
-                              ),
-                              onSelected: (_) => setState(() => _status = 'sold'),
+                          ChoiceChip(
+                            label: const Text('SOLD', style: TextStyle(fontWeight: FontWeight.bold)),
+                            selected: _status == 'sold',
+                            selectedColor: AppColors.primaryGold,
+                            backgroundColor: AppColors.surface,
+                            labelStyle: TextStyle(
+                              color: _status == 'sold' ? AppColors.background : AppColors.textPrimary,
                             ),
+                            onSelected: (_) => setState(() => _status = 'sold'),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ChoiceChip(
-                              label: const Text('TRANSFERRED', style: TextStyle(fontWeight: FontWeight.bold)),
-                              selected: _status == 'transferred',
-                              selectedColor: AppColors.primaryGold,
-                              backgroundColor: AppColors.surface,
-                              labelStyle: TextStyle(
-                                color: _status == 'transferred' ? AppColors.background : AppColors.textPrimary,
-                              ),
-                              onSelected: (_) => setState(() => _status = 'transferred'),
+                          ChoiceChip(
+                            label: const Text('TRANSFERRED', style: TextStyle(fontWeight: FontWeight.bold)),
+                            selected: _status == 'transferred',
+                            selectedColor: AppColors.primaryGold,
+                            backgroundColor: AppColors.surface,
+                            labelStyle: TextStyle(
+                              color: _status == 'transferred' ? AppColors.background : AppColors.textPrimary,
                             ),
+                            onSelected: (_) => setState(() => _status = 'transferred'),
                           ),
                         ],
                       ),

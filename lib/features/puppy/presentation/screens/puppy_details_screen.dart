@@ -384,13 +384,16 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                                       backgroundColor: _sex == 'male' ? AppColors.primaryGold : AppColors.inputField,
                                       foregroundColor: _sex == 'male' ? AppColors.background : AppColors.textPrimary,
                                       side: const BorderSide(color: AppColors.primaryGold),
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                     ),
-                                    child: const Text('MALE', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    child: const FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text('MALE', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Expanded(
                                   child: OutlinedButton(
                                     onPressed: () => setState(() => _sex = 'female'),
@@ -398,10 +401,13 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                                       backgroundColor: _sex == 'female' ? AppColors.primaryGold : AppColors.inputField,
                                       foregroundColor: _sex == 'female' ? AppColors.background : AppColors.textPrimary,
                                       side: const BorderSide(color: AppColors.primaryGold),
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                     ),
-                                    child: const Text('FEMALE', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    child: const FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text('FEMALE', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -711,19 +717,22 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                                 ),
                               );
                             },
-                            icon: const Icon(Icons.healing_outlined, color: AppColors.primaryGold, size: 16),
-                            label: Text(
-                              'HEALTH',
-                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 12),
+                            icon: const Icon(Icons.healing_outlined, color: AppColors.primaryGold, size: 15),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'HEALTH',
+                                style: TextStyle(color: AppColors.primaryGold, fontSize: 11.5, fontWeight: FontWeight.bold),
+                              ),
                             ),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
@@ -734,19 +743,22 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                                 ),
                               );
                             },
-                            icon: const Icon(Icons.monitor_weight_outlined, color: AppColors.primaryGold, size: 16),
-                            label: Text(
-                              'WEIGHTS',
-                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 12),
+                            icon: const Icon(Icons.monitor_weight_outlined, color: AppColors.primaryGold, size: 15),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'WEIGHTS',
+                                style: TextStyle(color: AppColors.primaryGold, fontSize: 11.5, fontWeight: FontWeight.bold),
+                              ),
                             ),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
@@ -756,14 +768,17 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                                 arguments: {'puppy': widget.puppy, 'dam': _selectedDam},
                               );
                             },
-                            icon: const Icon(Icons.card_membership_outlined, color: AppColors.primaryGold, size: 16),
-                            label: Text(
-                              'CERTIFICATE',
-                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 11),
+                            icon: const Icon(Icons.card_membership_outlined, color: AppColors.primaryGold, size: 15),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'CERTIFICATE',
+                                style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
                             ),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
                           ),

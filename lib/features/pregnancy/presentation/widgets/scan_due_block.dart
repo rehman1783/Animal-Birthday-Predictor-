@@ -49,12 +49,16 @@ class ScanDueBlock extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${scanNumber == 1 ? "1st" : scanNumber == 2 ? "2nd" : "3rd"} Pregnancy Scan',
-                style: AppTypography.displayHeadline.copyWith(fontSize: 16),
+              Expanded(
+                child: Text(
+                  '${scanNumber == 1 ? "1st" : scanNumber == 2 ? "2nd" : "3rd"} Pregnancy Scan',
+                  style: AppTypography.displayHeadline.copyWith(fontSize: 15),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.inputField,
                   borderRadius: BorderRadius.circular(6),
@@ -63,14 +67,14 @@ class ScanDueBlock extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.event, size: 13, color: AppColors.primaryGold),
-                    const SizedBox(width: 5),
+                    const Icon(Icons.event, size: 12, color: AppColors.primaryGold),
+                    const SizedBox(width: 4),
                     Text(
                       'Due: ${_formatDate(dueDate)}',
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.primaryGold,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11.5,
                       ),
                     ),
                   ],

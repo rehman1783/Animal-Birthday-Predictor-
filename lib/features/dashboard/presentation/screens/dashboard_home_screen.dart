@@ -198,19 +198,22 @@ class DashboardHomeScreen extends ConsumerWidget {
                             onNavigateTab!(2); // Navigate directly to Foals overview tab
                           }
                         },
-                        icon: const Icon(Icons.child_care, color: AppColors.primaryGold),
-                        label: Text(
-                          '+ NEW FOAL',
-                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                        icon: const Icon(Icons.child_care, color: AppColors.primaryGold, size: 16),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '+ NEW FOAL',
+                            style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppColors.primaryGold),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () async {
@@ -220,14 +223,17 @@ class DashboardHomeScreen extends ConsumerWidget {
                             Navigator.pushNamed(context, '/puppies'); // Navigate directly to Puppies overview
                           }
                         },
-                        icon: const Icon(Icons.bedroom_baby_outlined, color: AppColors.primaryGold),
-                        label: Text(
-                          '+ NEW PUPPY',
-                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                        icon: const Icon(Icons.bedroom_baby_outlined, color: AppColors.primaryGold, size: 16),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '+ NEW PUPPY',
+                            style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppColors.primaryGold),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                         ),
                       ),
@@ -241,30 +247,36 @@ class DashboardHomeScreen extends ConsumerWidget {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => Navigator.pushNamed(context, '/saved-animals'),
-                        icon: const Icon(Icons.list_alt, color: AppColors.primaryGold),
-                        label: Text(
-                          'SAVED ANIMALS',
-                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                        icon: const Icon(Icons.list_alt, color: AppColors.primaryGold, size: 16),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'SAVED ANIMALS',
+                            style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 11.5),
+                          ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppColors.surface),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => Navigator.pushNamed(context, '/contacts'),
-                        icon: const Icon(Icons.contacts_outlined, color: AppColors.primaryGold),
-                        label: Text(
-                          'CONTACTS',
-                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold),
+                        icon: const Icon(Icons.contacts_outlined, color: AppColors.primaryGold, size: 16),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'CONTACTS',
+                            style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppColors.surface),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                         ),
                       ),
@@ -411,7 +423,13 @@ class _SpeciesModuleCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(title, style: AppTypography.displayHeadline.copyWith(fontSize: 15)),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: AppTypography.displayHeadline.copyWith(fontSize: 15),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

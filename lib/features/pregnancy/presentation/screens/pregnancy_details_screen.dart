@@ -343,13 +343,16 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                         }
                       },
                       icon: const Icon(Icons.science_outlined, color: AppColors.primaryGold),
-                      label: Text(
-                        'ADVANCED PROCEDURES (CASLICK & FETAL SEXING)',
-                        style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 13),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'ADVANCED PROCEDURES (CASLICK & FETAL SEXING)',
+                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 13),
+                        ),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.primaryGold),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                       ),
                     ),

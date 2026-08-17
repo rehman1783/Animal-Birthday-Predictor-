@@ -46,20 +46,23 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('RECORD PUPPY WEIGHT', style: AppTypography.sectionLabel),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: AppColors.textMuted),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text('RECORD PUPPY WEIGHT', style: AppTypography.sectionLabel, overflow: TextOverflow.ellipsis),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppColors.textMuted),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
               const Divider(color: AppColors.inputField),
               const SizedBox(height: 12),
 
@@ -163,8 +166,9 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _deleteWeight(PuppyWeight weight) async {
     final repo = ref.read(puppyRepositoryProvider);
@@ -205,39 +209,53 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                   border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Column(
-                      children: [
-                        const Text('BIRTH WEIGHT', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.puppy.birthWeight?.isNotEmpty == true ? widget.puppy.birthWeight! : 'Not Set',
-                          style: const TextStyle(color: AppColors.primaryGold, fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Text('BIRTH WEIGHT', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 4),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.puppy.birthWeight?.isNotEmpty == true ? widget.puppy.birthWeight! : 'Not Set',
+                              style: const TextStyle(color: AppColors.primaryGold, fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    Container(width: 1, height: 36, color: AppColors.inputField),
-                    Column(
-                      children: [
-                        const Text('COLLAR / TAG', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.puppy.collarTagColour?.isNotEmpty == true ? widget.puppy.collarTagColour! : 'None',
-                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Container(width: 1, height: 32, color: AppColors.inputField),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Text('COLLAR / TAG', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 4),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.puppy.collarTagColour?.isNotEmpty == true ? widget.puppy.collarTagColour! : 'None',
+                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    Container(width: 1, height: 36, color: AppColors.inputField),
-                    Column(
-                      children: [
-                        const Text('BIRTH ORDER', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.puppy.birthOrder != null ? '#${widget.puppy.birthOrder}' : 'N/A',
-                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Container(width: 1, height: 32, color: AppColors.inputField),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Text('BIRTH ORDER', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 4),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.puppy.birthOrder != null ? '#${widget.puppy.birthOrder}' : 'N/A',
+                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

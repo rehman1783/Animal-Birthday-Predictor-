@@ -449,15 +449,16 @@ class _CertRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 140,
+          Expanded(
+            flex: 2,
             child: Text(
               label,
               style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
+            flex: 3,
             child: Text(
               value,
               style: AppTypography.bodyMedium.copyWith(

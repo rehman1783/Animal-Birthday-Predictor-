@@ -86,11 +86,13 @@ class AnimalListTile extends StatelessWidget {
                   Row(
                     children: [
                       if (animal.breed?.isNotEmpty == true) ...[
-                        Text(
-                          animal.breed!,
-                          style: AppTypography.bodySmall.copyWith(color: AppColors.primaryGold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Flexible(
+                          child: Text(
+                            animal.breed!,
+                            style: AppTypography.bodySmall.copyWith(color: AppColors.primaryGold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         const SizedBox(width: 8),
                       ],

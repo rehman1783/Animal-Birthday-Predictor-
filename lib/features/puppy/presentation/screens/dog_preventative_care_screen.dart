@@ -105,55 +105,59 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('HEALTH RECORD DETAILS', style: AppTypography.sectionLabel),
-                IconButton(
-                  icon: const Icon(Icons.close, color: AppColors.textMuted),
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ],
-            ),
-            const Divider(color: AppColors.inputField),
-            const SizedBox(height: 12),
-            Text(item.title, style: AppTypography.displayHeadline.copyWith(fontSize: 16)),
-            const SizedBox(height: 14),
-            CustomTextField(
-              label: 'Administered By / Veterinarian',
-              hintText: 'e.g. Dr. Jennifer Smith / Self',
-              controller: adminController,
-            ),
-            const SizedBox(height: 14),
-            CustomTextField(
-              label: 'Batch No. / Product Notes / Remarks',
-              hintText: 'e.g. Drontal Puppy Suspension, batch #98124...',
-              controller: notesController,
-              maxLines: 2,
-            ),
-            const SizedBox(height: 20),
-            GradientCtaButton(
-              text: 'SAVE DETAILS',
-              onPressed: () async {
-                final updated = item.copyWith(
-                  administeredBy: adminController.text.trim(),
-                  notes: notesController.text.trim(),
-                );
-                final repo = ref.read(puppyRepositoryProvider);
-                await repo.saveDogPreventativeCareItem(updated);
-                ref.invalidate(dogPreventativeCareProvider((
-                  ownerType: widget.ownerType,
-                  ownerId: widget.ownerId,
-                  dob: widget.dateOfBirth,
-                )));
-                if (ctx.mounted) Navigator.pop(ctx);
-              },
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text('HEALTH RECORD DETAILS', style: AppTypography.sectionLabel, overflow: TextOverflow.ellipsis),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: AppColors.textMuted),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const Divider(color: AppColors.inputField),
+              const SizedBox(height: 12),
+              Text(item.title, style: AppTypography.displayHeadline.copyWith(fontSize: 16)),
+              const SizedBox(height: 14),
+              CustomTextField(
+                label: 'Administered By / Veterinarian',
+                hintText: 'e.g. Dr. Jennifer Smith / Self',
+                controller: adminController,
+              ),
+              const SizedBox(height: 14),
+              CustomTextField(
+                label: 'Batch No. / Product Notes / Remarks',
+                hintText: 'e.g. Drontal Puppy Suspension, batch #98124...',
+                controller: notesController,
+                maxLines: 2,
+              ),
+              const SizedBox(height: 20),
+              GradientCtaButton(
+                text: 'SAVE DETAILS',
+                onPressed: () async {
+                  final updated = item.copyWith(
+                    administeredBy: adminController.text.trim(),
+                    notes: notesController.text.trim(),
+                  );
+                  final repo = ref.read(puppyRepositoryProvider);
+                  await repo.saveDogPreventativeCareItem(updated);
+                  ref.invalidate(dogPreventativeCareProvider((
+                    ownerType: widget.ownerType,
+                    ownerId: widget.ownerId,
+                    dob: widget.dateOfBirth,
+                  )));
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -347,15 +351,19 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              item.dateGiven != null ? _formatDate(item.dateGiven) : 'Not Given',
-                              style: TextStyle(
-                                color: item.dateGiven != null ? AppColors.textPrimary : AppColors.textMuted,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                item.dateGiven != null ? _formatDate(item.dateGiven) : 'Not Given',
+                                style: TextStyle(
+                                  color: item.dateGiven != null ? AppColors.textPrimary : AppColors.textMuted,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const Icon(Icons.event_available, size: 14, color: AppColors.primaryGold),
+                            const Icon(Icons.event_available, size: 13, color: AppColors.primaryGold),
                           ],
                         ),
                       ],
@@ -393,19 +401,23 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              item.dateDue != null ? _formatDate(item.dateDue) : 'Set Due Date',
-                              style: TextStyle(
-                                color: isOverdue
-                                    ? Colors.amberAccent
-                                    : item.dateDue != null
-                                        ? AppColors.textPrimary
-                                        : AppColors.textMuted,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                item.dateDue != null ? _formatDate(item.dateDue) : 'Set Due Date',
+                                style: TextStyle(
+                                  color: isOverdue
+                                      ? Colors.amberAccent
+                                      : item.dateDue != null
+                                          ? AppColors.textPrimary
+                                          : AppColors.textMuted,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.primaryGold),
+                            const Icon(Icons.calendar_today_outlined, size: 13, color: AppColors.primaryGold),
                           ],
                         ),
                       ],

@@ -257,13 +257,16 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
                                     backgroundColor: _ffsResult == 'filly' ? AppColors.primaryGold : AppColors.inputField,
                                     foregroundColor: _ffsResult == 'filly' ? AppColors.background : AppColors.textPrimary,
                                     side: const BorderSide(color: AppColors.primaryGold),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
-                                  child: const Text('FILLY (FEMALE)'),
+                                  child: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text('FILLY (FEMALE)', style: TextStyle(fontWeight: FontWeight.w600)),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: OutlinedButton(
                                   onPressed: () => setState(() => _ffsResult = 'colt'),
@@ -271,10 +274,13 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
                                     backgroundColor: _ffsResult == 'colt' ? AppColors.primaryGold : AppColors.inputField,
                                     foregroundColor: _ffsResult == 'colt' ? AppColors.background : AppColors.textPrimary,
                                     side: const BorderSide(color: AppColors.primaryGold),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
-                                  child: const Text('COLT (MALE)'),
+                                  child: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text('COLT (MALE)', style: TextStyle(fontWeight: FontWeight.w600)),
+                                  ),
                                 ),
                               ),
                             ],
@@ -346,7 +352,14 @@ class _ProcedureCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: AppTypography.displayHeadline.copyWith(fontSize: 16)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.displayHeadline.copyWith(fontSize: 15),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: onPickDate,
                 child: Container(
@@ -384,11 +397,14 @@ class _ProcedureCard extends StatelessWidget {
                   checkColor: AppColors.background,
                   side: const BorderSide(color: AppColors.primaryGold),
                 ),
-                Text(
-                  'Procedure Performed (Yes)',
-                  style: TextStyle(
-                    color: isDone ? AppColors.primaryGold : AppColors.textPrimary,
-                    fontWeight: isDone ? FontWeight.bold : FontWeight.normal,
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'Procedure Performed (Yes)',
+                    style: TextStyle(
+                      color: isDone ? AppColors.primaryGold : AppColors.textPrimary,
+                      fontWeight: isDone ? FontWeight.bold : FontWeight.normal,
+                    ),
                   ),
                 ),
               ],

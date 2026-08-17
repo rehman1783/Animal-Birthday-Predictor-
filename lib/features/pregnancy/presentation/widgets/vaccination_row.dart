@@ -88,7 +88,7 @@ class VaccinationRow extends StatelessWidget {
               GestureDetector(
                 onTap: onPickDate,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
                   decoration: BoxDecoration(
                     color: AppColors.inputField,
                     borderRadius: BorderRadius.circular(6),
@@ -102,16 +102,16 @@ class VaccinationRow extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.calendar_today_outlined,
-                        size: 14,
+                        size: 13,
                         color: date != null ? AppColors.primaryGold : AppColors.textMuted,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Text(
                         _formatDate(date),
                         style: AppTypography.bodySmall.copyWith(
                           color: date != null ? AppColors.primaryGold : AppColors.textMuted,
                           fontWeight: date != null ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 12,
+                          fontSize: 11.5,
                         ),
                       ),
                     ],
@@ -130,12 +130,14 @@ class VaccinationRow extends StatelessWidget {
                 children: [
                   const Icon(Icons.info_outline, size: 12, color: AppColors.primaryGold),
                   const SizedBox(width: 4),
-                  Text(
-                    mareReferenceNote!,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.primaryGold.withValues(alpha: 0.9),
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
+                  Expanded(
+                    child: Text(
+                      mareReferenceNote!,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.primaryGold.withValues(alpha: 0.9),
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
                 ],

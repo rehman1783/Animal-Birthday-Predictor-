@@ -47,18 +47,25 @@ class GradientCtaButton extends StatelessWidget {
                       valueColor: AlwaysStoppedAnimation<Color>(AppColors.background),
                     ),
                   )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        text,
-                        style: AppTypography.buttonLabel,
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            text,
+                            style: AppTypography.buttonLabel,
+                          ),
+                          if (icon != null) ...[
+                            const SizedBox(width: 8),
+                            icon!,
+                          ],
+                        ],
                       ),
-                      if (icon != null) ...[
-                        const SizedBox(width: 8),
-                        icon!,
-                      ]
-                    ],
+                    ),
                   ),
           ),
         ),
