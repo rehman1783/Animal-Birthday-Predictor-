@@ -5,9 +5,16 @@ import 'package:animal_birthday_predictor/features/animals/domain/animal.dart';
 import 'package:animal_birthday_predictor/features/animals/presentation/screens/animal_profile_screen.dart';
 import 'package:animal_birthday_predictor/features/animals/presentation/screens/saved_animals_screen.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/veterinarian_pregnancy_scans_screen.dart';
+import 'package:animal_birthday_predictor/features/animals/data/animal_repository.dart';
+import 'package:animal_birthday_predictor/features/animals/presentation/providers/animal_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animal_birthday_predictor/core/router/app_router.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('Animal Profile & Veterinarian Scans Screen Tests', () {
     testWidgets('AnimalProfileScreen renders animal details, badges and action buttons', (tester) async {
       final testAnimal = Animal(
@@ -177,6 +184,65 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('No DOGs Registered'), findsOneWidget);
+    });
+
+    testWidgets('SavedAnimalsScreen strictly isolates horses and dogs into their respective tabs', (tester) async {
+      final repo = AnimalRepository();
+      await repo.saveAnimal(
+        Animal(
+          id: 'horse-1',
+          accountId: 'acc-1',
+          species: 'horse',
+          name: 'Pegasus Pride',
+          breed: 'Arabian',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      await repo.saveAnimal(
+        Animal(
+          id: 'dog-1',
+          accountId: 'acc-1',
+          species: 'dog',
+          name: 'Bella Golden',
+          breed: 'Golden Retriever',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            animalRepositoryProvider.overrideWithValue(repo),
+          ],
+          child: const MaterialApp(
+            onGenerateRoute: AppRouter.onGenerateRoute,
+            home: SavedAnimalsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // On Horses tab (default):
+      expect(find.text('Pegasus Pride'), findsOneWidget);
+      expect(find.text('Bella Golden'), findsNothing);
+
+      // Switch to Dogs tab:
+      await tester.tap(find.text('DOGS'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bella Golden'), findsOneWidget);
+      expect(find.text('Pegasus Pride'), findsNothing);
+
+      // Switch to Cats tab:
+      await tester.tap(find.text('CATS'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No CATs Registered'), findsOneWidget);
+      expect(find.text('Pegasus Pride'), findsNothing);
+      expect(find.text('Bella Golden'), findsNothing);
     });
   });
 }

@@ -54,27 +54,32 @@ class Animal {
   }
 
   factory Animal.fromJson(Map<String, dynamic> json) {
+    final rawSpecies = json['species']?.toString();
+    final normalized = rawSpecies != null && rawSpecies.trim().isNotEmpty
+        ? Animal.normalizeSpecies(rawSpecies)
+        : 'horse';
+
     return Animal(
-      id: json['id'] as String? ?? '',
-      accountId: json['account_id'] as String? ?? '',
-      species: json['species'] as String? ?? 'horse',
-      name: json['name'] as String? ?? '',
-      breed: json['breed'] as String?,
-      colour: json['colour'] as String?,
+      id: json['id']?.toString() ?? '',
+      accountId: json['account_id']?.toString() ?? '',
+      species: normalized,
+      name: json['name']?.toString() ?? '',
+      breed: json['breed']?.toString(),
+      colour: json['colour']?.toString(),
       dateOfBirth: json['date_of_birth'] != null
-          ? DateTime.tryParse(json['date_of_birth'] as String)
+          ? DateTime.tryParse(json['date_of_birth'].toString())
           : null,
-      microchipNo: json['microchip_no'] as String?,
-      dna: json['dna'] as String?,
-      brand: json['brand'] as String?,
-      ownerClientName: json['owner_client_name'] as String?,
-      ownerClientPhone: json['owner_client_phone'] as String?,
-      photoUrl: json['photo_url'] as String?,
+      microchipNo: json['microchip_no']?.toString(),
+      dna: json['dna']?.toString(),
+      brand: json['brand']?.toString(),
+      ownerClientName: json['owner_client_name']?.toString(),
+      ownerClientPhone: json['owner_client_phone']?.toString(),
+      photoUrl: json['photo_url']?.toString(),
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
       updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
     );
   }
@@ -116,31 +121,66 @@ class Animal {
   }
 
   static String normalizeSpecies(String? raw) {
-    if (raw == null) return 'other';
+    if (raw == null) return 'horse';
     final s = raw.toLowerCase().trim();
-    if (s == 'horse' || s == 'horses' || s == 'equine' || s == 'mare' || s == 'stallion' || s == 'foal') {
-      return 'horse';
-    }
-    if (s == 'dog' || s == 'dogs' || s == 'canine' || s == 'puppy' || s == 'bitch' || s == 'hound' || s == 'dam' || s == 'sire') {
+    if (s.isEmpty) return 'horse';
+
+    // 1. Dog / Canine check
+    if (s == 'dog' ||
+        s == 'dogs' ||
+        s == 'canine' ||
+        s == 'puppy' ||
+        s == 'bitch' ||
+        s == 'hound' ||
+        s.contains('dog') ||
+        s.contains('canine') ||
+        s.contains('puppy') ||
+        s.contains('hound')) {
       return 'dog';
     }
-    if (s == 'cat' || s == 'cats' || s == 'feline' || s == 'kitten') {
+
+    // 2. Cat / Feline check
+    if (s == 'cat' ||
+        s == 'cats' ||
+        s == 'feline' ||
+        s == 'kitten' ||
+        s.contains('cat') ||
+        s.contains('feline') ||
+        s.contains('kitten')) {
       return 'cat';
     }
-    if (s.isEmpty) return 'other';
+
+    // 3. Horse / Equine check
+    if (s == 'horse' ||
+        s == 'horses' ||
+        s == 'equine' ||
+        s == 'mare' ||
+        s == 'stallion' ||
+        s == 'foal' ||
+        s.contains('horse') ||
+        s.contains('equine') ||
+        s.contains('mare') ||
+        s.contains('stallion') ||
+        s.contains('foal')) {
+      return 'horse';
+    }
+
+    // 4. Other check
+    if (s == 'other' || s.contains('other')) {
+      return 'other';
+    }
+
     return s;
   }
 
   static bool matchesSpeciesFilter(String? animalSpecies, String? filterTab) {
     if (filterTab == null || filterTab.isEmpty) return true;
-    final normalized = normalizeSpecies(animalSpecies);
-    final target = filterTab.toLowerCase().trim();
-    if (target == 'horse') return normalized == 'horse';
-    if (target == 'dog') return normalized == 'dog';
-    if (target == 'cat') return normalized == 'cat';
-    if (target == 'other') {
-      return normalized != 'horse' && normalized != 'dog' && normalized != 'cat';
+    final normalizedAnimal = normalizeSpecies(animalSpecies);
+    final normalizedFilter = normalizeSpecies(filterTab);
+
+    if (normalizedFilter == 'other') {
+      return normalizedAnimal != 'horse' && normalizedAnimal != 'dog' && normalizedAnimal != 'cat';
     }
-    return normalized == target;
+    return normalizedAnimal == normalizedFilter;
   }
 }

@@ -4,9 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/breeding_details_screen.dart';
 import 'package:animal_birthday_predictor/features/animals/presentation/screens/animal_profile_screen.dart';
 import 'package:animal_birthday_predictor/features/animals/domain/animal.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animal_birthday_predictor/core/router/app_router.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('Renders BreedingDetailsScreen with initialMareId without crashing', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(

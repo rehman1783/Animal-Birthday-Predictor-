@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animal_birthday_predictor/core/utils/app_uuid.dart';
 import 'package:animal_birthday_predictor/features/animals/domain/animal.dart';
 import 'package:animal_birthday_predictor/features/animals/data/animal_repository.dart';
@@ -8,6 +9,7 @@ void main() {
     late AnimalRepository repository;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       repository = AnimalRepository();
     });
 
