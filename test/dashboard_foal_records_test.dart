@@ -124,5 +124,32 @@ void main() {
       expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
       expect(find.text('FOALS'), findsOneWidget);
     });
+
+    testWidgets('Pressing system back on non-dashboard tab in MainNavigationScreen navigates to Dashboard', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: MainNavigationScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Initially on Dashboard
+      expect(find.text('WELCOME TO ABP'), findsOneWidget);
+
+      // Switch to Animals tab (index 1)
+      await tester.tap(find.text('Animals'));
+      await tester.pumpAndSettle();
+      expect(find.text('SAVED ANIMALS REGISTRY'), findsOneWidget);
+
+      // Trigger system back pop on the Navigator
+      final dynamic widgetsAppState = tester.state(find.byType(WidgetsApp));
+      await widgetsAppState.didPopRoute();
+      await tester.pumpAndSettle();
+
+      // Verify it navigated back to Dashboard instead of popping the app
+      expect(find.text('WELCOME TO ABP'), findsOneWidget);
+    });
   });
 }
