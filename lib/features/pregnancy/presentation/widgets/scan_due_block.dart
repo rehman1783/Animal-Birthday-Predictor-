@@ -31,6 +31,8 @@ class ScanDueBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasImg = imageUrl != null && imageUrl!.trim().isNotEmpty;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -116,17 +118,40 @@ class ScanDueBlock extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (hasImg)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryGold.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppColors.primaryGold, width: 0.8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.image, size: 11, color: AppColors.primaryGold),
+                        SizedBox(width: 3),
+                        Text(
+                          'PHOTO ATTACHED',
+                          style: TextStyle(color: AppColors.primaryGold, fontSize: 9.5, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           // Scan Photo Upload
           AppImagePicker(
+            key: ValueKey('scan-$scanNumber-${imageUrl?.hashCode ?? 0}'),
             label: 'Ultrasound Scan $scanNumber Photo (Optional)',
             initialImageUrl: imageUrl,
+            currentImagePath: imageUrl,
             onImageSelected: onImageSelected,
+            onImagePicked: onImageSelected,
           ),
         ],
       ),

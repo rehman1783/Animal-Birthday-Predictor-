@@ -724,6 +724,32 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                                 _buildScanBadge('Scan 3 (+45d)', pregRecord.scan3Confirmed, pregRecord.scan3DueDate),
                               ],
                             ),
+
+                            // Ultrasound Scan Photos Gallery (if any scan has an uploaded photo)
+                            if (pregRecord.scan1ImageUrl?.isNotEmpty == true ||
+                                pregRecord.scan2ImageUrl?.isNotEmpty == true ||
+                                pregRecord.scan3ImageUrl?.isNotEmpty == true) ...[
+                              const SizedBox(height: 12),
+                              const Text(
+                                'ULTRASOUND SCAN PHOTOS',
+                                style: TextStyle(
+                                  color: AppColors.primaryGold,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  _buildScanThumbnail('SCAN 1 (DAY 14)', pregRecord.scan1ImageUrl),
+                                  const SizedBox(width: 8),
+                                  _buildScanThumbnail('SCAN 2 (DAY 30)', pregRecord.scan2ImageUrl),
+                                  const SizedBox(width: 8),
+                                  _buildScanThumbnail('SCAN 3 (DAY 45)', pregRecord.scan3ImageUrl),
+                                ],
+                              ),
+                            ],
+
                             if (pregRecord.vetName?.isNotEmpty == true || pregRecord.vetNumber?.isNotEmpty == true) ...[
                               const SizedBox(height: 10),
                               Text(
@@ -1282,6 +1308,51 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                     )
                   : const Center(
                       child: Icon(Icons.photo_outlined, color: AppColors.textMuted, size: 28),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 9.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScanThumbnail(String label, String? imageUrl) {
+    final hasImg = imageUrl != null && imageUrl.trim().isNotEmpty;
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            height: 75,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.inputField,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: hasImg ? AppColors.primaryGold.withValues(alpha: 0.6) : AppColors.surface,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(7),
+              child: hasImg
+                  ? AppThumbnailAvatar(
+                      imagePath: imageUrl,
+                      fallbackIcon: Icons.medical_services_outlined,
+                      size: 75,
+                      iconSize: 28,
+                      isCircle: false,
+                      borderRadius: 7,
+                    )
+                  : const Center(
+                      child: Icon(Icons.medical_services_outlined, color: AppColors.textMuted, size: 24),
                     ),
             ),
           ),
