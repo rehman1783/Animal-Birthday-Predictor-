@@ -16,6 +16,7 @@ import '../../../animals/presentation/widgets/select_or_add_animal_modal.dart';
 import '../../../contacts/presentation/widgets/select_or_add_contact_modal.dart';
 import '../../domain/foal_record.dart';
 import '../providers/foal_provider.dart';
+import '../../../../core/utils/app_uuid.dart';
 
 class FoalDetailsScreen extends ConsumerStatefulWidget {
   final FoalRecord? foal;
@@ -236,7 +237,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
       final repo = ref.read(foalRepositoryProvider);
       final foalId = widget.foal?.id.isNotEmpty == true
           ? widget.foal!.id
-          : DateTime.now().millisecondsSinceEpoch.toString();
+          : AppUuid.generate();
 
       final record = FoalRecord(
         id: foalId,

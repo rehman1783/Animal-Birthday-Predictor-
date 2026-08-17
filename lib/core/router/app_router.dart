@@ -20,6 +20,7 @@ import '../../features/pregnancy/presentation/screens/advanced_pregnancy_info_sc
 import '../../features/pregnancy/presentation/screens/preventative_care_screen.dart';
 import '../../features/foal/domain/foal_record.dart';
 import '../../features/foal/presentation/screens/foal_details_screen.dart';
+import '../../features/foal/presentation/screens/foal_module_screen.dart';
 import '../../features/foal/presentation/screens/congratulations_screen.dart';
 import '../../features/certificates/presentation/screens/certificate_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
@@ -238,6 +239,14 @@ abstract class AppRouter {
           settings: settings,
         );
 
+      case '/foals':
+      case '/foal-module':
+      case '/birth-log':
+        return MaterialPageRoute(
+          builder: (_) => const FoalModuleScreen(),
+          settings: settings,
+        );
+
       case '/foal-details':
         final foal = settings.arguments as FoalRecord?;
         return MaterialPageRoute(
@@ -287,6 +296,8 @@ abstract class AppRouter {
       '/settings': (context) => const SettingsScreen(),
       '/contacts': (context) => const ContactsDirectoryScreen(),
       '/puppies': (context) => const PuppyListScreen(),
+      '/foals': (context) => const FoalModuleScreen(),
+      '/birth-log': (context) => const FoalModuleScreen(),
     };
   }
 }

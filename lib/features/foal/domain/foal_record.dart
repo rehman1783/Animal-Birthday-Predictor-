@@ -87,40 +87,40 @@ class FoalRecord {
 
   factory FoalRecord.fromJson(Map<String, dynamic> json) {
     return FoalRecord(
-      id: json['id'] as String? ?? '',
-      accountId: json['account_id'] as String? ?? '',
-      mareAnimalId: json['mare_animal_id'] as String? ?? json['mare_id'] as String? ?? '',
-      recipientAnimalId: json['recipient_animal_id'] as String? ?? json['recipient_mare_id'] as String?,
-      foalName: json['foal_name'] as String?,
+      id: json['id']?.toString() ?? '',
+      accountId: json['account_id']?.toString() ?? '',
+      mareAnimalId: json['mare_animal_id']?.toString() ?? json['mare_id']?.toString() ?? '',
+      recipientAnimalId: json['recipient_animal_id']?.toString() ?? json['recipient_mare_id']?.toString(),
+      foalName: json['foal_name']?.toString(),
       dateOfBirth: json['date_of_birth'] != null
-          ? DateTime.tryParse(json['date_of_birth'] as String)
+          ? DateTime.tryParse(json['date_of_birth'].toString())
           : null,
-      stallion: json['stallion'] as String?,
-      breed: json['breed'] as String?,
-      sex: json['sex'] as String?,
-      iggValue: json['igg_value'] as String?,
-      foalMicrochipNo: json['foal_microchip_no'] as String?,
-      dna: json['dna'] as String?,
-      gelded: json['gelded'] as bool? ?? false,
+      stallion: json['stallion']?.toString(),
+      breed: json['breed']?.toString(),
+      sex: json['sex']?.toString(),
+      iggValue: json['igg_value']?.toString(),
+      foalMicrochipNo: json['foal_microchip_no']?.toString(),
+      dna: json['dna']?.toString(),
+      gelded: json['gelded'] == true || json['gelded'] == 1 || json['gelded'] == 'true',
       geldedDate: json['gelded_date'] != null
-          ? DateTime.tryParse(json['gelded_date'] as String)
+          ? DateTime.tryParse(json['gelded_date'].toString())
           : null,
-      studBookAssociation: json['stud_book_association'] as String?,
-      notes: json['notes'] as String?,
-      status: json['status'] as String?,
-      photoUrl: json['photo_url'] as String?,
-      buyerName: json['buyer_name'] as String?,
-      buyerPhone: json['buyer_phone'] as String?,
-      buyerAddress: json['buyer_address'] as String?,
+      studBookAssociation: json['stud_book_association']?.toString(),
+      notes: json['notes']?.toString(),
+      status: json['status']?.toString(),
+      photoUrl: json['photo_url']?.toString(),
+      buyerName: json['buyer_name']?.toString(),
+      buyerPhone: json['buyer_phone']?.toString(),
+      buyerAddress: json['buyer_address']?.toString(),
       saleDate: json['sale_date'] != null
-          ? DateTime.tryParse(json['sale_date'] as String)
+          ? DateTime.tryParse(json['sale_date'].toString())
           : null,
-      salePrice: json['sale_price'] as String?,
+      salePrice: json['sale_price']?.toString(),
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
       updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
     );
   }
