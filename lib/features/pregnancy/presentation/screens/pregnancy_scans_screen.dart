@@ -80,11 +80,24 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
   }
 
   Future<void> _handleSave() async {
-    if (_record == null) return;
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(pregnancyRepositoryProvider);
-      final updated = _record!.copyWith(
+      final current = _record ??
+          PregnancyRecord(
+            id: '',
+            accountId: '',
+            carrierAnimalId: widget.carrierAnimalId,
+            breedingRecordId: '',
+            scan1DueDate: DateTime.now().add(const Duration(days: 2)),
+            scan2DueDate: DateTime.now().add(const Duration(days: 16)),
+            scan3DueDate: DateTime.now().add(const Duration(days: 31)),
+            foalingDueDate: DateTime.now().add(const Duration(days: 326)),
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+
+      final updated = current.copyWith(
         scan1Confirmed: _scan1Confirmed,
         scan1ImageUrl: _scan1Image,
         scan2Confirmed: _scan2Confirmed,
@@ -96,10 +109,12 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
         updatedAt: DateTime.now(),
       );
 
-      await repo.savePregnancyRecord(updated);
+      final saved = await repo.savePregnancyRecord(updated);
       ref.invalidate(pregnancyRecordForCarrierProvider(widget.carrierAnimalId));
+      ref.invalidate(pregnancyRecordByIdProvider(saved.id));
 
       if (mounted) {
+        setState(() => _record = saved);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Ultrasound scans & vet info saved!')),
         );

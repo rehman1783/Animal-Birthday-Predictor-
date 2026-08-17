@@ -68,7 +68,7 @@ void main() {
 
       // Verify Quick Action Buttons
       expect(find.text('EDIT ANIMAL DETAILS'), findsOneWidget);
-      expect(find.text('LOG BREEDING'), findsOneWidget);
+      expect(find.text('LOG BREEDING'), findsWidgets);
       expect(find.text('SCANS & VET'), findsOneWidget);
       expect(find.text('HEALTH & CARE'), findsOneWidget);
       expect(find.text('MARKINGS'), findsOneWidget);

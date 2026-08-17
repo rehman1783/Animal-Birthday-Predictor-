@@ -62,8 +62,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final logBreedingBtn = find.text('LOG BREEDING');
-    expect(logBreedingBtn, findsOneWidget);
+    final logBreedingBtn = find.text('LOG BREEDING').first;
+    expect(find.text('LOG BREEDING'), findsWidgets);
     await tester.ensureVisible(logBreedingBtn);
     await tester.tap(logBreedingBtn);
     await tester.pumpAndSettle();

@@ -21,7 +21,9 @@ class PregnancyRepository {
   bool _hasLoadedFromStorage = false;
 
   PregnancyRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client);
+      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
+    _ensureLoaded();
+  }
 
   SupabaseClient? get client {
     try {
@@ -152,9 +154,9 @@ class PregnancyRepository {
 
     if (c != null) {
       try {
-        final data = await c.from('breeding_records').upsert(toSave.toJson()).select().maybeSingle();
-        if (data != null) {
-          final saved = BreedingRecord.fromJson(data);
+        final data = await c.from('breeding_records').upsert(toSave.toJson()).select();
+        if (data is List && data.isNotEmpty) {
+          final saved = BreedingRecord.fromJson(data.first as Map<String, dynamic>);
           _updateLocalBreeding(saved);
           await _persistBreedingToLocalStorage();
           return saved;
@@ -169,29 +171,54 @@ class PregnancyRepository {
   Future<BreedingRecord?> getBreedingRecordById(String id) async {
     await _ensureLoaded();
     final c = client;
-    if (c == null) {
+    if (c != null) {
       try {
-        return _inMemoryBreeding.firstWhere((b) => b.id == id);
-      } catch (_) {
-        return null;
+        final data = await c.from('breeding_records').select().eq('id', id).limit(1);
+        if (data is List && data.isNotEmpty) {
+          final saved = BreedingRecord.fromJson(data.first as Map<String, dynamic>);
+          _updateLocalBreeding(saved);
+          await _persistBreedingToLocalStorage();
+          return saved;
+        }
+      } catch (e) {
+        debugPrint('Supabase getBreedingRecordById error: $e');
       }
     }
+
     try {
-      final data = await c.from('breeding_records').select().eq('id', id).maybeSingle();
-      if (data != null) {
-        final saved = BreedingRecord.fromJson(data);
-        _updateLocalBreeding(saved);
-        await _persistBreedingToLocalStorage();
-        return saved;
-      }
       return _inMemoryBreeding.firstWhere((b) => b.id == id);
-    } catch (e) {
-      debugPrint('Supabase getBreedingRecordById error: $e');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<BreedingRecord?> getBreedingRecordByMare(String mareAnimalId) async {
+    await _ensureLoaded();
+    final c = client;
+    if (c != null) {
       try {
-        return _inMemoryBreeding.firstWhere((b) => b.id == id);
-      } catch (_) {
-        return null;
+        final data = await c.from('breeding_records')
+            .select()
+            .or('mare_animal_id.eq.$mareAnimalId,recipient_animal_id.eq.$mareAnimalId')
+            .order('created_at', ascending: false)
+            .limit(1);
+        if (data is List && data.isNotEmpty) {
+          final saved = BreedingRecord.fromJson(data.first as Map<String, dynamic>);
+          _updateLocalBreeding(saved);
+          await _persistBreedingToLocalStorage();
+          return saved;
+        }
+      } catch (e) {
+        debugPrint('Supabase getBreedingRecordByMare error: $e');
       }
+    }
+
+    try {
+      return _inMemoryBreeding.firstWhere(
+        (b) => b.mareAnimalId == mareAnimalId || b.recipientAnimalId == mareAnimalId,
+      );
+    } catch (_) {
+      return null;
     }
   }
 
@@ -199,70 +226,53 @@ class PregnancyRepository {
   Future<PregnancyRecord?> getPregnancyRecordForCarrier(String carrierAnimalId) async {
     await _ensureLoaded();
     final c = client;
-    if (c == null) {
+    if (c != null) {
       try {
-        return _inMemoryPregnancies.firstWhere((p) => p.carrierAnimalId == carrierAnimalId);
-      } catch (_) {
-        return null;
+        final data = await c
+            .from('pregnancy_records')
+            .select()
+            .eq('carrier_animal_id', carrierAnimalId)
+            .order('created_at', ascending: false)
+            .limit(1);
+        if (data is List && data.isNotEmpty) {
+          final saved = PregnancyRecord.fromJson(data.first as Map<String, dynamic>);
+          _updateLocalPregnancy(saved);
+          await _persistPregnanciesToLocalStorage();
+          return saved;
+        }
+      } catch (e) {
+        debugPrint('Supabase getPregnancyRecordForCarrier error: $e');
       }
     }
+
     try {
-      final data = await c
-          .from('pregnancy_records')
-          .select()
-          .eq('carrier_animal_id', carrierAnimalId)
-          .maybeSingle();
-      if (data != null) {
-        final saved = PregnancyRecord.fromJson(data);
-        _updateLocalPregnancy(saved);
-        await _persistPregnanciesToLocalStorage();
-        return saved;
-      }
-      try {
-        return _inMemoryPregnancies.firstWhere((p) => p.carrierAnimalId == carrierAnimalId);
-      } catch (_) {
-        return null;
-      }
-    } catch (e) {
-      debugPrint('Supabase getPregnancyRecordForCarrier error: $e');
-      try {
-        return _inMemoryPregnancies.firstWhere((p) => p.carrierAnimalId == carrierAnimalId);
-      } catch (_) {
-        return null;
-      }
+      return _inMemoryPregnancies.firstWhere((p) => p.carrierAnimalId == carrierAnimalId);
+    } catch (_) {
+      return null;
     }
   }
 
   Future<PregnancyRecord?> getPregnancyRecordById(String id) async {
     await _ensureLoaded();
     final c = client;
-    if (c == null) {
+    if (c != null) {
       try {
-        return _inMemoryPregnancies.firstWhere((p) => p.id == id);
-      } catch (_) {
-        return null;
+        final data = await c.from('pregnancy_records').select().eq('id', id).limit(1);
+        if (data is List && data.isNotEmpty) {
+          final saved = PregnancyRecord.fromJson(data.first as Map<String, dynamic>);
+          _updateLocalPregnancy(saved);
+          await _persistPregnanciesToLocalStorage();
+          return saved;
+        }
+      } catch (e) {
+        debugPrint('Supabase getPregnancyRecordById error: $e');
       }
     }
+
     try {
-      final data = await c.from('pregnancy_records').select().eq('id', id).maybeSingle();
-      if (data != null) {
-        final saved = PregnancyRecord.fromJson(data);
-        _updateLocalPregnancy(saved);
-        await _persistPregnanciesToLocalStorage();
-        return saved;
-      }
-      try {
-        return _inMemoryPregnancies.firstWhere((p) => p.id == id);
-      } catch (_) {
-        return null;
-      }
-    } catch (e) {
-      debugPrint('Supabase getPregnancyRecordById error: $e');
-      try {
-        return _inMemoryPregnancies.firstWhere((p) => p.id == id);
-      } catch (_) {
-        return null;
-      }
+      return _inMemoryPregnancies.firstWhere((p) => p.id == id);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -272,7 +282,35 @@ class PregnancyRepository {
     final user = c?.auth.currentUser;
     final accountId = user?.id ?? (AppUuid.isValid(record.accountId) ? record.accountId : '00000000-0000-0000-0000-000000000000');
     final validId = AppUuid.isValid(record.id) ? record.id : AppUuid.generate();
-    final toSave = record.copyWith(id: validId, accountId: accountId);
+    
+    // Ensure breedingRecordId is a valid UUID pointing to a real breeding record
+    String validBreedingId = record.breedingRecordId;
+    if (!AppUuid.isValid(validBreedingId)) {
+      final existingBreeding = await getBreedingRecordByMare(record.carrierAnimalId);
+      if (existingBreeding != null && AppUuid.isValid(existingBreeding.id)) {
+        validBreedingId = existingBreeding.id;
+      } else {
+        // Create an automated default breeding record for this carrier mare so FK constraint succeeds
+        final autoBreeding = BreedingRecord(
+          id: AppUuid.generate(),
+          accountId: accountId,
+          mareAnimalId: record.carrierAnimalId,
+          method: 'natural',
+          isEmbryoTransfer: false,
+          coverOrTransferDate: DateTime.now().subtract(const Duration(days: 15)),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final created = await saveBreedingRecord(autoBreeding);
+        validBreedingId = created.id;
+      }
+    }
+
+    final toSave = record.copyWith(
+      id: validId,
+      accountId: accountId,
+      breedingRecordId: validBreedingId,
+    );
 
     // Save locally immediately
     _updateLocalPregnancy(toSave);
@@ -280,9 +318,9 @@ class PregnancyRepository {
 
     if (c != null) {
       try {
-        final data = await c.from('pregnancy_records').upsert(toSave.toJson()).select().maybeSingle();
-        if (data != null) {
-          final saved = PregnancyRecord.fromJson(data);
+        final data = await c.from('pregnancy_records').upsert(toSave.toJson()).select();
+        if (data is List && data.isNotEmpty) {
+          final saved = PregnancyRecord.fromJson(data.first as Map<String, dynamic>);
           _updateLocalPregnancy(saved);
           await _persistPregnanciesToLocalStorage();
           return saved;
@@ -373,46 +411,33 @@ class PregnancyRepository {
   Future<AdvancedPregnancyInfo?> getAdvancedPregnancyInfo(String pregnancyRecordId) async {
     await _ensureLoaded();
     final c = client;
-    if (c == null) {
+    if (c != null) {
       try {
-        return _inMemoryAdvanced.firstWhere(
-          (a) => a.pregnancyRecordId == pregnancyRecordId,
-        );
-      } catch (_) {
-        return null;
+        final data = await c
+            .from('advanced_pregnancy_info')
+            .select()
+            .eq('pregnancy_record_id', pregnancyRecordId)
+            .limit(1);
+        if (data is List && data.isNotEmpty) {
+          final saved = AdvancedPregnancyInfo.fromJson(data.first as Map<String, dynamic>);
+          final idx = _inMemoryAdvanced.indexWhere((a) => a.id == saved.id);
+          if (idx >= 0) {
+            _inMemoryAdvanced[idx] = saved;
+          } else {
+            _inMemoryAdvanced.add(saved);
+          }
+          await _persistAdvancedToLocalStorage();
+          return saved;
+        }
+      } catch (e) {
+        debugPrint('Supabase getAdvancedPregnancyInfo error: $e');
       }
     }
+
     try {
-      final data = await c
-          .from('advanced_pregnancy_info')
-          .select()
-          .eq('pregnancy_record_id', pregnancyRecordId)
-          .maybeSingle();
-      if (data != null) {
-        final saved = AdvancedPregnancyInfo.fromJson(data);
-        final idx = _inMemoryAdvanced.indexWhere((a) => a.id == saved.id);
-        if (idx >= 0) {
-          _inMemoryAdvanced[idx] = saved;
-        } else {
-          _inMemoryAdvanced.add(saved);
-        }
-        await _persistAdvancedToLocalStorage();
-        return saved;
-      }
-      try {
-        return _inMemoryAdvanced.firstWhere((a) => a.pregnancyRecordId == pregnancyRecordId);
-      } catch (_) {
-        return null;
-      }
-    } catch (e) {
-      debugPrint('Supabase getAdvancedPregnancyInfo error: $e');
-      try {
-        return _inMemoryAdvanced.firstWhere(
-          (a) => a.pregnancyRecordId == pregnancyRecordId,
-        );
-      } catch (_) {
-        return null;
-      }
+      return _inMemoryAdvanced.firstWhere((a) => a.pregnancyRecordId == pregnancyRecordId);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -432,9 +457,9 @@ class PregnancyRepository {
 
     if (c != null) {
       try {
-        final data = await c.from('advanced_pregnancy_info').upsert(toSave.toJson()).select().maybeSingle();
-        if (data != null) {
-          final saved = AdvancedPregnancyInfo.fromJson(data);
+        final data = await c.from('advanced_pregnancy_info').upsert(toSave.toJson()).select();
+        if (data is List && data.isNotEmpty) {
+          final saved = AdvancedPregnancyInfo.fromJson(data.first as Map<String, dynamic>);
           final idx = _inMemoryAdvanced.indexWhere((a) => a.id == saved.id);
           if (idx >= 0) {
             _inMemoryAdvanced[idx] = saved;

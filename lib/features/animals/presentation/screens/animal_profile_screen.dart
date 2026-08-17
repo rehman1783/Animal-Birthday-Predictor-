@@ -556,7 +556,101 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                 if (isHorse) ...[
                   ref.watch(pregnancyRecordForCarrierProvider(_currentAnimal.id)).when(
                     data: (pregRecord) {
-                      if (pregRecord == null) return const SizedBox.shrink();
+                      if (pregRecord == null) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 20),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                            border: Border.all(color: AppColors.surface),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.favorite_outline, color: AppColors.primaryGold, size: 18),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'PREGNANCY & SCANS',
+                                        style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.inputField,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'NOT RECORDED',
+                                      style: TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No pregnancy or veterinarian scans logged for this animal yet.',
+                                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        await Navigator.pushNamed(
+                                          context,
+                                          '/breeding-details',
+                                          arguments: _currentAnimal.id,
+                                        );
+                                        ref.invalidate(pregnancyRecordForCarrierProvider(_currentAnimal.id));
+                                      },
+                                      icon: const Icon(Icons.favorite_outline, size: 14, color: AppColors.primaryGold),
+                                      label: const Text('LOG BREEDING', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: AppColors.primaryGold),
+                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        await Navigator.pushNamed(
+                                          context,
+                                          '/vet-pregnancy-scans',
+                                          arguments: {'carrierAnimalId': _currentAnimal.id},
+                                        );
+                                        ref.invalidate(pregnancyRecordForCarrierProvider(_currentAnimal.id));
+                                      },
+                                      icon: const Icon(Icons.medical_services_outlined, size: 14, color: AppColors.primaryGold),
+                                      label: const Text('RECORD SCANS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: AppColors.primaryGold),
+                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                       final completedCount = (pregRecord.scan1Confirmed ? 1 : 0) +
                           (pregRecord.scan2Confirmed ? 1 : 0) +
                           (pregRecord.scan3Confirmed ? 1 : 0);

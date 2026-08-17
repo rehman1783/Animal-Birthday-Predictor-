@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animal_birthday_predictor/features/contacts/data/contact_repository.dart';
 import 'package:animal_birthday_predictor/features/contacts/domain/contact.dart';
 import 'package:animal_birthday_predictor/features/puppy/data/puppy_repository.dart';
@@ -9,6 +10,12 @@ import 'package:animal_birthday_predictor/features/foal/domain/foal_record.dart'
 import 'package:animal_birthday_predictor/features/certificates/data/pdf_certificate_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('ABP Complete Feature Suite Tests', () {
     test('Contacts Directory: CRUD and Role Filtering', () async {
       final repo = ContactRepository();
