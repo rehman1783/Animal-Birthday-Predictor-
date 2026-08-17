@@ -761,6 +761,169 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                   ),
                 ],
 
+                // Breeding Event & Insemination Photo Card (for Horses)
+                if (isHorse) ...[
+                  ref.watch(breedingRecordByMareProvider(_currentAnimal.id)).when(
+                    data: (breeding) {
+                      final hasPhoto = breeding?.photoUrl?.isNotEmpty == true;
+                      final hasBreeding = breeding != null &&
+                          (breeding.stallionName?.isNotEmpty == true ||
+                              hasPhoto ||
+                              breeding.method.isNotEmpty);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                          border: Border.all(
+                            color: hasBreeding
+                                ? AppColors.primaryGold.withValues(alpha: 0.6)
+                                : AppColors.surface,
+                            width: hasBreeding ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.pets_outlined, color: AppColors.primaryGold, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'BREEDING RECORD & PHOTO',
+                                      style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: hasBreeding
+                                        ? AppColors.primaryGold.withValues(alpha: 0.15)
+                                        : AppColors.inputField,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: hasBreeding ? AppColors.primaryGold : Colors.transparent,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    hasBreeding ? 'LOGGED' : 'NOT LOGGED',
+                                    style: TextStyle(
+                                      color: hasBreeding ? AppColors.primaryGold : AppColors.textMuted,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (hasBreeding) ...[
+                              if (breeding.stallionName?.isNotEmpty == true) ...[
+                                _buildInfoRow(
+                                  icon: Icons.shield_outlined,
+                                  label: 'Covering Stallion / Sire',
+                                  value: breeding.stallionName!,
+                                ),
+                                const SizedBox(height: 8),
+                              ],
+                              _buildInfoRow(
+                                icon: Icons.science_outlined,
+                                label: 'Breeding Method',
+                                value: breeding.method.toUpperCase(),
+                              ),
+                              if (breeding.coverOrTransferDate != null) ...[
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                  icon: Icons.calendar_today_outlined,
+                                  label: 'Cover / Transfer Date',
+                                  value: _formatDate(breeding.coverOrTransferDate!),
+                                ),
+                              ],
+                              if (hasPhoto) ...[
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'INSEMINATION STRAWS / BREEDING PHOTO',
+                                  style: TextStyle(
+                                    color: AppColors.primaryGold,
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    height: 140,
+                                    width: double.infinity,
+                                    color: AppColors.inputField,
+                                    child: AppThumbnailAvatar(
+                                      imagePath: breeding.photoUrl,
+                                      size: 140,
+                                      borderRadius: 8,
+                                      isCircle: false,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 14),
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  await Navigator.pushNamed(
+                                    context,
+                                    '/breeding-details',
+                                    arguments: _currentAnimal.id,
+                                  );
+                                  ref.invalidate(breedingRecordByMareProvider(_currentAnimal.id));
+                                  ref.invalidate(pregnancyRecordForCarrierProvider(_currentAnimal.id));
+                                },
+                                icon: const Icon(Icons.edit, size: 14, color: AppColors.primaryGold),
+                                label: const Text('EDIT BREEDING DETAILS & PHOTO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: AppColors.primaryGold),
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                              ),
+                            ] else ...[
+                              Text(
+                                'No breeding event or insemination photo recorded for this mare yet.',
+                                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  await Navigator.pushNamed(
+                                    context,
+                                    '/breeding-details',
+                                    arguments: _currentAnimal.id,
+                                  );
+                                  ref.invalidate(breedingRecordByMareProvider(_currentAnimal.id));
+                                  ref.invalidate(pregnancyRecordForCarrierProvider(_currentAnimal.id));
+                                },
+                                icon: const Icon(Icons.favorite_outline, size: 14, color: AppColors.primaryGold),
+                                label: const Text('LOG BREEDING & ADD PHOTO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: AppColors.primaryGold),
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                ],
+
                 // 4. Action Hub
                 const SectionDividerLabel(label: 'QUICK ACTIONS & PROCEDURES'),
                 const SizedBox(height: 14),

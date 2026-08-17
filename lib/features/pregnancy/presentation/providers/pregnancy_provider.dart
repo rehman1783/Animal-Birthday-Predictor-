@@ -19,6 +19,11 @@ final breedingRecordByIdProvider = FutureProvider.autoDispose.family<BreedingRec
   return repo.getBreedingRecordById(id);
 });
 
+final breedingRecordByMareProvider = FutureProvider.autoDispose.family<BreedingRecord?, String>((ref, mareId) async {
+  final repo = ref.watch(pregnancyRepositoryProvider);
+  return repo.getBreedingRecordByMare(mareId);
+});
+
 final pregnancyRecordByIdProvider = FutureProvider.autoDispose.family<PregnancyRecord?, String>((ref, id) async {
   final repo = ref.watch(pregnancyRepositoryProvider);
   return repo.getPregnancyRecordById(id);

@@ -10,6 +10,7 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
+import '../../../../core/utils/app_uuid.dart';
 import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../../animals/presentation/widgets/select_or_add_animal_modal.dart';
@@ -58,10 +59,41 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
   }
 
   Future<void> _loadInitialMare(String id) async {
-    final repo = ref.read(animalRepositoryProvider);
-    final animal = await repo.getAnimalById(id);
+    final animalRepo = ref.read(animalRepositoryProvider);
+    final pregRepo = ref.read(pregnancyRepositoryProvider);
+
+    final animal = await animalRepo.getAnimalById(id);
     if (animal != null && mounted) {
       setState(() => _selectedMare = animal);
+    }
+
+    final existingBreeding = await pregRepo.getBreedingRecordByMare(id);
+    if (existingBreeding != null && mounted) {
+      setState(() {
+        if (existingBreeding.stallionName?.isNotEmpty == true) {
+          _stallionController.text = existingBreeding.stallionName!;
+        }
+        _selectedMethod = existingBreeding.method;
+        _isEmbryoTransfer = existingBreeding.isEmbryoTransfer;
+        if (existingBreeding.coverOrTransferDate != null) {
+          _coverDate = existingBreeding.coverOrTransferDate!;
+          _transferDate = existingBreeding.coverOrTransferDate!;
+        }
+        if (existingBreeding.damOfEmbryo?.isNotEmpty == true) {
+          _damOfEmbryoController.text = existingBreeding.damOfEmbryo!;
+        }
+        if (existingBreeding.stallionOfEmbryo?.isNotEmpty == true) {
+          _stallionOfEmbryoController.text = existingBreeding.stallionOfEmbryo!;
+        }
+        _photoUrl = existingBreeding.photoUrl;
+      });
+
+      if (existingBreeding.recipientAnimalId != null && existingBreeding.recipientAnimalId!.isNotEmpty) {
+        final recipient = await animalRepo.getAnimalById(existingBreeding.recipientAnimalId!);
+        if (recipient != null && mounted) {
+          setState(() => _selectedRecipient = recipient);
+        }
+      }
     }
   }
 
@@ -130,7 +162,8 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(pregnancyRepositoryProvider);
-      final breedingId = DateTime.now().millisecondsSinceEpoch.toString();
+      final existingBreeding = await repo.getBreedingRecordByMare(_selectedMare!.id);
+      final breedingId = existingBreeding?.id ?? AppUuid.generate();
 
       final breedingRecord = BreedingRecord(
         id: breedingId,
@@ -144,7 +177,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
         damOfEmbryo: _isEmbryoTransfer ? _damOfEmbryoController.text.trim() : null,
         stallionOfEmbryo: _isEmbryoTransfer ? _stallionOfEmbryoController.text.trim() : null,
         photoUrl: _photoUrl,
-        createdAt: DateTime.now(),
+        createdAt: existingBreeding?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
@@ -162,11 +195,14 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
         baseDate: baseDate,
       );
 
+      ref.invalidate(breedingRecordByMareProvider(_selectedMare!.id));
+      ref.invalidate(pregnancyRecordForCarrierProvider(carrierAnimalId));
+
       if (mounted) {
         AppFeedbackSnackbar.showSuccess(
           context,
           title: 'Breeding Recorded',
-          message: 'Pregnancy scans and foaling due date calculated successfully!',
+          message: 'Breeding details and cover photo saved to cloud database!',
         );
 
         Navigator.pushReplacementNamed(
@@ -231,7 +267,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                       requiredSex: 'mare',
                       currentSelectedId: _selectedMare?.id,
                     );
-                    if (chosen != null) setState(() => _selectedMare = chosen);
+                    if (chosen != null) _loadInitialMare(chosen.id);
                   },
                   child: Container(
                     padding: const EdgeInsets.all(16),
@@ -554,9 +590,12 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                 const SizedBox(height: 12.0),
 
                 AppImagePicker(
+                  key: ValueKey(_photoUrl),
                   label: 'Insemination Straws / Cover Photo (Optional)',
                   initialImageUrl: _photoUrl,
+                  currentImagePath: _photoUrl,
                   onImageSelected: (url) => setState(() => _photoUrl = url),
+                  onImagePicked: (url) => setState(() => _photoUrl = url),
                 ),
                 const SizedBox(height: 32.0),
 
