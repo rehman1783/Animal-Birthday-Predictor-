@@ -9,6 +9,7 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
+import '../../../../core/utils/app_uuid.dart';
 import '../../domain/markings.dart';
 import '../providers/mare_provider.dart';
 
@@ -28,6 +29,7 @@ class MarkingsScreen extends ConsumerStatefulWidget {
 
 class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
   final _headNotesController = TextEditingController();
+  String? _existingId;
   String? _leftSideImage;
   String? _rightSideImage;
   String? _headViewImage;
@@ -45,6 +47,7 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
     final markings = await repo.getMarkings(widget.ownerType, widget.ownerId);
     if (markings != null && mounted) {
       setState(() {
+        _existingId = markings.id;
         _leftSideImage = markings.leftSideImageUrl;
         _rightSideImage = markings.rightSideImageUrl;
         _headViewImage = markings.headViewImageUrl;
@@ -67,7 +70,7 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
     try {
       final repo = ref.read(mareRepositoryProvider);
       final markings = Markings(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _existingId ?? AppUuid.generate(),
         ownerType: widget.ownerType,
         ownerId: widget.ownerId,
         leftSideImageUrl: _leftSideImage,
@@ -78,14 +81,14 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
         updatedAt: DateTime.now(),
       );
 
-      await repo.saveMarkings(markings);
+      final saved = await repo.saveMarkings(markings);
       ref.invalidate(markingsForOwnerProvider((ownerType: widget.ownerType, ownerId: widget.ownerId)));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Markings details saved successfully!')),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, saved);
       }
     } catch (e) {
       if (mounted) {

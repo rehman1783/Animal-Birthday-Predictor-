@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/app_uuid.dart';
@@ -8,17 +10,56 @@ import '../domain/markings.dart';
 
 class MareRepository {
   final SupabaseClient? _supabase;
+  static const String _markingsStorageKey = 'abp_cached_markings_records';
   final List<Mare> _inMemoryMares = [];
   final List<Markings> _inMemoryMarkings = [];
+  bool _hasLoadedFromStorage = false;
 
   MareRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client);
+      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
+    _initLocalStorage();
+  }
 
   SupabaseClient? get client {
     try {
       return _supabase ?? Supabase.instance.client;
     } catch (_) {
       return null;
+    }
+  }
+
+  Future<void> _initLocalStorage() async {
+    if (_hasLoadedFromStorage) return;
+    _hasLoadedFromStorage = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList(_markingsStorageKey);
+      if (list != null && list.isNotEmpty) {
+        final loaded = list.map((item) {
+          final json = jsonDecode(item) as Map<String, dynamic>;
+          return Markings.fromJson(json);
+        }).toList();
+        for (final m in loaded) {
+          final idx = _inMemoryMarkings.indexWhere((x) => x.ownerType == m.ownerType && x.ownerId == m.ownerId);
+          if (idx >= 0) {
+            _inMemoryMarkings[idx] = m;
+          } else {
+            _inMemoryMarkings.add(m);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('MareRepository: error reading local cache: $e');
+    }
+  }
+
+  Future<void> _persistMarkingsToLocalStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _inMemoryMarkings.map((m) => jsonEncode(m.toJson())).toList();
+      await prefs.setStringList(_markingsStorageKey, jsonList);
+    } catch (e) {
+      debugPrint('MareRepository: error persisting markings to local cache: $e');
     }
   }
 
@@ -92,53 +133,74 @@ class MareRepository {
 
   // --- MARKINGS ---
   Future<Markings?> getMarkings(String ownerType, String ownerId) async {
+    await _initLocalStorage();
     final c = client;
-    if (c == null) {
+    if (c != null) {
       try {
-        return _inMemoryMarkings.firstWhere(
-          (m) => m.ownerType == ownerType && m.ownerId == ownerId,
-        );
-      } catch (_) {
-        return null;
+        final data = await c
+            .from('markings')
+            .select()
+            .eq('owner_type', ownerType)
+            .eq('owner_id', ownerId)
+            .maybeSingle();
+        if (data != null) {
+          final remoteMarkings = Markings.fromJson(data);
+          final idx = _inMemoryMarkings.indexWhere((m) => m.ownerType == ownerType && m.ownerId == ownerId);
+          if (idx >= 0) {
+            _inMemoryMarkings[idx] = remoteMarkings;
+          } else {
+            _inMemoryMarkings.add(remoteMarkings);
+          }
+          await _persistMarkingsToLocalStorage();
+          return remoteMarkings;
+        }
+      } catch (e) {
+        debugPrint('Supabase getMarkings error: $e');
       }
     }
+
     try {
-      final data = await c
-          .from('markings')
-          .select()
-          .eq('owner_type', ownerType)
-          .eq('owner_id', ownerId)
-          .maybeSingle();
-      if (data == null) return null;
-      return Markings.fromJson(data);
-    } catch (e) {
-      debugPrint('Supabase getMarkings error: $e');
+      return _inMemoryMarkings.firstWhere(
+        (m) => m.ownerType == ownerType && m.ownerId == ownerId,
+      );
+    } catch (_) {
       return null;
     }
   }
 
   Future<Markings> saveMarkings(Markings markings) async {
-    final c = client;
+    await _initLocalStorage();
     final validId = AppUuid.isValid(markings.id) ? markings.id : AppUuid.generate();
     final toSave = markings.copyWith(id: validId);
 
-    if (c == null) {
-      final index = _inMemoryMarkings.indexWhere(
-        (m) => m.ownerType == toSave.ownerType && m.ownerId == toSave.ownerId,
-      );
-      if (index >= 0) {
-        _inMemoryMarkings[index] = toSave;
-      } else {
-        _inMemoryMarkings.add(toSave);
+    // Save in-memory and local cache
+    final index = _inMemoryMarkings.indexWhere(
+      (m) => m.ownerType == toSave.ownerType && m.ownerId == toSave.ownerId,
+    );
+    if (index >= 0) {
+      _inMemoryMarkings[index] = toSave;
+    } else {
+      _inMemoryMarkings.add(toSave);
+    }
+    await _persistMarkingsToLocalStorage();
+
+    final c = client;
+    if (c != null) {
+      try {
+        final data = await c.from('markings').upsert(toSave.toJson()).select().single();
+        final synced = Markings.fromJson(data);
+        final idx = _inMemoryMarkings.indexWhere(
+          (m) => m.ownerType == synced.ownerType && m.ownerId == synced.ownerId,
+        );
+        if (idx >= 0) {
+          _inMemoryMarkings[idx] = synced;
+          await _persistMarkingsToLocalStorage();
+        }
+        return synced;
+      } catch (e) {
+        debugPrint('Supabase saveMarkings error: $e');
       }
-      return toSave;
     }
-    try {
-      final data = await c.from('markings').upsert(toSave.toJson()).select().single();
-      return Markings.fromJson(data);
-    } catch (e) {
-      debugPrint('Supabase saveMarkings error: $e');
-      return toSave;
-    }
+    return toSave;
   }
 }

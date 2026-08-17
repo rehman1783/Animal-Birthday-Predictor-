@@ -12,6 +12,7 @@ import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
+import '../providers/mare_provider.dart';
 import '../../../pregnancy/presentation/providers/pregnancy_provider.dart';
 import '../../../pregnancy/domain/pregnancy_record.dart';
 
@@ -377,6 +378,179 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Physical Markings & Identification Card
+                const SectionDividerLabel(label: 'PHYSICAL MARKINGS & IDENTIFICATION'),
+                const SizedBox(height: 12),
+
+                ref.watch(markingsForOwnerProvider((ownerType: 'animal', ownerId: _currentAnimal.id))).when(
+                  data: (markings) {
+                    final hasLeft = markings?.leftSideImageUrl?.isNotEmpty == true;
+                    final hasRight = markings?.rightSideImageUrl?.isNotEmpty == true;
+                    final hasHead = markings?.headViewImageUrl?.isNotEmpty == true;
+                    final hasNotes = markings?.headViewNotes?.trim().isNotEmpty == true;
+                    final hasAnyMarkings = hasLeft || hasRight || hasHead || hasNotes;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                        border: Border.all(
+                          color: hasAnyMarkings
+                              ? AppColors.primaryGold.withValues(alpha: 0.6)
+                              : AppColors.surface,
+                          width: hasAnyMarkings ? 1.5 : 1.0,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.brush_outlined, color: AppColors.primaryGold, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'PHYSICAL MARKINGS',
+                                    style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: hasAnyMarkings
+                                      ? AppColors.primaryGold.withValues(alpha: 0.15)
+                                      : AppColors.inputField,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: hasAnyMarkings ? AppColors.primaryGold : Colors.transparent,
+                                  ),
+                                ),
+                                child: Text(
+                                  hasAnyMarkings ? 'RECORDED' : 'NOT RECORDED',
+                                  style: TextStyle(
+                                    color: hasAnyMarkings ? AppColors.primaryGold : AppColors.textMuted,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          if (hasAnyMarkings) ...[
+                            // 3 Markings Preview Thumbnails
+                            Row(
+                              children: [
+                                _buildMarkingThumbnail(
+                                  label: 'LEFT SIDE',
+                                  imageUrl: markings?.leftSideImageUrl,
+                                ),
+                                const SizedBox(width: 10),
+                                _buildMarkingThumbnail(
+                                  label: 'RIGHT SIDE',
+                                  imageUrl: markings?.rightSideImageUrl,
+                                ),
+                                const SizedBox(width: 10),
+                                _buildMarkingThumbnail(
+                                  label: 'HEAD VIEW',
+                                  imageUrl: markings?.headViewImageUrl,
+                                ),
+                              ],
+                            ),
+
+                            if (hasNotes) ...[
+                              const SizedBox(height: 14),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.background.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.inputBorder),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'FACIAL & BODY NOTES',
+                                      style: TextStyle(
+                                        color: AppColors.primaryGold,
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      markings!.headViewNotes!,
+                                      style: AppTypography.bodySmall.copyWith(color: AppColors.textPrimary),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+
+                            const SizedBox(height: 14),
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                await Navigator.pushNamed(
+                                  context,
+                                  '/markings',
+                                  arguments: {
+                                    'ownerType': 'animal',
+                                    'ownerId': _currentAnimal.id,
+                                  },
+                                );
+                                ref.invalidate(markingsForOwnerProvider((ownerType: 'animal', ownerId: _currentAnimal.id)));
+                              },
+                              icon: const Icon(Icons.edit, size: 14, color: AppColors.primaryGold),
+                              label: const Text('EDIT PHYSICAL MARKINGS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: AppColors.primaryGold),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ] else ...[
+                            Text(
+                              'No physical markings or facial diagrams recorded for this animal yet.',
+                              style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                await Navigator.pushNamed(
+                                  context,
+                                  '/markings',
+                                  arguments: {
+                                    'ownerType': 'animal',
+                                    'ownerId': _currentAnimal.id,
+                                  },
+                                );
+                                ref.invalidate(markingsForOwnerProvider((ownerType: 'animal', ownerId: _currentAnimal.id)));
+                              },
+                              icon: const Icon(Icons.add, size: 16, color: AppColors.primaryGold),
+                              label: const Text('ADD PHYSICAL MARKINGS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: AppColors.primaryGold),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
 
                 // Live Pregnancy & Scans Status Card (for Horses or any animal with active pregnancy)
                 if (isHorse) ...[
@@ -820,6 +994,51 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
         ),
         ?trailing,
       ],
+    );
+  }
+
+  Widget _buildMarkingThumbnail({required String label, required String? imageUrl}) {
+    final hasImg = imageUrl != null && imageUrl.trim().isNotEmpty;
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            height: 75,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.inputField,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: hasImg ? AppColors.primaryGold.withValues(alpha: 0.6) : AppColors.surface,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(7),
+              child: hasImg
+                  ? AppThumbnailAvatar(
+                      imagePath: imageUrl,
+                      fallbackIcon: Icons.photo_outlined,
+                      size: 75,
+                      iconSize: 28,
+                      isCircle: false,
+                      borderRadius: 7,
+                    )
+                  : const Center(
+                      child: Icon(Icons.photo_outlined, color: AppColors.textMuted, size: 28),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 9.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

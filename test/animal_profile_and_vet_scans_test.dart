@@ -11,6 +11,9 @@ import 'package:animal_birthday_predictor/features/pregnancy/presentation/provid
 import 'package:animal_birthday_predictor/features/animals/data/animal_repository.dart';
 import 'package:animal_birthday_predictor/features/animals/presentation/providers/animal_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:animal_birthday_predictor/features/animals/domain/markings.dart';
+import 'package:animal_birthday_predictor/features/animals/data/mare_repository.dart';
+import 'package:animal_birthday_predictor/features/animals/presentation/providers/mare_provider.dart';
 import 'package:animal_birthday_predictor/core/router/app_router.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_thumbnail_avatar.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_image_picker.dart';
@@ -417,6 +420,56 @@ void main() {
       expect(find.byType(AppThumbnailAvatar), findsOneWidget);
       expect(find.byType(AppImagePicker), findsOneWidget);
       expect(find.byType(Image), findsNWidgets(2));
+    });
+
+    testWidgets('Physical markings persist in repository and display on AnimalProfileScreen', (tester) async {
+      final mareRepo = MareRepository();
+      const transparentPngBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+      final testHorse = Animal(
+        id: 'horse-markings-1',
+        accountId: 'acc-1',
+        species: 'horse',
+        name: 'Starlight Dream',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final markings = Markings(
+        id: 'markings-1',
+        ownerType: 'animal',
+        ownerId: testHorse.id,
+        leftSideImageUrl: transparentPngBase64,
+        rightSideImageUrl: transparentPngBase64,
+        headViewImageUrl: transparentPngBase64,
+        headViewNotes: 'White star on forehead and white sock on left hind',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await mareRepo.saveMarkings(markings);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mareRepositoryProvider.overrideWithValue(mareRepo),
+          ],
+          child: MaterialApp(
+            onGenerateRoute: (settings) => AppRouter.onGenerateRoute(settings),
+            home: AnimalProfileScreen(animal: testHorse),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify Physical Markings card is rendered with RECORDED status
+      expect(find.text('PHYSICAL MARKINGS & IDENTIFICATION'), findsOneWidget);
+      expect(find.text('RECORDED'), findsOneWidget);
+      expect(find.text('LEFT SIDE'), findsOneWidget);
+      expect(find.text('RIGHT SIDE'), findsOneWidget);
+      expect(find.text('HEAD VIEW'), findsOneWidget);
+      expect(find.text('White star on forehead and white sock on left hind'), findsOneWidget);
+      expect(find.text('EDIT PHYSICAL MARKINGS'), findsOneWidget);
     });
   });
 }
