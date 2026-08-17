@@ -78,7 +78,7 @@ void main() {
       expect(tappedIndex, 3);
     });
 
-    testWidgets('MainNavigationScreen displays FoalModuleScreen on Tab 3 (Birth Log)', (tester) async {
+    testWidgets('MainNavigationScreen displays FoalModuleScreen on Tab 3 (Birth Log) with category tabs', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
@@ -94,8 +94,16 @@ void main() {
       await tester.tap(find.text('Birth Log'));
       await tester.pumpAndSettle();
 
-      expect(find.text('FOAL BIRTH LOG & REGISTRY'), findsOneWidget);
+      expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
+      expect(find.text('FOALS'), findsOneWidget);
+      expect(find.text('PUPPIES'), findsOneWidget);
       expect(find.text('+ REGISTER NEW FOAL'), findsOneWidget);
+
+      // Switch to PUPPIES tab
+      await tester.tap(find.text('PUPPIES'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('+ REGISTER NEW PUPPY'), findsOneWidget);
     });
 
     testWidgets('Navigating to /foals route loads FoalModuleScreen', (tester) async {
@@ -113,7 +121,8 @@ void main() {
       Navigator.pushNamed(tester.element(find.byType(MainNavigationScreen)), '/foals');
       await tester.pumpAndSettle();
 
-      expect(find.text('FOAL BIRTH LOG & REGISTRY'), findsOneWidget);
+      expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
+      expect(find.text('FOALS'), findsOneWidget);
     });
   });
 }
