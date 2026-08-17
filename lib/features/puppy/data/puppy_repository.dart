@@ -50,7 +50,10 @@ class PuppyRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      final puppyList = prefs.getStringList(_puppyStorageKey);
+      var puppyList = prefs.getStringList(_puppyStorageKey);
+      if (puppyList == null || puppyList.isEmpty) {
+        puppyList = prefs.getStringList('abp_cached_puppies_records');
+      }
       if (puppyList != null && puppyList.isNotEmpty) {
         for (final item in puppyList) {
           try {
@@ -65,7 +68,10 @@ class PuppyRepository {
         }
       }
 
-      final weightsList = prefs.getStringList(_weightsStorageKey);
+      var weightsList = prefs.getStringList(_weightsStorageKey);
+      if (weightsList == null || weightsList.isEmpty) {
+        weightsList = prefs.getStringList('abp_cached_puppy_weights');
+      }
       if (weightsList != null && weightsList.isNotEmpty) {
         for (final item in weightsList) {
           try {
@@ -80,7 +86,10 @@ class PuppyRepository {
         }
       }
 
-      final careList = prefs.getStringList(_careStorageKey);
+      var careList = prefs.getStringList(_careStorageKey);
+      if (careList == null || careList.isEmpty) {
+        careList = prefs.getStringList('abp_cached_dog_care');
+      }
       if (careList != null && careList.isNotEmpty) {
         for (final item in careList) {
           try {

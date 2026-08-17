@@ -41,7 +41,10 @@ class ContactRepository {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final list = prefs.getStringList(_storageKey);
+      var list = prefs.getStringList(_storageKey);
+      if (list == null || list.isEmpty) {
+        list = prefs.getStringList('abp_cached_contacts_records');
+      }
       if (list != null && list.isNotEmpty) {
         for (final item in list) {
           try {

@@ -53,7 +53,10 @@ class PregnancyRepository {
       final prefs = await SharedPreferences.getInstance();
 
       // Load Pregnancy records
-      final pregList = prefs.getStringList(_pregnancyStorageKey);
+      var pregList = prefs.getStringList(_pregnancyStorageKey);
+      if (pregList == null || pregList.isEmpty) {
+        pregList = prefs.getStringList('abp_cached_pregnancy_records');
+      }
       if (pregList != null && pregList.isNotEmpty) {
         for (final str in pregList) {
           try {
@@ -69,7 +72,10 @@ class PregnancyRepository {
       }
 
       // Load Breeding records
-      final breedList = prefs.getStringList(_breedingStorageKey);
+      var breedList = prefs.getStringList(_breedingStorageKey);
+      if (breedList == null || breedList.isEmpty) {
+        breedList = prefs.getStringList('abp_cached_breeding_records');
+      }
       if (breedList != null && breedList.isNotEmpty) {
         for (final str in breedList) {
           try {
@@ -85,7 +91,10 @@ class PregnancyRepository {
       }
 
       // Load Advanced info
-      final advList = prefs.getStringList(_advancedStorageKey);
+      var advList = prefs.getStringList(_advancedStorageKey);
+      if (advList == null || advList.isEmpty) {
+        advList = prefs.getStringList('abp_cached_advanced_pregnancy');
+      }
       if (advList != null && advList.isNotEmpty) {
         for (final str in advList) {
           try {

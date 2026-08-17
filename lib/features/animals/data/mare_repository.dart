@@ -45,7 +45,10 @@ class MareRepository {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final list = prefs.getStringList(_markingsStorageKey);
+      var list = prefs.getStringList(_markingsStorageKey);
+      if (list == null || list.isEmpty) {
+        list = prefs.getStringList('abp_cached_markings_records');
+      }
       if (list != null && list.isNotEmpty) {
         final loaded = list.map((item) {
           final json = jsonDecode(item) as Map<String, dynamic>;
