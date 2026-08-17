@@ -284,10 +284,12 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                 const SizedBox(height: 24.0),
 
                 // 2. Sire / Stallion Field
+                const SectionDividerLabel(label: 'STALLION (FATHER)'),
+                const SizedBox(height: 10.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const SectionDividerLabel(label: 'STALLION (FATHER)'),
+                    const Text('Stallion Information', style: AppTypography.inputLabel),
                     TextButton.icon(
                       onPressed: () async {
                         final chosen = await SelectOrAddAnimalModal.show(
@@ -300,11 +302,11 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                         }
                       },
                       icon: const Icon(Icons.pets, size: 14, color: AppColors.primaryGold),
-                      label: const Text('Pick Saved', style: TextStyle(color: AppColors.primaryGold, fontSize: 12)),
+                      label: const Text('Pick Saved', style: TextStyle(color: AppColors.primaryGold, fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8.0),
+                const SizedBox(height: 6.0),
 
                 CustomTextField(
                   label: 'Stallion Name / Stud',

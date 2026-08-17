@@ -34,28 +34,41 @@ class SectionDividerLabel extends StatelessWidget {
       );
     }
 
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 1,
-            color: AppColors.surface,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            label.toUpperCase(),
-            style: AppTypography.sectionLabel,
-          ),
-        ),
-        Expanded(
-          child: Container(
-            height: 1,
-            color: AppColors.surface,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedWidth) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Text(
+              label.toUpperCase(),
+              style: AppTypography.sectionLabel,
+            ),
+          );
+        }
+        return Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 1,
+                color: AppColors.surface,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                label.toUpperCase(),
+                style: AppTypography.sectionLabel,
+              ),
+            ),
+            Expanded(
+              child: Container(
+                height: 1,
+                color: AppColors.surface,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
