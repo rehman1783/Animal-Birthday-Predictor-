@@ -12,6 +12,8 @@ import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
+import '../../../pregnancy/presentation/providers/pregnancy_provider.dart';
+import '../../../pregnancy/domain/pregnancy_record.dart';
 
 class AnimalProfileScreen extends ConsumerStatefulWidget {
   final Animal animal;
@@ -365,6 +367,121 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                 ),
                 const SizedBox(height: 20),
 
+                // Live Pregnancy & Scans Status Card (for Horses or any animal with active pregnancy)
+                if (isHorse) ...[
+                  ref.watch(pregnancyRecordForCarrierProvider(_currentAnimal.id)).when(
+                    data: (pregRecord) {
+                      if (pregRecord == null) return const SizedBox.shrink();
+                      final completedCount = (pregRecord.scan1Confirmed ? 1 : 0) +
+                          (pregRecord.scan2Confirmed ? 1 : 0) +
+                          (pregRecord.scan3Confirmed ? 1 : 0);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                          border: Border.all(
+                            color: completedCount == 3
+                                ? Colors.greenAccent.withValues(alpha: 0.8)
+                                : AppColors.primaryGold.withValues(alpha: 0.6),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.favorite, color: AppColors.primaryGold, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'PREGNANCY & SCANS',
+                                      style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: completedCount == 3
+                                        ? Colors.green.withValues(alpha: 0.2)
+                                        : AppColors.primaryGold.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: completedCount == 3 ? Colors.greenAccent : AppColors.primaryGold,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '$completedCount / 3 SCANS CONFIRMED',
+                                    style: TextStyle(
+                                      color: completedCount == 3 ? Colors.greenAccent : AppColors.primaryGold,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (pregRecord.foalingDueDate != null) ...[
+                              Text(
+                                'Estimated Foaling: ${_formatDate(pregRecord.foalingDueDate)}',
+                                style: AppTypography.displayHeadline.copyWith(fontSize: 15),
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                            // 3 Scans Row
+                            Row(
+                              children: [
+                                _buildScanBadge('Scan 1 (+14d)', pregRecord.scan1Confirmed, pregRecord.scan1DueDate),
+                                const SizedBox(width: 6),
+                                _buildScanBadge('Scan 2 (+30d)', pregRecord.scan2Confirmed, pregRecord.scan2DueDate),
+                                const SizedBox(width: 6),
+                                _buildScanBadge('Scan 3 (+45d)', pregRecord.scan3Confirmed, pregRecord.scan3DueDate),
+                              ],
+                            ),
+                            if (pregRecord.vetName?.isNotEmpty == true || pregRecord.vetNumber?.isNotEmpty == true) ...[
+                              const SizedBox(height: 10),
+                              Text(
+                                'Veterinarian: ${pregRecord.vetName ?? "Assigned Vet"} ${pregRecord.vetNumber?.isNotEmpty == true ? "(${pregRecord.vetNumber})" : ""}',
+                                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11),
+                              ),
+                            ],
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  await Navigator.pushNamed(
+                                    context,
+                                    '/vet-pregnancy-scans',
+                                    arguments: {'carrierAnimalId': _currentAnimal.id},
+                                  );
+                                  ref.invalidate(pregnancyRecordForCarrierProvider(_currentAnimal.id));
+                                },
+                                icon: const Icon(Icons.medical_services_outlined, size: 14, color: AppColors.primaryGold),
+                                label: const Text('VIEW & UPDATE SCANS', style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.bold)),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: AppColors.primaryGold),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                ],
+
                 // 4. Action Hub
                 const SectionDividerLabel(label: 'QUICK ACTIONS & PROCEDURES'),
                 const SizedBox(height: 14),
@@ -394,12 +511,13 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(
+                          onPressed: () async {
+                            await Navigator.pushNamed(
                               context,
                               '/breeding-details',
                               arguments: _currentAnimal.id,
                             );
+                            ref.invalidate(pregnancyRecordForCarrierProvider(_currentAnimal.id));
                           },
                           icon: const Icon(Icons.favorite_outline, color: AppColors.primaryGold, size: 16),
                           label: const FittedBox(
@@ -416,12 +534,13 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(
+                          onPressed: () async {
+                            await Navigator.pushNamed(
                               context,
                               '/vet-pregnancy-scans',
                               arguments: {'carrierAnimalId': _currentAnimal.id},
                             );
+                            ref.invalidate(pregnancyRecordForCarrierProvider(_currentAnimal.id));
                           },
                           icon: const Icon(Icons.medical_services_outlined, color: AppColors.primaryGold, size: 16),
                           label: const FittedBox(
@@ -555,6 +674,60 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScanBadge(String label, bool confirmed, DateTime? dueDate) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        decoration: BoxDecoration(
+          color: confirmed
+              ? Colors.green.withValues(alpha: 0.15)
+              : AppColors.inputField,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: confirmed ? Colors.greenAccent : AppColors.surface,
+          ),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  confirmed ? Icons.check_circle : Icons.schedule,
+                  size: 12,
+                  color: confirmed ? Colors.greenAccent : AppColors.primaryGold,
+                ),
+                const SizedBox(width: 3),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: confirmed ? Colors.greenAccent : AppColors.textPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text(
+              confirmed
+                  ? 'CONFIRMED'
+                  : (dueDate != null ? '${dueDate.day}/${dueDate.month}' : 'PENDING'),
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: confirmed ? Colors.greenAccent : AppColors.textMuted,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -5,6 +5,9 @@ import 'package:animal_birthday_predictor/features/animals/domain/animal.dart';
 import 'package:animal_birthday_predictor/features/animals/presentation/screens/animal_profile_screen.dart';
 import 'package:animal_birthday_predictor/features/animals/presentation/screens/saved_animals_screen.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/veterinarian_pregnancy_scans_screen.dart';
+import 'package:animal_birthday_predictor/features/pregnancy/data/pregnancy_repository.dart';
+import 'package:animal_birthday_predictor/features/pregnancy/domain/pregnancy_record.dart';
+import 'package:animal_birthday_predictor/features/pregnancy/presentation/providers/pregnancy_provider.dart';
 import 'package:animal_birthday_predictor/features/animals/data/animal_repository.dart';
 import 'package:animal_birthday_predictor/features/animals/presentation/providers/animal_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -243,6 +246,73 @@ void main() {
       expect(find.text('No CATs Registered'), findsOneWidget);
       expect(find.text('Pegasus Pride'), findsNothing);
       expect(find.text('Bella Golden'), findsNothing);
+    });
+
+    testWidgets('Pregnancy scans persist and display confirmed scans on AnimalProfileScreen and Vet Scans Screen', (tester) async {
+      final pregRepo = PregnancyRepository();
+      final animalRepo = AnimalRepository();
+
+      final mare = Animal(
+        id: 'mare-101',
+        accountId: 'acc-1',
+        species: 'horse',
+        name: 'Duchess Royale',
+        breed: 'Warmblood',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await animalRepo.saveAnimal(mare);
+
+      final pregRecord = PregnancyRecord(
+        id: 'preg-101',
+        accountId: 'acc-1',
+        breedingRecordId: 'breed-101',
+        carrierAnimalId: 'mare-101',
+        scan1DueDate: DateTime(2026, 5, 1),
+        scan1Confirmed: true,
+        scan2DueDate: DateTime(2026, 5, 15),
+        scan2Confirmed: true,
+        scan3DueDate: DateTime(2026, 6, 1),
+        scan3Confirmed: false,
+        foalingDueDate: DateTime(2027, 4, 1),
+        vetName: 'Dr. Jennifer Vance',
+        vetNumber: '+1 555 999 1234',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await pregRepo.savePregnancyRecord(pregRecord);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            pregnancyRepositoryProvider.overrideWithValue(pregRepo),
+            animalRepositoryProvider.overrideWithValue(animalRepo),
+          ],
+          child: MaterialApp(
+            onGenerateRoute: AppRouter.onGenerateRoute,
+            home: AnimalProfileScreen(animal: mare),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify Live Pregnancy Card is visible on profile
+      expect(find.text('PREGNANCY & SCANS'), findsOneWidget);
+      expect(find.text('2 / 3 SCANS CONFIRMED'), findsOneWidget);
+      expect(find.text('Estimated Foaling: 01/04/2027'), findsOneWidget);
+      expect(find.text('Veterinarian: Dr. Jennifer Vance (+1 555 999 1234)'), findsOneWidget);
+
+      // Tap VIEW & UPDATE SCANS
+      final updateScansBtn = find.text('VIEW & UPDATE SCANS');
+      expect(updateScansBtn, findsOneWidget);
+      await tester.ensureVisible(updateScansBtn);
+      await tester.tap(updateScansBtn);
+      await tester.pumpAndSettle();
+
+      // Verify VeterinarianPregnancyScansScreen opened with persisted scans
+      expect(find.text('VET CONTACT & SCANS OVERVIEW'), findsOneWidget);
+      expect(find.text('2 / 3 CONFIRMED'), findsOneWidget);
+      expect(find.text('Dr. Jennifer Vance'), findsWidgets);
     });
   });
 }

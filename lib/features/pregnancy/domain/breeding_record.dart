@@ -49,24 +49,24 @@ class BreedingRecord {
 
   factory BreedingRecord.fromJson(Map<String, dynamic> json) {
     return BreedingRecord(
-      id: json['id'] as String? ?? '',
-      accountId: json['account_id'] as String? ?? '',
-      mareAnimalId: json['mare_animal_id'] as String? ?? json['mare_id'] as String? ?? '',
-      stallionName: json['stallion_name'] as String?,
-      method: json['method'] as String? ?? 'natural',
+      id: json['id']?.toString() ?? '',
+      accountId: json['account_id']?.toString() ?? '',
+      mareAnimalId: json['mare_animal_id']?.toString() ?? json['mare_id']?.toString() ?? '',
+      stallionName: json['stallion_name']?.toString(),
+      method: json['method']?.toString() ?? 'natural',
       coverOrTransferDate: json['cover_or_transfer_date'] != null
-          ? DateTime.tryParse(json['cover_or_transfer_date'] as String)
+          ? DateTime.tryParse(json['cover_or_transfer_date'].toString())
           : null,
-      isEmbryoTransfer: json['is_embryo_transfer'] as bool? ?? false,
-      recipientAnimalId: json['recipient_animal_id'] as String?,
-      damOfEmbryo: json['dam_of_embryo'] as String?,
-      stallionOfEmbryo: json['stallion_of_embryo'] as String?,
-      photoUrl: json['photo_url'] as String?,
+      isEmbryoTransfer: json['is_embryo_transfer'] == true || json['is_embryo_transfer']?.toString() == 'true',
+      recipientAnimalId: json['recipient_animal_id']?.toString(),
+      damOfEmbryo: json['dam_of_embryo']?.toString(),
+      stallionOfEmbryo: json['stallion_of_embryo']?.toString(),
+      photoUrl: json['photo_url']?.toString(),
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
       updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
     );
   }

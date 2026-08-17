@@ -64,35 +64,35 @@ class PregnancyRecord {
 
   factory PregnancyRecord.fromJson(Map<String, dynamic> json) {
     return PregnancyRecord(
-      id: json['id'] as String? ?? '',
-      accountId: json['account_id'] as String? ?? '',
-      breedingRecordId: json['breeding_record_id'] as String? ?? '',
-      carrierAnimalId: json['carrier_animal_id'] as String? ?? json['carrier_id'] as String? ?? '',
+      id: json['id']?.toString() ?? '',
+      accountId: json['account_id']?.toString() ?? '',
+      breedingRecordId: json['breeding_record_id']?.toString() ?? '',
+      carrierAnimalId: json['carrier_animal_id']?.toString() ?? json['carrier_id']?.toString() ?? '',
       scan1DueDate: json['scan_1_due_date'] != null
-          ? DateTime.tryParse(json['scan_1_due_date'] as String)
+          ? DateTime.tryParse(json['scan_1_due_date'].toString())
           : null,
-      scan1Confirmed: json['scan_1_confirmed'] as bool? ?? false,
-      scan1ImageUrl: json['scan_1_image_url'] as String?,
+      scan1Confirmed: json['scan_1_confirmed'] == true || json['scan_1_confirmed']?.toString() == 'true',
+      scan1ImageUrl: json['scan_1_image_url']?.toString(),
       scan2DueDate: json['scan_2_due_date'] != null
-          ? DateTime.tryParse(json['scan_2_due_date'] as String)
+          ? DateTime.tryParse(json['scan_2_due_date'].toString())
           : null,
-      scan2Confirmed: json['scan_2_confirmed'] as bool? ?? false,
-      scan2ImageUrl: json['scan_2_image_url'] as String?,
+      scan2Confirmed: json['scan_2_confirmed'] == true || json['scan_2_confirmed']?.toString() == 'true',
+      scan2ImageUrl: json['scan_2_image_url']?.toString(),
       scan3DueDate: json['scan_3_due_date'] != null
-          ? DateTime.tryParse(json['scan_3_due_date'] as String)
+          ? DateTime.tryParse(json['scan_3_due_date'].toString())
           : null,
-      scan3Confirmed: json['scan_3_confirmed'] as bool? ?? false,
-      scan3ImageUrl: json['scan_3_image_url'] as String?,
+      scan3Confirmed: json['scan_3_confirmed'] == true || json['scan_3_confirmed']?.toString() == 'true',
+      scan3ImageUrl: json['scan_3_image_url']?.toString(),
       foalingDueDate: json['foaling_due_date'] != null
-          ? DateTime.tryParse(json['foaling_due_date'] as String)
+          ? DateTime.tryParse(json['foaling_due_date'].toString())
           : null,
-      vetName: json['vet_name'] as String?,
-      vetNumber: json['vet_number'] as String? ?? json['vet_mobile'] as String?,
+      vetName: json['vet_name']?.toString(),
+      vetNumber: json['vet_number']?.toString() ?? json['vet_mobile']?.toString(),
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
       updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
     );
   }
