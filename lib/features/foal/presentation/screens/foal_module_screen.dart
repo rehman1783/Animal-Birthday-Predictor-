@@ -14,7 +14,14 @@ import 'package:animal_birthday_predictor/features/puppy/presentation/providers/
 import 'package:animal_birthday_predictor/features/puppy/presentation/screens/puppy_details_screen.dart';
 
 class FoalModuleScreen extends ConsumerStatefulWidget {
-  const FoalModuleScreen({super.key});
+  final String? initialCategory;
+  final int? initialTab;
+
+  const FoalModuleScreen({
+    super.key,
+    this.initialCategory,
+    this.initialTab,
+  });
 
   @override
   ConsumerState<FoalModuleScreen> createState() => _FoalModuleScreenState();
@@ -27,7 +34,26 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _categoryTabs.length, vsync: this);
+    int initialIndex = widget.initialTab ?? 0;
+    if (widget.initialCategory != null) {
+      final cat = widget.initialCategory!.toLowerCase();
+      if (cat.contains('puppy') || cat.contains('dog')) {
+        initialIndex = 1;
+      } else if (cat.contains('kitten') || cat.contains('cat')) {
+        initialIndex = 2;
+      } else if (cat.contains('other')) {
+        initialIndex = 3;
+      }
+    }
+    if (initialIndex < 0 || initialIndex >= _categoryTabs.length) {
+      initialIndex = 0;
+    }
+
+    _tabController = TabController(
+      length: _categoryTabs.length,
+      vsync: this,
+      initialIndex: initialIndex,
+    );
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });

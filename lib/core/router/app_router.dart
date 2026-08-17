@@ -136,9 +136,8 @@ abstract class AppRouter {
         );
 
       case '/puppies':
-        final damId = settings.arguments as String?;
         return MaterialPageRoute(
-          builder: (_) => PuppyListScreen(damId: damId),
+          builder: (_) => const FoalModuleScreen(initialCategory: 'puppy'),
           settings: settings,
         );
 
@@ -242,8 +241,17 @@ abstract class AppRouter {
       case '/foals':
       case '/foal-module':
       case '/birth-log':
+        String? initialCat;
+        int? initialTab;
+        if (settings.arguments is String) {
+          initialCat = settings.arguments as String;
+        } else if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          initialCat = (map['initialCategory'] as String?) ?? (map['species'] as String?);
+          initialTab = map['initialTab'] as int?;
+        }
         return MaterialPageRoute(
-          builder: (_) => const FoalModuleScreen(),
+          builder: (_) => FoalModuleScreen(initialCategory: initialCat, initialTab: initialTab),
           settings: settings,
         );
 
@@ -295,7 +303,7 @@ abstract class AppRouter {
       '/animal-details': (context) => const AnimalDetailsScreen(),
       '/settings': (context) => const SettingsScreen(),
       '/contacts': (context) => const ContactsDirectoryScreen(),
-      '/puppies': (context) => const PuppyListScreen(),
+      '/puppies': (context) => const FoalModuleScreen(initialCategory: 'puppy'),
       '/foals': (context) => const FoalModuleScreen(),
       '/birth-log': (context) => const FoalModuleScreen(),
     };
