@@ -9,22 +9,22 @@ final pregnancyRepositoryProvider = Provider<PregnancyRepository>((ref) {
   return PregnancyRepository();
 });
 
-final pregnancyRecordForCarrierProvider = FutureProvider.family<PregnancyRecord?, String>((ref, carrierAnimalId) async {
+final pregnancyRecordForCarrierProvider = FutureProvider.autoDispose.family<PregnancyRecord?, String>((ref, carrierAnimalId) async {
   final repo = ref.watch(pregnancyRepositoryProvider);
   return repo.getPregnancyRecordForCarrier(carrierAnimalId);
 });
 
-final breedingRecordByIdProvider = FutureProvider.family<BreedingRecord?, String>((ref, id) async {
+final breedingRecordByIdProvider = FutureProvider.autoDispose.family<BreedingRecord?, String>((ref, id) async {
   final repo = ref.watch(pregnancyRepositoryProvider);
   return repo.getBreedingRecordById(id);
 });
 
-final pregnancyRecordByIdProvider = FutureProvider.family<PregnancyRecord?, String>((ref, id) async {
+final pregnancyRecordByIdProvider = FutureProvider.autoDispose.family<PregnancyRecord?, String>((ref, id) async {
   final repo = ref.watch(pregnancyRepositoryProvider);
   return repo.getPregnancyRecordById(id);
 });
 
-final advancedPregnancyInfoProvider = FutureProvider.family<AdvancedPregnancyInfo?, String>((ref, pregnancyRecordId) async {
+final advancedPregnancyInfoProvider = FutureProvider.autoDispose.family<AdvancedPregnancyInfo?, String>((ref, pregnancyRecordId) async {
   final repo = ref.watch(pregnancyRepositoryProvider);
   return repo.getAdvancedPregnancyInfo(pregnancyRecordId);
 });

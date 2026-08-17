@@ -8,12 +8,12 @@ final animalRepositoryProvider = Provider<AnimalRepository>((ref) {
 
 final selectedSpeciesFilterProvider = StateProvider<String>((ref) => 'horse');
 
-final animalsListProvider = FutureProvider.family<List<Animal>, String?>((ref, species) async {
+final animalsListProvider = FutureProvider.autoDispose.family<List<Animal>, String?>((ref, species) async {
   final repo = ref.watch(animalRepositoryProvider);
   return repo.getAnimals(species: species);
 });
 
-final animalByIdProvider = FutureProvider.family<Animal?, String>((ref, id) async {
+final animalByIdProvider = FutureProvider.autoDispose.family<Animal?, String>((ref, id) async {
   final repo = ref.watch(animalRepositoryProvider);
   return repo.getAnimalById(id);
 });

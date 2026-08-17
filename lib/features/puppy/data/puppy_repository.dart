@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/app_uuid.dart';
 import '../domain/dog_preventative_care.dart';
@@ -9,313 +7,142 @@ import '../domain/puppy_weight.dart';
 
 class PuppyRepository {
   final SupabaseClient? _supabase;
-  final List<Puppy> _inMemoryPuppies = [];
-  final List<PuppyWeight> _inMemoryWeights = [];
-  final List<DogPreventativeCareItem> _inMemoryCare = [];
-  String? _loadedUserId;
+  final List<Puppy> _mockPuppies = [];
+  final List<PuppyWeight> _mockWeights = [];
+  final List<DogPreventativeCareItem> _mockCare = [];
 
-  PuppyRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
-    _initLocalStorage();
-  }
+  PuppyRepository({SupabaseClient? supabase}) : _supabase = supabase;
 
   SupabaseClient? get client {
+    if (_supabase != null) return _supabase;
     try {
-      return _supabase ?? Supabase.instance.client;
+      return Supabase.instance.client;
     } catch (_) {
       return null;
     }
   }
 
-  String get _currentUserId {
-    try {
-      return client?.auth.currentUser?.id ?? 'guest';
-    } catch (_) {
-      return 'guest';
-    }
-  }
-
-  String get _puppyStorageKey => 'abp_cached_puppies_records_$_currentUserId';
-  String get _weightsStorageKey => 'abp_cached_puppy_weights_$_currentUserId';
-  String get _careStorageKey => 'abp_cached_dog_care_$_currentUserId';
-
-  Future<void> _initLocalStorage() async {
-    final uid = _currentUserId;
-    if (_loadedUserId == uid) return;
-    _loadedUserId = uid;
-    _inMemoryPuppies.clear();
-    _inMemoryWeights.clear();
-    _inMemoryCare.clear();
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      var puppyList = prefs.getStringList(_puppyStorageKey);
-      if (puppyList == null || puppyList.isEmpty) {
-        puppyList = prefs.getStringList('abp_cached_puppies_records');
-      }
-      if (puppyList != null && puppyList.isNotEmpty) {
-        for (final item in puppyList) {
-          try {
-            final json = jsonDecode(item) as Map<String, dynamic>;
-            final p = Puppy.fromJson(json);
-            if (!_inMemoryPuppies.any((x) => x.id == p.id)) {
-              _inMemoryPuppies.add(p);
-            }
-          } catch (e) {
-            debugPrint('Error decoding puppy cache: $e');
-          }
-        }
-      }
-
-      var weightsList = prefs.getStringList(_weightsStorageKey);
-      if (weightsList == null || weightsList.isEmpty) {
-        weightsList = prefs.getStringList('abp_cached_puppy_weights');
-      }
-      if (weightsList != null && weightsList.isNotEmpty) {
-        for (final item in weightsList) {
-          try {
-            final json = jsonDecode(item) as Map<String, dynamic>;
-            final w = PuppyWeight.fromJson(json);
-            if (!_inMemoryWeights.any((x) => x.id == w.id)) {
-              _inMemoryWeights.add(w);
-            }
-          } catch (e) {
-            debugPrint('Error decoding puppy weight cache: $e');
-          }
-        }
-      }
-
-      var careList = prefs.getStringList(_careStorageKey);
-      if (careList == null || careList.isEmpty) {
-        careList = prefs.getStringList('abp_cached_dog_care');
-      }
-      if (careList != null && careList.isNotEmpty) {
-        for (final item in careList) {
-          try {
-            final json = jsonDecode(item) as Map<String, dynamic>;
-            final c = DogPreventativeCareItem.fromJson(json);
-            if (!_inMemoryCare.any((x) => x.id == c.id)) {
-              _inMemoryCare.add(c);
-            }
-          } catch (e) {
-            debugPrint('Error decoding dog care cache: $e');
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('PuppyRepository: error reading local cache: $e');
-    }
-  }
-
-  Future<void> _persistPuppiesToLocalStorage() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final list = _inMemoryPuppies.map((p) => jsonEncode(p.toJson())).toList();
-      await prefs.setStringList(_puppyStorageKey, list);
-    } catch (e) {
-      debugPrint('PuppyRepository: error persisting puppies: $e');
-    }
-  }
-
-  Future<void> _persistWeightsToLocalStorage() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final list = _inMemoryWeights.map((w) => jsonEncode(w.toJson())).toList();
-      await prefs.setStringList(_weightsStorageKey, list);
-    } catch (e) {
-      debugPrint('PuppyRepository: error persisting weights: $e');
-    }
-  }
-
-  Future<void> _persistCareToLocalStorage() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final list = _inMemoryCare.map((c) => jsonEncode(c.toJson())).toList();
-      await prefs.setStringList(_careStorageKey, list);
-    } catch (e) {
-      debugPrint('PuppyRepository: error persisting care: $e');
-    }
-  }
-
-  // -------------------------------------------------------------
-  // PUPPY CRUD
-  // -------------------------------------------------------------
+  // --- PUPPY CRUD ---
   Future<List<Puppy>> getPuppies({String? damId}) async {
-    await _initLocalStorage();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id;
 
-    if (c != null) {
+    if (c != null && user != null) {
       try {
-        var query = c.from('puppies').select();
-        if (accountId != null && accountId.isNotEmpty) {
-          query = query.eq('account_id', accountId);
-        }
+        var query = c.from('puppies').select().eq('account_id', user.id);
         if (damId != null && damId.isNotEmpty) {
           query = query.eq('dam_animal_id', damId);
         }
         final data = await query.order('created_at', ascending: false);
         if (data is List) {
-          final list = data.map((json) => Puppy.fromJson(json as Map<String, dynamic>)).toList();
-          for (final p in list) {
-            final idx = _inMemoryPuppies.indexWhere((x) => x.id == p.id);
-            if (idx >= 0) {
-              _inMemoryPuppies[idx] = p;
-            } else {
-              _inMemoryPuppies.add(p);
-            }
-          }
-          await _persistPuppiesToLocalStorage();
-          return list;
+          return data.map((json) => Puppy.fromJson(json as Map<String, dynamic>)).toList();
         }
       } catch (e) {
         debugPrint('Supabase getPuppies error: $e');
+        rethrow;
       }
     }
 
-    return _inMemoryPuppies.where((p) {
-      if (accountId != null && accountId.isNotEmpty) {
-        if (p.accountId.isNotEmpty && p.accountId != accountId && p.accountId != '00000000-0000-0000-0000-000000000000') {
-          return false;
-        }
-      }
-      if (damId != null && damId.isNotEmpty) {
-        return p.damAnimalId == damId;
-      }
+    return _mockPuppies.where((p) {
+      if (damId != null && damId.isNotEmpty) return p.damAnimalId == damId;
       return true;
     }).toList();
   }
 
   Future<Puppy?> getPuppyById(String id) async {
-    await _initLocalStorage();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id;
 
-    if (c != null) {
+    if (c != null && user != null) {
       try {
-        var query = c.from('puppies').select().eq('id', id);
-        if (accountId != null && accountId.isNotEmpty) {
-          query = query.eq('account_id', accountId);
-        }
-        final data = await query.limit(1);
+        final data = await c.from('puppies').select().eq('account_id', user.id).eq('id', id).limit(1);
         if (data is List && data.isNotEmpty) {
-          final saved = Puppy.fromJson(data.first as Map<String, dynamic>);
-          final idx = _inMemoryPuppies.indexWhere((p) => p.id == saved.id);
-          if (idx >= 0) {
-            _inMemoryPuppies[idx] = saved;
-          } else {
-            _inMemoryPuppies.add(saved);
-          }
-          await _persistPuppiesToLocalStorage();
-          return saved;
+          return Puppy.fromJson(data.first as Map<String, dynamic>);
         }
+        return null;
       } catch (e) {
         debugPrint('Supabase getPuppyById error: $e');
+        rethrow;
       }
     }
 
     try {
-      return _inMemoryPuppies.firstWhere((p) => p.id == id);
+      return _mockPuppies.firstWhere((p) => p.id == id);
     } catch (_) {
       return null;
     }
   }
 
   Future<Puppy> savePuppy(Puppy puppy) async {
-    await _initLocalStorage();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (AppUuid.isValid(puppy.accountId) ? puppy.accountId : '00000000-0000-0000-0000-000000000000');
+    final accountId = user?.id ?? (AppUuid.isValid(puppy.accountId) ? puppy.accountId : AppUuid.generate());
     final validId = AppUuid.isValid(puppy.id) ? puppy.id : AppUuid.generate();
     final toSave = puppy.copyWith(id: validId, accountId: accountId);
 
-    final index = _inMemoryPuppies.indexWhere((p) => p.id == toSave.id);
-    if (index >= 0) {
-      _inMemoryPuppies[index] = toSave;
-    } else {
-      _inMemoryPuppies.insert(0, toSave);
-    }
-    await _persistPuppiesToLocalStorage();
-
-    if (c != null) {
+    if (c != null && user != null) {
       try {
         final data = await c.from('puppies').upsert(toSave.toJson()).select();
         if (data is List && data.isNotEmpty) {
-          final saved = Puppy.fromJson(data.first as Map<String, dynamic>);
-          final idx = _inMemoryPuppies.indexWhere((p) => p.id == saved.id);
-          if (idx >= 0) {
-            _inMemoryPuppies[idx] = saved;
-          } else {
-            _inMemoryPuppies.add(saved);
-          }
-          await _persistPuppiesToLocalStorage();
-          return saved;
+          return Puppy.fromJson(data.first as Map<String, dynamic>);
         }
       } catch (e) {
         debugPrint('Supabase savePuppy error: $e');
+        rethrow;
       }
     }
 
+    final idx = _mockPuppies.indexWhere((p) => p.id == toSave.id);
+    if (idx >= 0) {
+      _mockPuppies[idx] = toSave;
+    } else {
+      _mockPuppies.insert(0, toSave);
+    }
     return toSave;
   }
 
   Future<void> deletePuppy(String id) async {
-    await _initLocalStorage();
     final c = client;
-    _inMemoryPuppies.removeWhere((p) => p.id == id);
-    _inMemoryWeights.removeWhere((w) => w.puppyId == id);
-    _inMemoryCare.removeWhere((care) => care.ownerId == id);
-    await _persistPuppiesToLocalStorage();
-    await _persistWeightsToLocalStorage();
-    await _persistCareToLocalStorage();
+    final user = c?.auth.currentUser;
 
-    if (c != null) {
+    if (c != null && user != null) {
       try {
-        await c.from('puppies').delete().eq('id', id);
+        await c.from('puppies').delete().eq('account_id', user.id).eq('id', id);
       } catch (e) {
         debugPrint('Supabase deletePuppy error: $e');
+        rethrow;
       }
     }
+    _mockPuppies.removeWhere((p) => p.id == id);
+    _mockWeights.removeWhere((w) => w.puppyId == id);
+    _mockCare.removeWhere((care) => care.ownerId == id);
   }
 
-  // -------------------------------------------------------------
-  // PUPPY WEIGHT TRACKER
-  // -------------------------------------------------------------
+  // --- PUPPY WEIGHT TRACKER ---
   Future<List<PuppyWeight>> getPuppyWeights(String puppyId) async {
-    await _initLocalStorage();
     final c = client;
+
     if (c != null) {
       try {
         final data = await c.from('puppy_weights').select().eq('puppy_id', puppyId).order('weight_date', ascending: true);
         if (data is List) {
-          final list = data.map((json) => PuppyWeight.fromJson(json as Map<String, dynamic>)).toList();
-          for (final w in list) {
-            final idx = _inMemoryWeights.indexWhere((x) => x.id == w.id);
-            if (idx >= 0) {
-              _inMemoryWeights[idx] = w;
-            } else {
-              _inMemoryWeights.add(w);
-            }
-          }
-          await _persistWeightsToLocalStorage();
-          return list;
+          return data.map((json) => PuppyWeight.fromJson(json as Map<String, dynamic>)).toList();
         }
       } catch (e) {
         debugPrint('Supabase getPuppyWeights error: $e');
+        rethrow;
       }
     }
 
-    return _inMemoryWeights.where((w) => w.puppyId == puppyId).toList();
+    final list = _mockWeights.where((w) => w.puppyId == puppyId).toList();
+    list.sort((a, b) => a.weightDate.compareTo(b.weightDate));
+    return list;
   }
 
   Future<PuppyWeight> savePuppyWeight(PuppyWeight weight) async {
-    await _initLocalStorage();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (AppUuid.isValid(weight.accountId) ? weight.accountId : '00000000-0000-0000-0000-000000000000');
+    final accountId = user?.id ?? (AppUuid.isValid(weight.accountId) ? weight.accountId : AppUuid.generate());
     final validId = AppUuid.isValid(weight.id) ? weight.id : AppUuid.generate();
     final toSave = PuppyWeight(
       id: validId,
@@ -328,57 +155,44 @@ class PuppyRepository {
       createdAt: weight.createdAt,
     );
 
-    final index = _inMemoryWeights.indexWhere((w) => w.id == toSave.id);
-    if (index >= 0) {
-      _inMemoryWeights[index] = toSave;
-    } else {
-      _inMemoryWeights.add(toSave);
-    }
-    await _persistWeightsToLocalStorage();
-
-    if (c != null) {
+    if (c != null && user != null) {
       try {
         final data = await c.from('puppy_weights').upsert(toSave.toJson()).select();
         if (data is List && data.isNotEmpty) {
-          final saved = PuppyWeight.fromJson(data.first as Map<String, dynamic>);
-          final idx = _inMemoryWeights.indexWhere((w) => w.id == saved.id);
-          if (idx >= 0) {
-            _inMemoryWeights[idx] = saved;
-          } else {
-            _inMemoryWeights.add(saved);
-          }
-          await _persistWeightsToLocalStorage();
-          return saved;
+          return PuppyWeight.fromJson(data.first as Map<String, dynamic>);
         }
       } catch (e) {
         debugPrint('Supabase savePuppyWeight error: $e');
+        rethrow;
       }
     }
 
+    final idx = _mockWeights.indexWhere((w) => w.id == toSave.id);
+    if (idx >= 0) {
+      _mockWeights[idx] = toSave;
+    } else {
+      _mockWeights.insert(0, toSave);
+    }
     return toSave;
   }
 
   Future<void> deletePuppyWeight(String id) async {
-    await _initLocalStorage();
     final c = client;
-    _inMemoryWeights.removeWhere((w) => w.id == id);
-    await _persistWeightsToLocalStorage();
-
     if (c != null) {
       try {
         await c.from('puppy_weights').delete().eq('id', id);
       } catch (e) {
         debugPrint('Supabase deletePuppyWeight error: $e');
+        rethrow;
       }
     }
+    _mockWeights.removeWhere((w) => w.id == id);
   }
 
-  // -------------------------------------------------------------
-  // DOG / PUPPY PREVENTATIVE CARE (GIVEN + DUE PAIRS)
-  // -------------------------------------------------------------
+  // --- DOG PREVENTATIVE CARE ---
   Future<List<DogPreventativeCareItem>> getDogPreventativeCare(String ownerType, String ownerId) async {
-    await _initLocalStorage();
     final c = client;
+
     if (c != null) {
       try {
         final data = await c.from('dog_preventative_care')
@@ -387,80 +201,58 @@ class PuppyRepository {
             .eq('owner_id', ownerId)
             .order('created_at', ascending: true);
         if (data is List) {
-          final list = data.map((json) => DogPreventativeCareItem.fromJson(json as Map<String, dynamic>)).toList();
-          for (final item in list) {
-            final idx = _inMemoryCare.indexWhere((x) => x.id == item.id);
-            if (idx >= 0) {
-              _inMemoryCare[idx] = item;
-            } else {
-              _inMemoryCare.add(item);
-            }
-          }
-          await _persistCareToLocalStorage();
-          return list;
+          return data.map((json) => DogPreventativeCareItem.fromJson(json as Map<String, dynamic>)).toList();
         }
       } catch (e) {
         debugPrint('Supabase getDogPreventativeCare error: $e');
+        rethrow;
       }
     }
 
-    return _inMemoryCare.where((item) => item.ownerType == ownerType && item.ownerId == ownerId).toList();
+    return _mockCare.where((item) => item.ownerType == ownerType && item.ownerId == ownerId).toList();
   }
 
   Future<DogPreventativeCareItem> saveDogPreventativeCareItem(DogPreventativeCareItem item) async {
-    await _initLocalStorage();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (AppUuid.isValid(item.accountId) ? item.accountId : '00000000-0000-0000-0000-000000000000');
+    final accountId = user?.id ?? (AppUuid.isValid(item.accountId) ? item.accountId : AppUuid.generate());
     final validId = AppUuid.isValid(item.id) ? item.id : AppUuid.generate();
     final toSave = item.copyWith(id: validId, accountId: accountId);
 
-    final index = _inMemoryCare.indexWhere((c) => c.id == toSave.id);
-    if (index >= 0) {
-      _inMemoryCare[index] = toSave;
-    } else {
-      _inMemoryCare.add(toSave);
-    }
-    await _persistCareToLocalStorage();
-
-    if (c != null) {
+    if (c != null && user != null) {
       try {
         final data = await c.from('dog_preventative_care').upsert(toSave.toJson()).select();
         if (data is List && data.isNotEmpty) {
-          final saved = DogPreventativeCareItem.fromJson(data.first as Map<String, dynamic>);
-          final idx = _inMemoryCare.indexWhere((c) => c.id == saved.id);
-          if (idx >= 0) {
-            _inMemoryCare[idx] = saved;
-          } else {
-            _inMemoryCare.add(saved);
-          }
-          await _persistCareToLocalStorage();
-          return saved;
+          return DogPreventativeCareItem.fromJson(data.first as Map<String, dynamic>);
         }
       } catch (e) {
         debugPrint('Supabase saveDogPreventativeCareItem error: $e');
+        rethrow;
       }
     }
 
+    final idx = _mockCare.indexWhere((care) => care.id == toSave.id);
+    if (idx >= 0) {
+      _mockCare[idx] = toSave;
+    } else {
+      _mockCare.insert(0, toSave);
+    }
     return toSave;
   }
 
   Future<void> deleteDogPreventativeCareItem(String id) async {
-    await _initLocalStorage();
     final c = client;
-    _inMemoryCare.removeWhere((item) => item.id == id);
-    await _persistCareToLocalStorage();
-
     if (c != null) {
       try {
         await c.from('dog_preventative_care').delete().eq('id', id);
       } catch (e) {
         debugPrint('Supabase deleteDogPreventativeCareItem error: $e');
+        rethrow;
       }
     }
+    _mockCare.removeWhere((item) => item.id == id);
   }
 
-  /// Initializes default schedule if none exists yet for this puppy/dog
   Future<List<DogPreventativeCareItem>> initializeDefaultDogSchedule({
     required String ownerType,
     required String ownerId,

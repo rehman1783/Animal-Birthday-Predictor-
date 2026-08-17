@@ -7,12 +7,12 @@ final foalRepositoryProvider = Provider<FoalRepository>((ref) {
   return FoalRepository();
 });
 
-final foalsListProvider = FutureProvider<List<FoalRecord>>((ref) async {
+final foalsListProvider = FutureProvider.autoDispose<List<FoalRecord>>((ref) async {
   final repo = ref.watch(foalRepositoryProvider);
   return repo.getFoals();
 });
 
-final foalByIdProvider = FutureProvider.family<FoalRecord?, String>((ref, id) async {
+final foalByIdProvider = FutureProvider.autoDispose.family<FoalRecord?, String>((ref, id) async {
   final repo = ref.watch(foalRepositoryProvider);
   return repo.getFoalById(id);
 });

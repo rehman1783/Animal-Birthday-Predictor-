@@ -1,211 +1,113 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/app_uuid.dart';
 import '../domain/contact.dart';
 
 class ContactRepository {
   final SupabaseClient? _supabase;
-  final List<Contact> _inMemoryContacts = [];
-  String? _loadedUserId;
+  final List<Contact> _mockContacts = [];
 
-  ContactRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
-    _initLocalStorage();
-  }
+  ContactRepository({SupabaseClient? supabase}) : _supabase = supabase;
 
   SupabaseClient? get client {
+    if (_supabase != null) return _supabase;
     try {
-      return _supabase ?? Supabase.instance.client;
+      return Supabase.instance.client;
     } catch (_) {
       return null;
     }
   }
 
-  String get _currentUserId {
-    try {
-      return client?.auth.currentUser?.id ?? 'guest';
-    } catch (_) {
-      return 'guest';
-    }
-  }
-
-  String get _storageKey => 'abp_cached_contacts_records_$_currentUserId';
-
-  Future<void> _initLocalStorage() async {
-    final uid = _currentUserId;
-    if (_loadedUserId == uid) return;
-    _loadedUserId = uid;
-    _inMemoryContacts.clear();
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      var list = prefs.getStringList(_storageKey);
-      if (list == null || list.isEmpty) {
-        list = prefs.getStringList('abp_cached_contacts_records');
-      }
-      if (list != null && list.isNotEmpty) {
-        for (final item in list) {
-          try {
-            final json = jsonDecode(item) as Map<String, dynamic>;
-            final contact = Contact.fromMap(json);
-            if (!_inMemoryContacts.any((c) => c.id == contact.id)) {
-              _inMemoryContacts.add(contact);
-            }
-          } catch (e) {
-            debugPrint('Error decoding contact cache: $e');
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('ContactRepository: error reading local cache: $e');
-    }
-  }
-
-  Future<void> _persistToLocalStorage() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final list = _inMemoryContacts.map((c) => jsonEncode(c.toMap())).toList();
-      await prefs.setStringList(_storageKey, list);
-    } catch (e) {
-      debugPrint('ContactRepository: error persisting to local cache: $e');
-    }
-  }
-
   Future<List<Contact>> getContacts({String? role}) async {
-    await _initLocalStorage();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id;
 
-    if (c != null) {
+    if (c != null && user != null) {
       try {
-        var query = c.from('contacts').select();
-        if (accountId != null && accountId.isNotEmpty) {
-          query = query.eq('account_id', accountId);
-        }
+        var query = c.from('contacts').select().eq('account_id', user.id);
         if (role != null && role.isNotEmpty && role != 'all') {
           query = query.eq('role', role);
         }
         final data = await query.order('name', ascending: true);
         if (data is List) {
-          final list = data.map((json) => Contact.fromMap(json as Map<String, dynamic>)).toList();
-          for (final contact in list) {
-            final idx = _inMemoryContacts.indexWhere((x) => x.id == contact.id);
-            if (idx >= 0) {
-              _inMemoryContacts[idx] = contact;
-            } else {
-              _inMemoryContacts.add(contact);
-            }
-          }
-          await _persistToLocalStorage();
-          return list;
+          return data.map((json) => Contact.fromMap(json as Map<String, dynamic>)).toList();
         }
       } catch (e) {
         debugPrint('Supabase getContacts error: $e');
+        rethrow;
       }
     }
 
-    return _inMemoryContacts.where((item) {
-      if (accountId != null && accountId.isNotEmpty) {
-        if (item.accountId.isNotEmpty && item.accountId != accountId && item.accountId != '00000000-0000-0000-0000-000000000000') {
-          return false;
-        }
-      }
-      if (role != null && role.isNotEmpty && role != 'all') {
-        return item.role.toLowerCase() == role.toLowerCase();
-      }
-      return true;
-    }).toList();
+    if (role != null && role.isNotEmpty && role != 'all') {
+      return _mockContacts.where((item) => item.role.toLowerCase() == role.toLowerCase()).toList();
+    }
+    return List.unmodifiable(_mockContacts);
   }
 
   Future<Contact?> getContactById(String id) async {
-    await _initLocalStorage();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id;
 
-    if (c != null) {
+    if (c != null && user != null) {
       try {
-        var query = c.from('contacts').select().eq('id', id);
-        if (accountId != null && accountId.isNotEmpty) {
-          query = query.eq('account_id', accountId);
-        }
-        final data = await query.limit(1);
+        final data = await c.from('contacts').select().eq('account_id', user.id).eq('id', id).limit(1);
         if (data is List && data.isNotEmpty) {
-          final saved = Contact.fromMap(data.first as Map<String, dynamic>);
-          final idx = _inMemoryContacts.indexWhere((x) => x.id == saved.id);
-          if (idx >= 0) {
-            _inMemoryContacts[idx] = saved;
-          } else {
-            _inMemoryContacts.add(saved);
-          }
-          await _persistToLocalStorage();
-          return saved;
+          return Contact.fromMap(data.first as Map<String, dynamic>);
         }
+        return null;
       } catch (e) {
         debugPrint('Supabase getContactById error: $e');
+        rethrow;
       }
     }
 
     try {
-      return _inMemoryContacts.firstWhere((item) => item.id == id);
+      return _mockContacts.firstWhere((item) => item.id == id);
     } catch (_) {
       return null;
     }
   }
 
   Future<Contact> saveContact(Contact contact) async {
-    await _initLocalStorage();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id ?? (AppUuid.isValid(contact.accountId) ? contact.accountId : '00000000-0000-0000-0000-000000000000');
+    final accountId = user?.id ?? (AppUuid.isValid(contact.accountId) ? contact.accountId : AppUuid.generate());
     final validId = AppUuid.isValid(contact.id) ? contact.id : AppUuid.generate();
     final toSave = contact.copyWith(id: validId, accountId: accountId);
 
-    final index = _inMemoryContacts.indexWhere((item) => item.id == toSave.id);
-    if (index >= 0) {
-      _inMemoryContacts[index] = toSave;
-    } else {
-      _inMemoryContacts.insert(0, toSave);
-    }
-    await _persistToLocalStorage();
-
-    if (c != null) {
+    if (c != null && user != null) {
       try {
         final data = await c.from('contacts').upsert(toSave.toMap()).select();
         if (data is List && data.isNotEmpty) {
-          final saved = Contact.fromMap(data.first as Map<String, dynamic>);
-          final idx = _inMemoryContacts.indexWhere((item) => item.id == saved.id);
-          if (idx >= 0) {
-            _inMemoryContacts[idx] = saved;
-          } else {
-            _inMemoryContacts.add(saved);
-          }
-          await _persistToLocalStorage();
-          return saved;
+          return Contact.fromMap(data.first as Map<String, dynamic>);
         }
       } catch (e) {
         debugPrint('Supabase saveContact error: $e');
+        rethrow;
       }
     }
 
+    final idx = _mockContacts.indexWhere((item) => item.id == toSave.id);
+    if (idx >= 0) {
+      _mockContacts[idx] = toSave;
+    } else {
+      _mockContacts.insert(0, toSave);
+    }
     return toSave;
   }
 
   Future<void> deleteContact(String id) async {
-    await _initLocalStorage();
     final c = client;
-    _inMemoryContacts.removeWhere((item) => item.id == id);
-    await _persistToLocalStorage();
+    final user = c?.auth.currentUser;
 
-    if (c != null) {
+    if (c != null && user != null) {
       try {
-        await c.from('contacts').delete().eq('id', id);
+        await c.from('contacts').delete().eq('account_id', user.id).eq('id', id);
       } catch (e) {
         debugPrint('Supabase deleteContact error: $e');
+        rethrow;
       }
     }
+    _mockContacts.removeWhere((item) => item.id == id);
   }
 }

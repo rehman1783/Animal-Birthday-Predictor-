@@ -7,7 +7,7 @@ final preventativeCareRepositoryProvider = Provider<PreventativeCareRepository>(
   return PreventativeCareRepository();
 });
 
-final preventativeCareForOwnerProvider = FutureProvider.family<PreventativeCareRecord?, ({String ownerType, String ownerId})>((ref, arg) async {
+final preventativeCareForOwnerProvider = FutureProvider.autoDispose.family<PreventativeCareRecord?, ({String ownerType, String ownerId})>((ref, arg) async {
   final repo = ref.watch(preventativeCareRepositoryProvider);
   return repo.getPreventativeCare(arg.ownerType, arg.ownerId);
 });

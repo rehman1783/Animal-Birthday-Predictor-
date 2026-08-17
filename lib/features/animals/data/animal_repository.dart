@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/app_uuid.dart';
@@ -8,135 +6,41 @@ import '../domain/animal.dart';
 
 class AnimalRepository {
   final SupabaseClient? _supabase;
-  final List<Animal> _inMemoryAnimals = [];
-  String? _loadedUserId;
+  final List<Animal> _mockAnimals = [];
 
-  AnimalRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
-    _ensureLoaded();
-  }
+  AnimalRepository({SupabaseClient? supabase}) : _supabase = supabase;
 
   SupabaseClient? get client {
+    if (_supabase != null) return _supabase;
     try {
-      return _supabase ?? Supabase.instance.client;
+      return Supabase.instance.client;
     } catch (_) {
       return null;
     }
   }
 
-  String get _currentUserId {
-    try {
-      return client?.auth.currentUser?.id ?? 'guest';
-    } catch (_) {
-      return 'guest';
-    }
-  }
-
-  String get _storageKey => 'abp_cached_animal_records_$_currentUserId';
-
-  Future<void> _ensureLoaded() async {
-    final uid = _currentUserId;
-    if (_loadedUserId == uid) return;
-    _loadedUserId = uid;
-    _inMemoryAnimals.clear();
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      var list = prefs.getStringList(_storageKey);
-      if (list == null || list.isEmpty) {
-        list = prefs.getStringList('abp_cached_animal_records');
-      }
-      if (list != null && list.isNotEmpty) {
-        for (final str in list) {
-          try {
-            final map = jsonDecode(str) as Map<String, dynamic>;
-            final animal = Animal.fromJson(map);
-            if (!_inMemoryAnimals.any((a) => a.id == animal.id)) {
-              _inMemoryAnimals.add(animal);
-            }
-          } catch (e) {
-            debugPrint('Error decoding cached animal: $e');
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Error loading cached animals from SharedPreferences: $e');
-    }
-  }
-
-  Future<void> _persistToLocalStorage() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonList = _inMemoryAnimals.map((a) => jsonEncode(a.toJson())).toList();
-      await prefs.setStringList(_storageKey, jsonList);
-    } catch (e) {
-      debugPrint('Error saving cached animals to SharedPreferences: $e');
-    }
-  }
-
-  void _updateLocalAnimals(Animal animal) {
-    final idx = _inMemoryAnimals.indexWhere((a) => a.id == animal.id);
-    if (idx >= 0) {
-      _inMemoryAnimals[idx] = animal;
-    } else {
-      _inMemoryAnimals.insert(0, animal);
-    }
-  }
-
   Future<List<Animal>> getAnimals({String? species}) async {
-    await _ensureLoaded();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id;
 
-    if (c != null) {
+    if (c != null && user != null) {
       try {
-        var query = c.from('animals').select();
-        if (accountId != null && accountId.isNotEmpty) {
-          query = query.eq('account_id', accountId);
-        }
+        var query = c.from('animals').select().eq('account_id', user.id);
         if (species != null && species.isNotEmpty && species != 'all') {
           query = query.eq('species', species);
         }
         final data = await query.order('created_at', ascending: false);
         if (data is List) {
-          final List<Animal> remoteList = [];
-          for (final item in data) {
-            try {
-              if (item is Map<String, dynamic>) {
-                remoteList.add(Animal.fromJson(item));
-              } else if (item is Map) {
-                remoteList.add(Animal.fromJson(Map<String, dynamic>.from(item)));
-              }
-            } catch (e) {
-              debugPrint('Error parsing remote animal item: $e');
-            }
-          }
-
-          // Merge into local list
-          for (final remote in remoteList) {
-            final idx = _inMemoryAnimals.indexWhere((a) => a.id == remote.id);
-            if (idx >= 0) {
-              _inMemoryAnimals[idx] = remote;
-            } else {
-              _inMemoryAnimals.add(remote);
-            }
-          }
-
-          await _persistToLocalStorage();
-          return remoteList;
+          return data.map((json) => Animal.fromJson(json as Map<String, dynamic>)).toList();
         }
       } catch (e) {
         debugPrint('Supabase getAnimals error: $e');
+        rethrow;
       }
     }
 
-    return _inMemoryAnimals.where((a) {
-      if (accountId != null && accountId.isNotEmpty) {
-        if (a.accountId.isNotEmpty && a.accountId != accountId && a.accountId != '00000000-0000-0000-0000-000000000000') {
-          return false;
-        }
-      }
+    // Standalone mock fallback for unit tests
+    return _mockAnimals.where((a) {
       if (species != null && species.isNotEmpty && species != 'all') {
         return Animal.matchesSpeciesFilter(a.species, species);
       }
@@ -145,43 +49,33 @@ class AnimalRepository {
   }
 
   Future<Animal?> getAnimalById(String id) async {
-    await _ensureLoaded();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user?.id;
 
-    if (c != null) {
+    if (c != null && user != null) {
       try {
-        var query = c.from('animals').select().eq('id', id);
-        if (accountId != null && accountId.isNotEmpty) {
-          query = query.eq('account_id', accountId);
-        }
-        final data = await query.limit(1);
+        final data = await c.from('animals').select().eq('account_id', user.id).eq('id', id).limit(1);
         if (data is List && data.isNotEmpty) {
-          final animal = Animal.fromJson(data.first as Map<String, dynamic>);
-          _updateLocalAnimals(animal);
-          await _persistToLocalStorage();
-          return animal;
+          return Animal.fromJson(data.first as Map<String, dynamic>);
         }
+        return null;
       } catch (e) {
         debugPrint('Supabase getAnimalById error: $e');
+        rethrow;
       }
     }
 
     try {
-      return _inMemoryAnimals.firstWhere((a) => a.id == id);
+      return _mockAnimals.firstWhere((a) => a.id == id);
     } catch (_) {
       return null;
     }
   }
 
   Future<Animal> saveAnimal(Animal animal) async {
-    await _ensureLoaded();
     final c = client;
     final user = c?.auth.currentUser;
-    final accountId = user != null
-        ? user.id
-        : (AppUuid.isValid(animal.accountId) ? animal.accountId : '00000000-0000-0000-0000-000000000000');
+    final accountId = user?.id ?? (AppUuid.isValid(animal.accountId) ? animal.accountId : AppUuid.generate());
     final validId = AppUuid.isValid(animal.id) ? animal.id : AppUuid.generate();
     final normalizedSpecies = Animal.normalizeSpecies(animal.species);
 
@@ -191,39 +85,40 @@ class AnimalRepository {
       species: normalizedSpecies,
     );
 
-    // Save locally immediately
-    _updateLocalAnimals(toSave);
-    await _persistToLocalStorage();
-
-    if (c != null) {
+    if (c != null && user != null) {
       try {
         final data = await c.from('animals').upsert(toSave.toJson()).select();
         if (data is List && data.isNotEmpty) {
-          final saved = Animal.fromJson(data.first as Map<String, dynamic>);
-          _updateLocalAnimals(saved);
-          await _persistToLocalStorage();
-          return saved;
+          return Animal.fromJson(data.first as Map<String, dynamic>);
         }
       } catch (e) {
-        debugPrint('Supabase saveAnimal error: $e. Retaining local persistent copy.');
+        debugPrint('Supabase saveAnimal error: $e');
+        rethrow;
       }
     }
 
+    // Mock storage for unit testing without network
+    final idx = _mockAnimals.indexWhere((a) => a.id == toSave.id);
+    if (idx >= 0) {
+      _mockAnimals[idx] = toSave;
+    } else {
+      _mockAnimals.insert(0, toSave);
+    }
     return toSave;
   }
 
   Future<void> deleteAnimal(String id) async {
-    await _ensureLoaded();
-    _inMemoryAnimals.removeWhere((a) => a.id == id);
-    await _persistToLocalStorage();
-
     final c = client;
-    if (c != null) {
+    final user = c?.auth.currentUser;
+
+    if (c != null && user != null) {
       try {
-        await c.from('animals').delete().eq('id', id);
+        await c.from('animals').delete().eq('account_id', user.id).eq('id', id);
       } catch (e) {
         debugPrint('Supabase deleteAnimal error: $e');
+        rethrow;
       }
     }
+    _mockAnimals.removeWhere((a) => a.id == id);
   }
 }
