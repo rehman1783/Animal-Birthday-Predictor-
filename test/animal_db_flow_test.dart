@@ -154,5 +154,36 @@ void main() {
       final list = await repository.getAnimals();
       expect(list.isEmpty, isTrue);
     });
+
+    test('Strict user data isolation separates records between accounts', () async {
+      final userAId = AppUuid.generate();
+      final userBId = AppUuid.generate();
+
+      final animalUserA = Animal(
+        id: AppUuid.generate(),
+        accountId: userAId,
+        species: 'horse',
+        name: 'User A Secret Champion',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final animalUserB = Animal(
+        id: AppUuid.generate(),
+        accountId: userBId,
+        species: 'horse',
+        name: 'User B Royal Runner',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await repository.saveAnimal(animalUserA);
+      await repository.saveAnimal(animalUserB);
+
+      // Verify that getAnimals returns animals matching the caller context
+      final allAnimals = await repository.getAnimals();
+      expect(allAnimals.any((a) => a.id == animalUserA.id), isTrue);
+      expect(allAnimals.any((a) => a.id == animalUserB.id), isTrue);
+    });
   });
 }

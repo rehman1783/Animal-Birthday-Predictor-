@@ -6,10 +6,9 @@ import '../../../../core/utils/app_uuid.dart';
 import '../domain/contact.dart';
 
 class ContactRepository {
-  static const String _storageKey = 'abp_cached_contacts_records';
   final SupabaseClient? _supabase;
   final List<Contact> _inMemoryContacts = [];
-  bool _hasLoadedFromStorage = false;
+  String? _loadedUserId;
 
   ContactRepository({SupabaseClient? supabase})
       : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
@@ -24,9 +23,22 @@ class ContactRepository {
     }
   }
 
+  String get _currentUserId {
+    try {
+      return client?.auth.currentUser?.id ?? 'guest';
+    } catch (_) {
+      return 'guest';
+    }
+  }
+
+  String get _storageKey => 'abp_cached_contacts_records_$_currentUserId';
+
   Future<void> _initLocalStorage() async {
-    if (_hasLoadedFromStorage) return;
-    _hasLoadedFromStorage = true;
+    final uid = _currentUserId;
+    if (_loadedUserId == uid) return;
+    _loadedUserId = uid;
+    _inMemoryContacts.clear();
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final list = prefs.getStringList(_storageKey);
@@ -61,9 +73,15 @@ class ContactRepository {
   Future<List<Contact>> getContacts({String? role}) async {
     await _initLocalStorage();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
     if (c != null) {
       try {
         var query = c.from('contacts').select();
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
         if (role != null && role.isNotEmpty && role != 'all') {
           query = query.eq('role', role);
         }
@@ -86,18 +104,32 @@ class ContactRepository {
       }
     }
 
-    if (role != null && role.isNotEmpty && role != 'all') {
-      return _inMemoryContacts.where((item) => item.role.toLowerCase() == role.toLowerCase()).toList();
-    }
-    return List.unmodifiable(_inMemoryContacts);
+    return _inMemoryContacts.where((item) {
+      if (accountId != null && accountId.isNotEmpty) {
+        if (item.accountId.isNotEmpty && item.accountId != accountId && item.accountId != '00000000-0000-0000-0000-000000000000') {
+          return false;
+        }
+      }
+      if (role != null && role.isNotEmpty && role != 'all') {
+        return item.role.toLowerCase() == role.toLowerCase();
+      }
+      return true;
+    }).toList();
   }
 
   Future<Contact?> getContactById(String id) async {
     await _initLocalStorage();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
     if (c != null) {
       try {
-        final data = await c.from('contacts').select().eq('id', id).limit(1);
+        var query = c.from('contacts').select().eq('id', id);
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.limit(1);
         if (data is List && data.isNotEmpty) {
           final saved = Contact.fromMap(data.first as Map<String, dynamic>);
           final idx = _inMemoryContacts.indexWhere((x) => x.id == saved.id);

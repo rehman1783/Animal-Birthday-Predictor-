@@ -10,15 +10,11 @@ import '../domain/advanced_pregnancy_info.dart';
 import '../domain/pregnancy_calculation_utils.dart';
 
 class PregnancyRepository {
-  static const String _pregnancyStorageKey = 'abp_cached_pregnancy_records';
-  static const String _breedingStorageKey = 'abp_cached_breeding_records';
-  static const String _advancedStorageKey = 'abp_cached_advanced_pregnancy';
-
   final SupabaseClient? _supabase;
   final List<BreedingRecord> _inMemoryBreeding = [];
   final List<PregnancyRecord> _inMemoryPregnancies = [];
   final List<AdvancedPregnancyInfo> _inMemoryAdvanced = [];
-  bool _hasLoadedFromStorage = false;
+  String? _loadedUserId;
 
   PregnancyRepository({SupabaseClient? supabase})
       : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
@@ -33,9 +29,26 @@ class PregnancyRepository {
     }
   }
 
+  String get _currentUserId {
+    try {
+      return client?.auth.currentUser?.id ?? 'guest';
+    } catch (_) {
+      return 'guest';
+    }
+  }
+
+  String get _pregnancyStorageKey => 'abp_cached_pregnancy_records_$_currentUserId';
+  String get _breedingStorageKey => 'abp_cached_breeding_records_$_currentUserId';
+  String get _advancedStorageKey => 'abp_cached_advanced_pregnancy_$_currentUserId';
+
   Future<void> _ensureLoaded() async {
-    if (_hasLoadedFromStorage) return;
-    _hasLoadedFromStorage = true;
+    final uid = _currentUserId;
+    if (_loadedUserId == uid) return;
+    _loadedUserId = uid;
+    _inMemoryPregnancies.clear();
+    _inMemoryBreeding.clear();
+    _inMemoryAdvanced.clear();
+
     try {
       final prefs = await SharedPreferences.getInstance();
 
@@ -171,9 +184,16 @@ class PregnancyRepository {
   Future<BreedingRecord?> getBreedingRecordById(String id) async {
     await _ensureLoaded();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
     if (c != null) {
       try {
-        final data = await c.from('breeding_records').select().eq('id', id).limit(1);
+        var query = c.from('breeding_records').select().eq('id', id);
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.limit(1);
         if (data is List && data.isNotEmpty) {
           final saved = BreedingRecord.fromJson(data.first as Map<String, dynamic>);
           _updateLocalBreeding(saved);
@@ -195,13 +215,18 @@ class PregnancyRepository {
   Future<BreedingRecord?> getBreedingRecordByMare(String mareAnimalId) async {
     await _ensureLoaded();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
     if (c != null) {
       try {
-        final data = await c.from('breeding_records')
+        var query = c.from('breeding_records')
             .select()
-            .or('mare_animal_id.eq.$mareAnimalId,recipient_animal_id.eq.$mareAnimalId')
-            .order('created_at', ascending: false)
-            .limit(1);
+            .or('mare_animal_id.eq.$mareAnimalId,recipient_animal_id.eq.$mareAnimalId');
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.order('created_at', ascending: false).limit(1);
         if (data is List && data.isNotEmpty) {
           final saved = BreedingRecord.fromJson(data.first as Map<String, dynamic>);
           _updateLocalBreeding(saved);
@@ -226,14 +251,18 @@ class PregnancyRepository {
   Future<PregnancyRecord?> getPregnancyRecordForCarrier(String carrierAnimalId) async {
     await _ensureLoaded();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
     if (c != null) {
       try {
-        final data = await c
-            .from('pregnancy_records')
+        var query = c.from('pregnancy_records')
             .select()
-            .eq('carrier_animal_id', carrierAnimalId)
-            .order('created_at', ascending: false)
-            .limit(1);
+            .eq('carrier_animal_id', carrierAnimalId);
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.order('created_at', ascending: false).limit(1);
         if (data is List && data.isNotEmpty) {
           final saved = PregnancyRecord.fromJson(data.first as Map<String, dynamic>);
           _updateLocalPregnancy(saved);
@@ -255,9 +284,16 @@ class PregnancyRepository {
   Future<PregnancyRecord?> getPregnancyRecordById(String id) async {
     await _ensureLoaded();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
     if (c != null) {
       try {
-        final data = await c.from('pregnancy_records').select().eq('id', id).limit(1);
+        var query = c.from('pregnancy_records').select().eq('id', id);
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.limit(1);
         if (data is List && data.isNotEmpty) {
           final saved = PregnancyRecord.fromJson(data.first as Map<String, dynamic>);
           _updateLocalPregnancy(saved);

@@ -7,13 +7,14 @@ import '../../../../core/utils/app_uuid.dart';
 import '../domain/animal.dart';
 
 class AnimalRepository {
-  static const String _storageKey = 'abp_cached_animal_records';
   final SupabaseClient? _supabase;
   final List<Animal> _inMemoryAnimals = [];
-  bool _hasLoadedFromStorage = false;
+  String? _loadedUserId;
 
   AnimalRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client);
+      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
+    _ensureLoaded();
+  }
 
   SupabaseClient? get client {
     try {
@@ -23,9 +24,22 @@ class AnimalRepository {
     }
   }
 
+  String get _currentUserId {
+    try {
+      return client?.auth.currentUser?.id ?? 'guest';
+    } catch (_) {
+      return 'guest';
+    }
+  }
+
+  String get _storageKey => 'abp_cached_animal_records_$_currentUserId';
+
   Future<void> _ensureLoaded() async {
-    if (_hasLoadedFromStorage) return;
-    _hasLoadedFromStorage = true;
+    final uid = _currentUserId;
+    if (_loadedUserId == uid) return;
+    _loadedUserId = uid;
+    _inMemoryAnimals.clear();
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final list = prefs.getStringList(_storageKey);
@@ -69,85 +83,92 @@ class AnimalRepository {
   Future<List<Animal>> getAnimals({String? species}) async {
     await _ensureLoaded();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
 
-    if (c == null) {
-      if (species != null && species.isNotEmpty) {
-        return _inMemoryAnimals.where((a) => Animal.matchesSpeciesFilter(a.species, species)).toList();
-      }
-      return List.unmodifiable(_inMemoryAnimals);
-    }
-
-    try {
-      final data = await c.from('animals').select().order('created_at', ascending: false);
-      if (data is List) {
-        final List<Animal> remoteList = [];
-        for (final item in data) {
-          try {
-            if (item is Map<String, dynamic>) {
-              remoteList.add(Animal.fromJson(item));
-            } else if (item is Map) {
-              remoteList.add(Animal.fromJson(Map<String, dynamic>.from(item)));
+    if (c != null) {
+      try {
+        var query = c.from('animals').select();
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        if (species != null && species.isNotEmpty && species != 'all') {
+          query = query.eq('species', species);
+        }
+        final data = await query.order('created_at', ascending: false);
+        if (data is List) {
+          final List<Animal> remoteList = [];
+          for (final item in data) {
+            try {
+              if (item is Map<String, dynamic>) {
+                remoteList.add(Animal.fromJson(item));
+              } else if (item is Map) {
+                remoteList.add(Animal.fromJson(Map<String, dynamic>.from(item)));
+              }
+            } catch (e) {
+              debugPrint('Error parsing remote animal item: $e');
             }
-          } catch (e) {
-            debugPrint('Error parsing remote animal item: $e');
           }
-        }
 
-        // Merge remote items with local
-        for (final remote in remoteList) {
-          final idx = _inMemoryAnimals.indexWhere((a) => a.id == remote.id);
-          if (idx >= 0) {
-            _inMemoryAnimals[idx] = remote;
-          } else {
-            _inMemoryAnimals.add(remote);
+          // Merge into local list
+          for (final remote in remoteList) {
+            final idx = _inMemoryAnimals.indexWhere((a) => a.id == remote.id);
+            if (idx >= 0) {
+              _inMemoryAnimals[idx] = remote;
+            } else {
+              _inMemoryAnimals.add(remote);
+            }
           }
+
+          await _persistToLocalStorage();
+          return remoteList;
         }
-
-        await _persistToLocalStorage();
+      } catch (e) {
+        debugPrint('Supabase getAnimals error: $e');
       }
-
-      if (species != null && species.isNotEmpty) {
-        return _inMemoryAnimals.where((a) => Animal.matchesSpeciesFilter(a.species, species)).toList();
-      }
-      return List.unmodifiable(_inMemoryAnimals);
-    } catch (e) {
-      debugPrint('Supabase getAnimals error: $e');
-      if (species != null && species.isNotEmpty) {
-        return _inMemoryAnimals.where((a) => Animal.matchesSpeciesFilter(a.species, species)).toList();
-      }
-      return List.unmodifiable(_inMemoryAnimals);
     }
+
+    return _inMemoryAnimals.where((a) {
+      if (accountId != null && accountId.isNotEmpty) {
+        if (a.accountId.isNotEmpty && a.accountId != accountId && a.accountId != '00000000-0000-0000-0000-000000000000') {
+          return false;
+        }
+      }
+      if (species != null && species.isNotEmpty && species != 'all') {
+        return Animal.matchesSpeciesFilter(a.species, species);
+      }
+      return true;
+    }).toList();
   }
 
   Future<Animal?> getAnimalById(String id) async {
     await _ensureLoaded();
     final c = client;
-    if (c == null) {
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
+    if (c != null) {
       try {
-        return _inMemoryAnimals.firstWhere((a) => a.id == id);
-      } catch (_) {
-        return null;
+        var query = c.from('animals').select().eq('id', id);
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.limit(1);
+        if (data is List && data.isNotEmpty) {
+          final animal = Animal.fromJson(data.first as Map<String, dynamic>);
+          _updateLocalAnimals(animal);
+          await _persistToLocalStorage();
+          return animal;
+        }
+      } catch (e) {
+        debugPrint('Supabase getAnimalById error: $e');
       }
     }
+
     try {
-      final data = await c.from('animals').select().eq('id', id).maybeSingle();
-      if (data == null) {
-        try {
-          return _inMemoryAnimals.firstWhere((a) => a.id == id);
-        } catch (_) {
-          return null;
-        }
-      }
-      final animal = Animal.fromJson(data);
-      _updateLocalAnimals(animal);
-      return animal;
-    } catch (e) {
-      debugPrint('Supabase getAnimalById error: $e');
-      try {
-        return _inMemoryAnimals.firstWhere((a) => a.id == id);
-      } catch (_) {
-        return null;
-      }
+      return _inMemoryAnimals.firstWhere((a) => a.id == id);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -173,9 +194,9 @@ class AnimalRepository {
 
     if (c != null) {
       try {
-        final data = await c.from('animals').upsert(toSave.toJson()).select().maybeSingle();
-        if (data != null) {
-          final saved = Animal.fromJson(data);
+        final data = await c.from('animals').upsert(toSave.toJson()).select();
+        if (data is List && data.isNotEmpty) {
+          final saved = Animal.fromJson(data.first as Map<String, dynamic>);
           _updateLocalAnimals(saved);
           await _persistToLocalStorage();
           return saved;

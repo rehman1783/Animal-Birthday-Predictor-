@@ -10,10 +10,9 @@ import '../domain/markings.dart';
 
 class MareRepository {
   final SupabaseClient? _supabase;
-  static const String _markingsStorageKey = 'abp_cached_markings_records';
   final List<Mare> _inMemoryMares = [];
   final List<Markings> _inMemoryMarkings = [];
-  bool _hasLoadedFromStorage = false;
+  String? _loadedUserId;
 
   MareRepository({SupabaseClient? supabase})
       : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
@@ -28,9 +27,22 @@ class MareRepository {
     }
   }
 
+  String get _currentUserId {
+    try {
+      return client?.auth.currentUser?.id ?? 'guest';
+    } catch (_) {
+      return 'guest';
+    }
+  }
+
+  String get _markingsStorageKey => 'abp_cached_markings_records_$_currentUserId';
+
   Future<void> _initLocalStorage() async {
-    if (_hasLoadedFromStorage) return;
-    _hasLoadedFromStorage = true;
+    final uid = _currentUserId;
+    if (_loadedUserId == uid) return;
+    _loadedUserId = uid;
+    _inMemoryMarkings.clear();
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final list = prefs.getStringList(_markingsStorageKey);
@@ -66,30 +78,46 @@ class MareRepository {
   // --- ANIMALS / MARES (reads from unified animals table) ---
   Future<List<Animal>> getMares() async {
     final c = client;
-    if (c == null) {
-      return _inMemoryMares.map((m) => Animal(
-        id: m.id,
-        accountId: m.accountId,
-        species: 'horse',
-        name: m.name,
-        breed: m.breed,
-        brand: m.brand,
-        dna: m.dna,
-        microchipNo: m.microchipNo,
-        ownerClientName: m.ownerClientName,
-        ownerClientPhone: m.ownerClientPhone,
-        photoUrl: m.photoUrl,
-        createdAt: m.createdAt,
-        updatedAt: m.updatedAt,
-      )).toList();
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
+    if (c != null) {
+      try {
+        var query = c.from('animals').select().eq('species', 'horse');
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.order('created_at', ascending: false);
+        if (data is List) {
+          return data.map((json) => Animal.fromJson(json as Map<String, dynamic>)).toList();
+        }
+      } catch (e) {
+        debugPrint('Supabase getMares error: $e');
+      }
     }
-    try {
-      final data = await c.from('animals').select().eq('species', 'horse').order('created_at', ascending: false);
-      return (data as List).map((json) => Animal.fromJson(json)).toList();
-    } catch (e) {
-      debugPrint('Supabase getMares error: $e');
-      return [];
-    }
+
+    return _inMemoryMares.where((m) {
+      if (accountId != null && accountId.isNotEmpty) {
+        if (m.accountId.isNotEmpty && m.accountId != accountId && m.accountId != '00000000-0000-0000-0000-000000000000') {
+          return false;
+        }
+      }
+      return true;
+    }).map((m) => Animal(
+      id: m.id,
+      accountId: m.accountId,
+      species: 'horse',
+      name: m.name,
+      breed: m.breed,
+      brand: m.brand,
+      dna: m.dna,
+      microchipNo: m.microchipNo,
+      ownerClientName: m.ownerClientName,
+      ownerClientPhone: m.ownerClientPhone,
+      photoUrl: m.photoUrl,
+      createdAt: m.createdAt,
+      updatedAt: m.updatedAt,
+    )).toList();
   }
 
   Future<Animal> saveMare(Animal animal) async {
@@ -99,36 +127,38 @@ class MareRepository {
     final validId = AppUuid.isValid(animal.id) ? animal.id : AppUuid.generate();
     final toSave = animal.copyWith(id: validId, accountId: accountId, species: 'horse');
 
-    if (c == null) {
-      final index = _inMemoryMares.indexWhere((m) => m.id == toSave.id);
-      final mare = Mare(
-        id: toSave.id,
-        accountId: toSave.accountId,
-        name: toSave.name,
-        breed: toSave.breed,
-        brand: toSave.brand,
-        dna: toSave.dna,
-        microchipNo: toSave.microchipNo,
-        ownerClientName: toSave.ownerClientName,
-        ownerClientPhone: toSave.ownerClientPhone,
-        photoUrl: toSave.photoUrl,
-        createdAt: toSave.createdAt,
-        updatedAt: toSave.updatedAt,
-      );
-      if (index >= 0) {
-        _inMemoryMares[index] = mare;
-      } else {
-        _inMemoryMares.insert(0, mare);
+    final index = _inMemoryMares.indexWhere((m) => m.id == toSave.id);
+    final mare = Mare(
+      id: toSave.id,
+      accountId: toSave.accountId,
+      name: toSave.name,
+      breed: toSave.breed,
+      brand: toSave.brand,
+      dna: toSave.dna,
+      microchipNo: toSave.microchipNo,
+      ownerClientName: toSave.ownerClientName,
+      ownerClientPhone: toSave.ownerClientPhone,
+      photoUrl: toSave.photoUrl,
+      createdAt: toSave.createdAt,
+      updatedAt: toSave.updatedAt,
+    );
+    if (index >= 0) {
+      _inMemoryMares[index] = mare;
+    } else {
+      _inMemoryMares.insert(0, mare);
+    }
+
+    if (c != null) {
+      try {
+        final data = await c.from('animals').upsert(toSave.toJson()).select();
+        if (data is List && data.isNotEmpty) {
+          return Animal.fromJson(data.first as Map<String, dynamic>);
+        }
+      } catch (e) {
+        debugPrint('Supabase saveMare error: $e');
       }
-      return toSave;
     }
-    try {
-      final data = await c.from('animals').upsert(toSave.toJson()).select().single();
-      return Animal.fromJson(data);
-    } catch (e) {
-      debugPrint('Supabase saveMare error: $e');
-      return toSave;
-    }
+    return toSave;
   }
 
   // --- MARKINGS ---
@@ -142,9 +172,9 @@ class MareRepository {
             .select()
             .eq('owner_type', ownerType)
             .eq('owner_id', ownerId)
-            .maybeSingle();
-        if (data != null) {
-          final remoteMarkings = Markings.fromJson(data);
+            .limit(1);
+        if (data is List && data.isNotEmpty) {
+          final remoteMarkings = Markings.fromJson(data.first as Map<String, dynamic>);
           final idx = _inMemoryMarkings.indexWhere((m) => m.ownerType == ownerType && m.ownerId == ownerId);
           if (idx >= 0) {
             _inMemoryMarkings[idx] = remoteMarkings;
@@ -187,16 +217,18 @@ class MareRepository {
     final c = client;
     if (c != null) {
       try {
-        final data = await c.from('markings').upsert(toSave.toJson()).select().single();
-        final synced = Markings.fromJson(data);
-        final idx = _inMemoryMarkings.indexWhere(
-          (m) => m.ownerType == synced.ownerType && m.ownerId == synced.ownerId,
-        );
-        if (idx >= 0) {
-          _inMemoryMarkings[idx] = synced;
-          await _persistMarkingsToLocalStorage();
+        final data = await c.from('markings').upsert(toSave.toJson()).select();
+        if (data is List && data.isNotEmpty) {
+          final synced = Markings.fromJson(data.first as Map<String, dynamic>);
+          final idx = _inMemoryMarkings.indexWhere(
+            (m) => m.ownerType == synced.ownerType && m.ownerId == synced.ownerId,
+          );
+          if (idx >= 0) {
+            _inMemoryMarkings[idx] = synced;
+            await _persistMarkingsToLocalStorage();
+          }
+          return synced;
         }
-        return synced;
       } catch (e) {
         debugPrint('Supabase saveMarkings error: $e');
       }

@@ -7,13 +7,14 @@ import '../../../../core/utils/app_uuid.dart';
 import '../domain/foal_record.dart';
 
 class FoalRepository {
-  static const String _storageKey = 'abp_cached_foal_records';
   final SupabaseClient? _supabase;
   final List<FoalRecord> _inMemoryFoals = [];
-  bool _hasLoadedFromStorage = false;
+  String? _loadedUserId;
 
   FoalRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client);
+      : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
+    _ensureLoaded();
+  }
 
   SupabaseClient? get client {
     try {
@@ -23,9 +24,22 @@ class FoalRepository {
     }
   }
 
+  String get _currentUserId {
+    try {
+      return client?.auth.currentUser?.id ?? 'guest';
+    } catch (_) {
+      return 'guest';
+    }
+  }
+
+  String get _storageKey => 'abp_cached_foal_records_$_currentUserId';
+
   Future<void> _ensureLoaded() async {
-    if (_hasLoadedFromStorage) return;
-    _hasLoadedFromStorage = true;
+    final uid = _currentUserId;
+    if (_loadedUserId == uid) return;
+    _loadedUserId = uid;
+    _inMemoryFoals.clear();
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final list = prefs.getStringList(_storageKey);
@@ -60,73 +74,86 @@ class FoalRepository {
   Future<List<FoalRecord>> getFoals() async {
     await _ensureLoaded();
     final c = client;
-    if (c == null) return List.unmodifiable(_inMemoryFoals);
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
 
-    try {
-      final data = await c.from('foals').select().order('created_at', ascending: false);
-      if (data is List) {
-        final List<FoalRecord> remoteFoals = [];
-        for (final item in data) {
-          try {
-            if (item is Map<String, dynamic>) {
-              remoteFoals.add(FoalRecord.fromJson(item));
-            } else if (item is Map) {
-              remoteFoals.add(FoalRecord.fromJson(Map<String, dynamic>.from(item)));
+    if (c != null) {
+      try {
+        var query = c.from('foals').select();
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.order('created_at', ascending: false);
+        if (data is List) {
+          final List<FoalRecord> remoteFoals = [];
+          for (final item in data) {
+            try {
+              if (item is Map<String, dynamic>) {
+                remoteFoals.add(FoalRecord.fromJson(item));
+              } else if (item is Map) {
+                remoteFoals.add(FoalRecord.fromJson(Map<String, dynamic>.from(item)));
+              }
+            } catch (e) {
+              debugPrint('Error parsing remote foal item: $e');
             }
-          } catch (e) {
-            debugPrint('Error parsing remote foal item: $e');
           }
-        }
 
-        // Merge remote items into in-memory list
-        for (final remote in remoteFoals) {
-          final idx = _inMemoryFoals.indexWhere((f) => f.id == remote.id);
-          if (idx >= 0) {
-            _inMemoryFoals[idx] = remote;
-          } else {
-            _inMemoryFoals.add(remote);
+          // Merge remote items into in-memory list
+          for (final remote in remoteFoals) {
+            final idx = _inMemoryFoals.indexWhere((f) => f.id == remote.id);
+            if (idx >= 0) {
+              _inMemoryFoals[idx] = remote;
+            } else {
+              _inMemoryFoals.add(remote);
+            }
           }
-        }
 
-        await _persistToLocalStorage();
-        return List.unmodifiable(_inMemoryFoals);
+          await _persistToLocalStorage();
+          return remoteFoals;
+        }
+      } catch (e) {
+        debugPrint('Supabase getFoals error: $e');
       }
-      return List.unmodifiable(_inMemoryFoals);
-    } catch (e) {
-      debugPrint('Supabase getFoals error: $e');
-      return List.unmodifiable(_inMemoryFoals);
     }
+
+    return _inMemoryFoals.where((f) {
+      if (accountId != null && accountId.isNotEmpty) {
+        if (f.accountId.isNotEmpty && f.accountId != accountId && f.accountId != '00000000-0000-0000-0000-000000000000') {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
   }
 
   Future<FoalRecord?> getFoalById(String id) async {
     await _ensureLoaded();
     final c = client;
-    if (c == null) {
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
+    if (c != null) {
       try {
-        return _inMemoryFoals.firstWhere((f) => f.id == id);
-      } catch (_) {
-        return null;
+        var query = c.from('foals').select().eq('id', id);
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.limit(1);
+        if (data is List && data.isNotEmpty) {
+          final foal = FoalRecord.fromJson(data.first as Map<String, dynamic>);
+          _updateLocalFoals(foal);
+          await _persistToLocalStorage();
+          return foal;
+        }
+      } catch (e) {
+        debugPrint('Supabase getFoalById error: $e');
       }
     }
+
     try {
-      final data = await c.from('foals').select().eq('id', id).maybeSingle();
-      if (data == null) {
-        try {
-          return _inMemoryFoals.firstWhere((f) => f.id == id);
-        } catch (_) {
-          return null;
-        }
-      }
-      final foal = FoalRecord.fromJson(data);
-      _updateLocalFoals(foal);
-      return foal;
-    } catch (e) {
-      debugPrint('Supabase getFoalById error: $e');
-      try {
-        return _inMemoryFoals.firstWhere((f) => f.id == id);
-      } catch (_) {
-        return null;
-      }
+      return _inMemoryFoals.firstWhere((f) => f.id == id);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -190,9 +217,9 @@ class FoalRepository {
       };
 
       try {
-        final data = await c.from('foals').upsert(primaryPayload).select().maybeSingle();
-        if (data != null) {
-          final saved = FoalRecord.fromJson(data);
+        final data = await c.from('foals').upsert(primaryPayload).select();
+        if (data is List && data.isNotEmpty) {
+          final saved = FoalRecord.fromJson(data.first as Map<String, dynamic>);
           _updateLocalFoals(saved);
           await _persistToLocalStorage();
           return saved;
@@ -208,9 +235,9 @@ class FoalRepository {
             ..['mare_id'] = mareId;
           if (recipientId != null) legacyPayload['recipient_mare_id'] = recipientId;
 
-          final data = await c.from('foals').upsert(legacyPayload).select().maybeSingle();
-          if (data != null) {
-            final saved = FoalRecord.fromJson(data);
+          final data = await c.from('foals').upsert(legacyPayload).select();
+          if (data is List && data.isNotEmpty) {
+            final saved = FoalRecord.fromJson(data.first as Map<String, dynamic>);
             _updateLocalFoals(saved);
             await _persistToLocalStorage();
             return saved;
@@ -221,9 +248,9 @@ class FoalRepository {
           // Fallback 2: Minimal columns without buyer_name if column not in schema
           try {
             final minPayload = Map<String, dynamic>.from(primaryPayload)..remove('buyer_name');
-            final data = await c.from('foals').upsert(minPayload).select().maybeSingle();
-            if (data != null) {
-              final saved = FoalRecord.fromJson(data).copyWith(buyerName: toSave.buyerName);
+            final data = await c.from('foals').upsert(minPayload).select();
+            if (data is List && data.isNotEmpty) {
+              final saved = FoalRecord.fromJson(data.first as Map<String, dynamic>).copyWith(buyerName: toSave.buyerName);
               _updateLocalFoals(saved);
               await _persistToLocalStorage();
               return saved;

@@ -7,10 +7,9 @@ import '../../../../core/utils/app_uuid.dart';
 import '../domain/preventative_care_record.dart';
 
 class PreventativeCareRepository {
-  static const String _storageKey = 'abp_cached_preventative_care_records';
   final SupabaseClient? _supabase;
   final List<PreventativeCareRecord> _inMemoryRecords = [];
-  bool _hasLoadedFromStorage = false;
+  String? _loadedUserId;
 
   PreventativeCareRepository({SupabaseClient? supabase})
       : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
@@ -25,9 +24,22 @@ class PreventativeCareRepository {
     }
   }
 
+  String get _currentUserId {
+    try {
+      return client?.auth.currentUser?.id ?? 'guest';
+    } catch (_) {
+      return 'guest';
+    }
+  }
+
+  String get _storageKey => 'abp_cached_preventative_care_records_$_currentUserId';
+
   Future<void> _initLocalStorage() async {
-    if (_hasLoadedFromStorage) return;
-    _hasLoadedFromStorage = true;
+    final uid = _currentUserId;
+    if (_loadedUserId == uid) return;
+    _loadedUserId = uid;
+    _inMemoryRecords.clear();
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final list = prefs.getStringList(_storageKey);

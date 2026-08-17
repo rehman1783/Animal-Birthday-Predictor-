@@ -8,15 +8,11 @@ import '../domain/puppy.dart';
 import '../domain/puppy_weight.dart';
 
 class PuppyRepository {
-  static const String _puppyStorageKey = 'abp_cached_puppies_records';
-  static const String _weightsStorageKey = 'abp_cached_puppy_weights';
-  static const String _careStorageKey = 'abp_cached_dog_care';
-
   final SupabaseClient? _supabase;
   final List<Puppy> _inMemoryPuppies = [];
   final List<PuppyWeight> _inMemoryWeights = [];
   final List<DogPreventativeCareItem> _inMemoryCare = [];
-  bool _hasLoadedFromStorage = false;
+  String? _loadedUserId;
 
   PuppyRepository({SupabaseClient? supabase})
       : _supabase = supabase ?? (kIsWeb || defaultTargetPlatform != TargetPlatform.windows ? null : Supabase.instance.client) {
@@ -31,9 +27,26 @@ class PuppyRepository {
     }
   }
 
+  String get _currentUserId {
+    try {
+      return client?.auth.currentUser?.id ?? 'guest';
+    } catch (_) {
+      return 'guest';
+    }
+  }
+
+  String get _puppyStorageKey => 'abp_cached_puppies_records_$_currentUserId';
+  String get _weightsStorageKey => 'abp_cached_puppy_weights_$_currentUserId';
+  String get _careStorageKey => 'abp_cached_dog_care_$_currentUserId';
+
   Future<void> _initLocalStorage() async {
-    if (_hasLoadedFromStorage) return;
-    _hasLoadedFromStorage = true;
+    final uid = _currentUserId;
+    if (_loadedUserId == uid) return;
+    _loadedUserId = uid;
+    _inMemoryPuppies.clear();
+    _inMemoryWeights.clear();
+    _inMemoryCare.clear();
+
     try {
       final prefs = await SharedPreferences.getInstance();
 
@@ -122,9 +135,15 @@ class PuppyRepository {
   Future<List<Puppy>> getPuppies({String? damId}) async {
     await _initLocalStorage();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
     if (c != null) {
       try {
         var query = c.from('puppies').select();
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
         if (damId != null && damId.isNotEmpty) {
           query = query.eq('dam_animal_id', damId);
         }
@@ -147,18 +166,32 @@ class PuppyRepository {
       }
     }
 
-    if (damId != null && damId.isNotEmpty) {
-      return _inMemoryPuppies.where((p) => p.damAnimalId == damId).toList();
-    }
-    return List.unmodifiable(_inMemoryPuppies);
+    return _inMemoryPuppies.where((p) {
+      if (accountId != null && accountId.isNotEmpty) {
+        if (p.accountId.isNotEmpty && p.accountId != accountId && p.accountId != '00000000-0000-0000-0000-000000000000') {
+          return false;
+        }
+      }
+      if (damId != null && damId.isNotEmpty) {
+        return p.damAnimalId == damId;
+      }
+      return true;
+    }).toList();
   }
 
   Future<Puppy?> getPuppyById(String id) async {
     await _initLocalStorage();
     final c = client;
+    final user = c?.auth.currentUser;
+    final accountId = user?.id;
+
     if (c != null) {
       try {
-        final data = await c.from('puppies').select().eq('id', id).limit(1);
+        var query = c.from('puppies').select().eq('id', id);
+        if (accountId != null && accountId.isNotEmpty) {
+          query = query.eq('account_id', accountId);
+        }
+        final data = await query.limit(1);
         if (data is List && data.isNotEmpty) {
           final saved = Puppy.fromJson(data.first as Map<String, dynamic>);
           final idx = _inMemoryPuppies.indexWhere((p) => p.id == saved.id);
@@ -207,7 +240,7 @@ class PuppyRepository {
           if (idx >= 0) {
             _inMemoryPuppies[idx] = saved;
           } else {
-            _inMemoryPuppies.insert(0, saved);
+            _inMemoryPuppies.add(saved);
           }
           await _persistPuppiesToLocalStorage();
           return saved;
