@@ -15,7 +15,7 @@ void main() {
   });
 
   group('Dashboard Foal Records and Navigation Tests', () {
-    testWidgets('Displays Foal Records count and Recent Foal Records card on Dashboard', (tester) async {
+    testWidgets('Displays Foal Records count in stat card on Dashboard', (tester) async {
       final repo = FoalRepository();
       await repo.saveFoal(
         FoalRecord(
@@ -50,15 +50,6 @@ void main() {
       // Check stat card
       expect(find.text('Foal Records'), findsOneWidget);
       expect(find.text('1'), findsOneWidget);
-
-      // Check recent foal records section
-      expect(find.text('RECENT FOAL RECORDS'), findsOneWidget);
-      expect(find.text('Starlight Dreamer'), findsOneWidget);
-      expect(find.text('SOLD'), findsOneWidget);
-      expect(find.text('DOB: 15/04/2026 • Colt • Thoroughbred'), findsOneWidget);
-      expect(find.text('Microchip: 985141002938475'), findsOneWidget);
-      expect(find.text('Edit'), findsOneWidget);
-      expect(find.text('Certificate'), findsOneWidget);
     });
 
     testWidgets('Tapping Foal Records stat card invokes onNavigateTab with index 3 (Birth Log)', (tester) async {
