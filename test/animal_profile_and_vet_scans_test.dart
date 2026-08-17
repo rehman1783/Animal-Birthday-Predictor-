@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animal_birthday_predictor/features/animals/domain/animal.dart';
 import 'package:animal_birthday_predictor/features/animals/presentation/screens/animal_profile_screen.dart';
+import 'package:animal_birthday_predictor/features/animals/presentation/screens/saved_animals_screen.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/veterinarian_pregnancy_scans_screen.dart';
+import 'package:animal_birthday_predictor/core/router/app_router.dart';
 
 void main() {
   group('Animal Profile & Veterinarian Scans Screen Tests', () {
@@ -107,6 +109,74 @@ void main() {
       expect(Animal.matchesSpeciesFilter('other', 'other'), isTrue);
       expect(Animal.matchesSpeciesFilter('horse', 'other'), isFalse);
       expect(Animal.matchesSpeciesFilter('dog', 'other'), isFalse);
+    });
+
+    testWidgets('Tapping EDIT ANIMAL DETAILS on AnimalProfileScreen opens AnimalDetailsScreen with pre-filled details', (tester) async {
+      final testAnimal = Animal(
+        id: '11111111-1111-4111-a111-111111111111',
+        accountId: '22222222-2222-4222-a222-222222222222',
+        species: 'horse',
+        name: 'Thunderbolt Star',
+        breed: 'Thoroughbred',
+        colour: 'Chestnut',
+        dateOfBirth: DateTime(2019, 4, 15),
+        microchipNo: '985141009876543',
+        brand: 'Star-T',
+        dna: 'DNA-9901',
+        ownerClientName: 'Jonathan Swift',
+        ownerClientPhone: '+1 555 432 1098',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            onGenerateRoute: (settings) => AppRouter.onGenerateRoute(settings),
+            home: AnimalProfileScreen(animal: testAnimal),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final editBtn = find.text('EDIT ANIMAL DETAILS');
+      expect(editBtn, findsOneWidget);
+      await tester.ensureVisible(editBtn);
+      await tester.tap(editBtn);
+      await tester.pumpAndSettle();
+
+      // Verify that AnimalDetailsScreen opened in EDIT mode with the animal's name in title
+      expect(find.text('EDIT THUNDERBOLT STAR'), findsOneWidget);
+      // Verify existing values are populated in text fields
+      expect(find.text('Thunderbolt Star'), findsWidgets);
+      expect(find.text('Thoroughbred'), findsWidgets);
+      expect(find.text('Chestnut'), findsWidgets);
+      expect(find.text('985141009876543'), findsWidgets);
+      expect(find.text('Star-T'), findsWidgets);
+      expect(find.text('DNA-9901'), findsWidgets);
+    });
+
+    testWidgets('SavedAnimalsScreen displays species tabs and switches tabs correctly', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            onGenerateRoute: AppRouter.onGenerateRoute,
+            home: SavedAnimalsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('HORSES'), findsOneWidget);
+      expect(find.text('DOGS'), findsOneWidget);
+      expect(find.text('CATS'), findsOneWidget);
+      expect(find.text('OTHER'), findsOneWidget);
+
+      // Tap DOGS tab
+      await tester.tap(find.text('DOGS'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No DOGs Registered'), findsOneWidget);
     });
   });
 }

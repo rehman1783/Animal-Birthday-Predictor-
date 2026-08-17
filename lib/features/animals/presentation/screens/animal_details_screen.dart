@@ -44,11 +44,13 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
   String? _photoUrl;
   bool _isSaving = false;
   Animal? _loadedAnimal;
+  late String _currentSpecies;
 
   @override
   void initState() {
     super.initState();
     _loadedAnimal = widget.animal;
+    _currentSpecies = Animal.normalizeSpecies(_loadedAnimal?.species ?? widget.species);
     _nameController = TextEditingController(text: _loadedAnimal?.name ?? '');
     _breedController = TextEditingController(text: _loadedAnimal?.breed ?? '');
     _colourController = TextEditingController(text: _loadedAnimal?.colour ?? '');
@@ -71,6 +73,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
     if (a != null && mounted) {
       setState(() {
         _loadedAnimal = a;
+        _currentSpecies = Animal.normalizeSpecies(a.species);
         _nameController.text = a.name;
         _breedController.text = a.breed ?? '';
         _colourController.text = a.colour ?? '';
@@ -148,7 +151,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
       final updatedAnimal = Animal(
         id: animalId,
         accountId: currentAnimal?.accountId ?? '',
-        species: currentAnimal?.species ?? widget.species,
+        species: _currentSpecies,
         name: _nameController.text.trim(),
         breed: _breedController.text.trim(),
         colour: _colourController.text.trim(),
@@ -166,8 +169,11 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
       final saved = await repo.saveAnimal(updatedAnimal);
 
       // Invalidate state to immediately reload everywhere in the app
-      ref.invalidate(animalsListProvider(updatedAnimal.species));
+      ref.invalidate(animalsListProvider(_currentSpecies));
       ref.invalidate(animalsListProvider('horse'));
+      ref.invalidate(animalsListProvider('dog'));
+      ref.invalidate(animalsListProvider('cat'));
+      ref.invalidate(animalsListProvider('other'));
       ref.invalidate(animalsListProvider(null));
       ref.invalidate(animalByIdProvider(saved.id));
 
@@ -222,9 +228,12 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
     if (confirmed == true) {
       final repo = ref.read(animalRepositoryProvider);
       await repo.deleteAnimal(currentAnimal.id);
+      ref.invalidate(animalsListProvider(_currentSpecies));
       ref.invalidate(animalsListProvider(currentAnimal.species));
       ref.invalidate(animalsListProvider('horse'));
       ref.invalidate(animalsListProvider('dog'));
+      ref.invalidate(animalsListProvider('cat'));
+      ref.invalidate(animalsListProvider('other'));
       ref.invalidate(animalsListProvider(null));
       ref.invalidate(animalByIdProvider(currentAnimal.id));
 
@@ -280,7 +289,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                 children: [
                   // 1. Photo Capture Header
                   AppImagePicker(
-                    label: '${widget.species.toUpperCase()} PHOTO',
+                    label: '${_currentSpecies.toUpperCase()} PHOTO',
                     initialImageUrl: _photoUrl,
                     onImageSelected: (url) => setState(() => _photoUrl = url),
                   ),
@@ -288,6 +297,67 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
 
                   // 2. Core Identity Form
                   const SectionDividerLabel(label: 'CORE IDENTITY'),
+                  const SizedBox(height: 16.0),
+
+                  // Species Category Selector
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Species Category *', style: AppTypography.inputLabel),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          for (final sp in const [
+                            ('horse', 'Horse / Equine', Icons.pets_rounded),
+                            ('dog', 'Dog / Canine', Icons.pets),
+                            ('cat', 'Cat / Feline', Icons.catching_pokemon),
+                            ('other', 'Other', Icons.category_rounded),
+                          ])
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 3),
+                                child: InkWell(
+                                  onTap: () => setState(() => _currentSpecies = sp.$1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: _currentSpecies == sp.$1
+                                          ? AppColors.primaryGold.withValues(alpha: 0.15)
+                                          : AppColors.surface,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.surface,
+                                        width: _currentSpecies == sp.$1 ? 1.5 : 1,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          sp.$3,
+                                          size: 18,
+                                          color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          sp.$1.toUpperCase(),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16.0),
 
                   CustomTextField(

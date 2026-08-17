@@ -118,7 +118,6 @@ class _AnimalBirthdayPredictorAppState extends State<AnimalBirthdayPredictorApp>
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       initialRoute: widget.initialRoute,
-      routes: AppRouter.routes,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }

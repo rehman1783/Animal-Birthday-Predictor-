@@ -33,6 +33,48 @@ import '../../features/puppy/presentation/screens/dog_preventative_care_screen.d
 abstract class AppRouter {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case '/onboarding':
+        return MaterialPageRoute(
+          builder: (_) => const OnboardingScreen(),
+          settings: settings,
+        );
+
+      case '/signup':
+        return MaterialPageRoute(
+          builder: (_) => const SignUpScreen(),
+          settings: settings,
+        );
+
+      case '/signin':
+        return MaterialPageRoute(
+          builder: (_) => const SignInScreen(),
+          settings: settings,
+        );
+
+      case '/reset-password':
+        return MaterialPageRoute(
+          builder: (_) => const PasswordResetScreen(),
+          settings: settings,
+        );
+
+      case '/update-password':
+        return MaterialPageRoute(
+          builder: (_) => const UpdatePasswordScreen(),
+          settings: settings,
+        );
+
+      case '/home':
+        return MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(),
+          settings: settings,
+        );
+
+      case '/settings':
+        return MaterialPageRoute(
+          builder: (_) => const SettingsScreen(),
+          settings: settings,
+        );
+
       case '/email-verification':
         final email = (settings.arguments as String?) ?? '';
         return MaterialPageRoute(
@@ -67,9 +109,9 @@ abstract class AppRouter {
         if (args is Animal) {
           animal = args;
           species = args.species;
-        } else if (args is Map<String, dynamic>) {
+        } else if (args is Map) {
           animal = args['animal'] as Animal?;
-          species = (args['species'] as String?) ?? 'horse';
+          species = (args['species'] as String?) ?? animal?.species ?? 'horse';
         }
         return MaterialPageRoute(
           builder: (_) => AnimalDetailsScreen(animal: animal, species: species),
@@ -77,11 +119,11 @@ abstract class AppRouter {
         );
 
       case '/markings':
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final args = settings.arguments is Map ? settings.arguments as Map : {};
         return MaterialPageRoute(
           builder: (_) => MarkingsScreen(
-            ownerType: args['ownerType'] as String? ?? 'animal',
-            ownerId: args['ownerId'] as String? ?? '',
+            ownerType: (args['ownerType'] as String?) ?? 'animal',
+            ownerId: (args['ownerId'] as String?) ?? '',
           ),
           settings: settings,
         );
@@ -114,7 +156,7 @@ abstract class AppRouter {
         );
 
       case '/dog-preventative-care':
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final args = settings.arguments is Map ? settings.arguments as Map : {};
         return MaterialPageRoute(
           builder: (_) => DogPreventativeCareScreen(
             ownerType: (args['ownerType'] as String?) ?? 'puppy',
@@ -126,14 +168,22 @@ abstract class AppRouter {
         );
 
       case '/breeding-details':
-        final mareId = settings.arguments is String ? (settings.arguments as String) : null;
+        String? mareId;
+        if (settings.arguments is String) {
+          mareId = settings.arguments as String;
+        } else if (settings.arguments is Animal) {
+          mareId = (settings.arguments as Animal).id;
+        } else if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          mareId = (map['mareId'] as String?) ?? (map['carrierAnimalId'] as String?) ?? (map['id'] as String?);
+        }
         return MaterialPageRoute(
           builder: (_) => BreedingDetailsScreen(initialMareId: mareId),
           settings: settings,
         );
 
       case '/pregnancy-details':
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final args = settings.arguments is Map ? settings.arguments as Map : {};
         return MaterialPageRoute(
           builder: (_) => PregnancyDetailsScreen(
             carrierAnimalId: (args['carrierAnimalId'] as String?) ?? (args['carrierId'] as String?) ?? '',
@@ -145,7 +195,7 @@ abstract class AppRouter {
 
       case '/vet-pregnancy-scans':
       case '/pregnancy-scans':
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final args = settings.arguments is Map ? settings.arguments as Map : {};
         return MaterialPageRoute(
           builder: (_) => VeterinarianPregnancyScansScreen(
             carrierAnimalId: (args['carrierAnimalId'] as String?) ?? (args['carrierId'] as String?),
@@ -171,9 +221,9 @@ abstract class AppRouter {
 
         if (args is String) {
           ownerId = args;
-        } else if (args is Map<String, dynamic>) {
-          ownerType = args['ownerType'] as String? ?? 'animal';
-          ownerId = args['ownerId'] as String? ?? '';
+        } else if (args is Map) {
+          ownerType = (args['ownerType'] as String?) ?? 'animal';
+          ownerId = (args['ownerId'] as String?) ?? '';
           title = args['title'] as String?;
           damMareId = args['damMareId'] as String?;
         }
@@ -203,7 +253,7 @@ abstract class AppRouter {
         );
 
       case '/certificate':
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final args = settings.arguments is Map ? settings.arguments as Map : {};
         final foal = args['foal'] as FoalRecord?;
         final puppy = args['puppy'] as Puppy?;
         final dam = args['dam'] as Animal?;

@@ -35,7 +35,10 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
     _reloadAnimal();
   }
 
-  Future<void> _reloadAnimal() async {
+  Future<void> _reloadAnimal([Animal? passed]) async {
+    if (passed != null && mounted) {
+      setState(() => _currentAnimal = passed);
+    }
     final repo = ref.read(animalRepositoryProvider);
     final fresh = await repo.getAnimalById(_currentAnimal.id);
     if (fresh != null && mounted) {
@@ -174,7 +177,9 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                 '/animal-details',
                 arguments: {'animal': _currentAnimal, 'species': _currentAnimal.species},
               );
-              if (updated != null) {
+              if (updated is Animal) {
+                _reloadAnimal(updated);
+              } else if (updated != null) {
                 _reloadAnimal();
               }
             },
@@ -374,7 +379,9 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                       '/animal-details',
                       arguments: {'animal': _currentAnimal, 'species': _currentAnimal.species},
                     );
-                    if (updated != null) {
+                    if (updated is Animal) {
+                      _reloadAnimal(updated);
+                    } else if (updated != null) {
                       _reloadAnimal();
                     }
                   },
