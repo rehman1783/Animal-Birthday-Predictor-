@@ -12,6 +12,10 @@ abstract class AppEnv {
       'io.supabase.animalbirthdaypredictor://reset-password';
 
   static String get supabaseUrl {
+    const defineUrl = String.fromEnvironment('SUPABASE_URL');
+    if (defineUrl.trim().isNotEmpty) {
+      return defineUrl.trim();
+    }
     try {
       if (dotenv.isInitialized) {
         final url = dotenv.env['Supabase_URL'] ?? dotenv.env['SUPABASE_URL'];
@@ -24,6 +28,10 @@ abstract class AppEnv {
   }
 
   static String get supabaseKey {
+    const defineKey = String.fromEnvironment('SUPABASE_KEY');
+    if (defineKey.trim().isNotEmpty) {
+      return defineKey.trim();
+    }
     try {
       if (dotenv.isInitialized) {
         final key = dotenv.env['Supabase_Key'] ?? dotenv.env['SUPABASE_KEY'];
