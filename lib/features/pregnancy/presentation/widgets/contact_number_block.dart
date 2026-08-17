@@ -133,7 +133,7 @@ class ContactNumberBlock extends ConsumerWidget {
 
           if (nameController != null) ...[
             CustomTextField(
-              label: '$title Name / Clinic',
+              label: '$title Name / Clinic (Optional)',
               hintText: 'e.g. Dr. Emily Hayes',
               controller: nameController!,
               prefixIcon: Icons.person_outline,
@@ -142,7 +142,7 @@ class ContactNumberBlock extends ConsumerWidget {
           ],
 
           CustomTextField(
-            label: '$title Phone / Mobile',
+            label: '$title Phone / Mobile (Optional)',
             hintText: hintText,
             controller: controller,
             keyboardType: TextInputType.phone,

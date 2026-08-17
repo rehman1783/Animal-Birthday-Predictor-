@@ -127,13 +127,13 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
               Text(item.title, style: AppTypography.displayHeadline.copyWith(fontSize: 16)),
               const SizedBox(height: 14),
               CustomTextField(
-                label: 'Administered By / Veterinarian',
+                label: 'Administered By / Veterinarian (Optional)',
                 hintText: 'e.g. Dr. Jennifer Smith / Self',
                 controller: adminController,
               ),
               const SizedBox(height: 14),
               CustomTextField(
-                label: 'Batch No. / Product Notes / Remarks',
+                label: 'Batch No. / Product Notes / Remarks (Optional)',
                 hintText: 'e.g. Drontal Puppy Suspension, batch #98124...',
                 controller: notesController,
                 maxLines: 2,

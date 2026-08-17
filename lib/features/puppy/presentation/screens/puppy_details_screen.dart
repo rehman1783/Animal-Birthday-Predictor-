@@ -309,7 +309,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                 children: [
                   // 1. Puppy Photo
                   AppImagePicker(
-                    label: 'PUPPY PHOTO (CAMERA / GALLERY)',
+                    label: 'PUPPY PHOTO (CAMERA / GALLERY) (Optional)',
                     initialImageUrl: _photoUrl,
                     onImageSelected: (url) => setState(() => _photoUrl = url),
                   ),
@@ -331,7 +331,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Collar / Tag Colour', style: AppTypography.inputLabel),
+                      const Text('Collar / Tag Colour (Optional)', style: AppTypography.inputLabel),
                       const SizedBox(height: 6),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -358,7 +358,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        label: 'Or Custom Collar/Band Name',
+                        label: 'Or Custom Collar/Band Name (Optional)',
                         hintText: 'e.g. Teal with Stars, Neon Green...',
                         controller: _collarController,
                       ),
@@ -419,7 +419,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                       SizedBox(
                         width: 110,
                         child: CustomTextField(
-                          label: 'Birth Order',
+                          label: 'Birth Order (Optional)',
                           hintText: 'e.g. 1',
                           controller: _birthOrderController,
                           keyboardType: TextInputType.number,
@@ -433,7 +433,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                     children: [
                       Expanded(
                         child: CustomTextField(
-                          label: 'Coat Colour / Pattern',
+                          label: 'Coat Colour / Pattern (Optional)',
                           hintText: 'e.g. Golden, Tricolour',
                           controller: _colourController,
                         ),
@@ -441,7 +441,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: CustomTextField(
-                          label: 'Microchip No.',
+                          label: 'Microchip No. (Optional)',
                           hintText: '15-digit ISO chip',
                           controller: _microchipController,
                           keyboardType: TextInputType.number,
@@ -539,7 +539,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                   const SizedBox(height: 12.0),
 
                   CustomTextField(
-                    label: 'Father / Sire Name',
+                    label: 'Father / Sire Name (Optional)',
                     hintText: 'e.g. Champion Duke of Windsor',
                     controller: _sireNameController,
                   ),
@@ -553,7 +553,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                     children: [
                       Expanded(
                         child: CustomTextField(
-                          label: 'Birth Weight',
+                          label: 'Birth Weight (Optional)',
                           hintText: 'e.g. 420g',
                           controller: _birthWeightController,
                         ),
@@ -561,7 +561,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: CustomTextField(
-                          label: 'Current / Exit Weight',
+                          label: 'Current / Exit Weight (Optional)',
                           hintText: 'e.g. 3.4kg',
                           controller: _currentWeightController,
                         ),
@@ -610,7 +610,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Date Going Home', style: AppTypography.inputLabel),
+                      const Text('Date Going Home (Optional)', style: AppTypography.inputLabel),
                       const SizedBox(height: 6),
                       GestureDetector(
                         onTap: () => _pickDate(isGoingHome: true),
@@ -662,14 +662,14 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         CustomTextField(
-                          label: 'New Owner Name',
+                          label: 'New Owner Name (Optional)',
                           hintText: 'e.g. Robert & Clara Williams',
                           controller: _newOwnerNameController,
                           prefixIcon: Icons.person_outline,
                         ),
                         const SizedBox(height: 10),
                         CustomTextField(
-                          label: 'Contact Phone Number',
+                          label: 'Contact Phone Number (Optional)',
                           hintText: 'e.g. +1 (555) 349-1029',
                           controller: _newOwnerPhoneController,
                           keyboardType: TextInputType.phone,
@@ -677,7 +677,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         CustomTextField(
-                          label: 'New Address / Property',
+                          label: 'New Address / Property (Optional)',
                           hintText: 'e.g. 21 Oak Street, Springfield',
                           controller: _newOwnerAddressController,
                           prefixIcon: Icons.location_on_outlined,
@@ -688,7 +688,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                   const SizedBox(height: 14.0),
 
                   CustomTextField(
-                    label: 'General Notes & Observations',
+                    label: 'General Notes & Observations (Optional)',
                     hintText: 'Temperament, socialization progress, training notes...',
                     controller: _generalNotesController,
                     maxLines: 3,

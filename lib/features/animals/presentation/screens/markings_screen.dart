@@ -152,7 +152,7 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
                       const SectionDividerLabel(label: 'LEFT SIDE VIEW'),
                       const SizedBox(height: 12.0),
                       AppImagePicker(
-                        label: 'Left Side Markings Photo (Camera First)',
+                        label: 'Left Side Markings Photo (Camera First) (Optional)',
                         initialImageUrl: _leftSideImage,
                         onImageSelected: (url) => setState(() => _leftSideImage = url),
                       ),
@@ -162,7 +162,7 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
                       const SectionDividerLabel(label: 'RIGHT SIDE VIEW'),
                       const SizedBox(height: 12.0),
                       AppImagePicker(
-                        label: 'Right Side Markings Photo (Camera First)',
+                        label: 'Right Side Markings Photo (Camera First) (Optional)',
                         initialImageUrl: _rightSideImage,
                         onImageSelected: (url) => setState(() => _rightSideImage = url),
                       ),
@@ -172,14 +172,14 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
                       const SectionDividerLabel(label: 'HEAD VIEW & FACIAL MARKINGS'),
                       const SizedBox(height: 12.0),
                       AppImagePicker(
-                        label: 'Head View / Muzzle Markings Photo',
+                        label: 'Head View / Muzzle Markings Photo (Optional)',
                         initialImageUrl: _headViewImage,
                         onImageSelected: (url) => setState(() => _headViewImage = url),
                       ),
                       const SizedBox(height: 14.0),
 
                       CustomTextField(
-                        label: 'Head View & Facial Notes',
+                        label: 'Head View & Facial Notes (Optional)',
                         hintText: 'e.g. Star, strip, snip, white lower lip, whorl between eyes...',
                         controller: _headNotesController,
                         maxLines: 3,

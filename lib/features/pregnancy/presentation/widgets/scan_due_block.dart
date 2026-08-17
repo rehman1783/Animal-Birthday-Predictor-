@@ -124,7 +124,7 @@ class ScanDueBlock extends StatelessWidget {
 
           // Scan Photo Upload
           AppImagePicker(
-            label: 'Ultrasound Scan $scanNumber Photo',
+            label: 'Ultrasound Scan $scanNumber Photo (Optional)',
             initialImageUrl: imageUrl,
             onImageSelected: onImageSelected,
           ),

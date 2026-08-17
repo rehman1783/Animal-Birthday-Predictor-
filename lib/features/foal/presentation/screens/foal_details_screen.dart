@@ -332,7 +332,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                 children: [
                   // 1. Foal Photo Header
                   AppImagePicker(
-                    label: 'FOAL PHOTO (CAMERA / GALLERY)',
+                    label: 'FOAL PHOTO (CAMERA / GALLERY) (Optional)',
                     initialImageUrl: _photoUrl,
                     onImageSelected: (url) => setState(() => _photoUrl = url),
                   ),
@@ -343,7 +343,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                   const SizedBox(height: 14.0),
 
                   CustomTextField(
-                    label: 'Foal Name',
+                    label: 'Foal Name (Optional)',
                     hintText: 'e.g. Royal Starlight',
                     controller: _nameController,
                   ),
@@ -425,7 +425,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                     children: [
                       Expanded(
                         child: CustomTextField(
-                          label: 'Breed',
+                          label: 'Breed (Optional)',
                           hintText: 'e.g. Thoroughbred',
                           controller: _breedController,
                         ),
@@ -433,7 +433,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       const SizedBox(width: 12.0),
                       Expanded(
                         child: CustomTextField(
-                          label: 'IGG Value',
+                          label: 'IGG Value (Optional)',
                           hintText: 'e.g. >800 mg/dL (Normal)',
                           controller: _iggController,
                         ),
@@ -500,7 +500,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                   const SizedBox(height: 12.0),
 
                   CustomTextField(
-                    label: 'Sire / Stallion (Father)',
+                    label: 'Sire / Stallion (Father) (Optional)',
                     hintText: 'e.g. Northern Dancer',
                     controller: _stallionController,
                   ),
@@ -570,7 +570,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                     children: [
                       Expanded(
                         child: CustomTextField(
-                          label: 'Foal Microchip No.',
+                          label: 'Foal Microchip No. (Optional)',
                           hintText: '15-digit ISO microchip',
                           controller: _microchipController,
                           keyboardType: TextInputType.number,
@@ -579,7 +579,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       const SizedBox(width: 12.0),
                       Expanded(
                         child: CustomTextField(
-                          label: 'DNA Profile',
+                          label: 'DNA Profile (Optional)',
                           hintText: 'e.g. DNA-8921',
                           controller: _dnaController,
                         ),
@@ -589,7 +589,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                   const SizedBox(height: 14.0),
 
                   CustomTextField(
-                    label: 'Stud Book / Breeding Association',
+                    label: 'Stud Book / Breeding Association (Optional)',
                     hintText: 'e.g. Australian Stud Book / AQHA',
                     controller: _studBookController,
                   ),
@@ -727,7 +727,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                   ],
 
                   CustomTextField(
-                    label: 'Breeder Notes',
+                    label: 'Breeder Notes (Optional)',
                     hintText: 'Temperament, growth notes, conformation observations...',
                     controller: _notesController,
                     maxLines: 3,

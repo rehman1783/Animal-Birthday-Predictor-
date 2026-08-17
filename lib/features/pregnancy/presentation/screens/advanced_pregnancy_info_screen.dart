@@ -294,7 +294,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
                     const SectionDividerLabel(label: 'FETAL ULTRASOUND SCAN IMAGE'),
                     const SizedBox(height: 12.0),
                     AppImagePicker(
-                      label: 'Upload Ultrasound Image',
+                      label: 'Upload Ultrasound Image (Optional)',
                       initialImageUrl: _ultrasoundImage,
                       onImageSelected: (url) => setState(() => _ultrasoundImage = url),
                     ),

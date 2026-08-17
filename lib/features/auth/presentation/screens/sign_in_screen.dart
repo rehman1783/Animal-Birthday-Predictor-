@@ -267,8 +267,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ),
                         ],
                       ),
-                    ),
-
+                    ),          
                     const SizedBox(height: 20.0),
 
                     // Small trust line: Encrypted & Secure Session

@@ -309,7 +309,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                 const SizedBox(height: 6.0),
 
                 CustomTextField(
-                  label: 'Stallion Name / Stud',
+                  label: 'Stallion Name / Stud (Optional)',
                   hintText: 'e.g. Northern Dancer (External Stud or Saved)',
                   controller: _stallionController,
                   prefixIcon: Icons.pets_outlined,
@@ -472,14 +472,14 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                   const SizedBox(height: 14.0),
 
                   CustomTextField(
-                    label: 'DAM of Embryo (Genetic Mother)',
+                    label: 'DAM of Embryo (Genetic Mother) (Optional)',
                     hintText: 'e.g. Celestial Queen',
                     controller: _damOfEmbryoController,
                   ),
                   const SizedBox(height: 14.0),
 
                   CustomTextField(
-                    label: 'Stallion of Embryo (Genetic Father)',
+                    label: 'Stallion of Embryo (Genetic Father) (Optional)',
                     hintText: 'e.g. Storm Chaser',
                     controller: _stallionOfEmbryoController,
                   ),
@@ -551,7 +551,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                 const SizedBox(height: 12.0),
 
                 AppImagePicker(
-                  label: 'Insemination Straws / Cover Photo',
+                  label: 'Insemination Straws / Cover Photo (Optional)',
                   initialImageUrl: _photoUrl,
                   onImageSelected: (url) => setState(() => _photoUrl = url),
                 ),

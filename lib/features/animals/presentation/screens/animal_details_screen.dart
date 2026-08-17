@@ -289,7 +289,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                 children: [
                   // 1. Photo Capture Header
                   AppImagePicker(
-                    label: '${_currentSpecies.toUpperCase()} PHOTO',
+                    label: '${_currentSpecies.toUpperCase()} PHOTO (Optional)',
                     initialImageUrl: _photoUrl,
                     onImageSelected: (url) => setState(() => _photoUrl = url),
                   ),
@@ -375,7 +375,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                     children: [
                       Expanded(
                         child: CustomTextField(
-                          label: 'Breed',
+                          label: 'Breed (Optional)',
                           hintText: 'e.g. Thoroughbred',
                           controller: _breedController,
                         ),
@@ -383,7 +383,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                       const SizedBox(width: 12.0),
                       Expanded(
                         child: CustomTextField(
-                          label: 'Colour',
+                          label: 'Colour (Optional)',
                           hintText: 'e.g. Bay, Chestnut',
                           controller: _colourController,
                         ),
@@ -396,7 +396,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Date of Birth', style: AppTypography.inputLabel),
+                      const Text('Date of Birth (Optional)', style: AppTypography.inputLabel),
                       const SizedBox(height: 6),
                       GestureDetector(
                         onTap: _pickDateOfBirth,
@@ -431,7 +431,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                     children: [
                       Expanded(
                         child: CustomTextField(
-                          label: 'Microchip No.',
+                          label: 'Microchip No. (Optional)',
                           hintText: '15-digit ISO microchip',
                           controller: _microchipController,
                           keyboardType: TextInputType.number,
@@ -440,7 +440,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                       const SizedBox(width: 12.0),
                       Expanded(
                         child: CustomTextField(
-                          label: 'DNA Profile',
+                          label: 'DNA Profile (Optional)',
                           hintText: 'e.g. DNA-94821',
                           controller: _dnaController,
                         ),
@@ -450,7 +450,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                   const SizedBox(height: 14.0),
 
                   CustomTextField(
-                    label: 'Brand / Freeze Mark',
+                    label: 'Brand / Freeze Mark (Optional)',
                     hintText: 'e.g. Left Shoulder: Cross & Crescent',
                     controller: _brandController,
                   ),
@@ -461,7 +461,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                   const SizedBox(height: 16.0),
 
                   CustomTextField(
-                    label: 'Owner / Client Name',
+                    label: 'Owner / Client Name (Optional)',
                     hintText: 'e.g. Eleanor Vance',
                     controller: _ownerNameController,
                     prefixIcon: Icons.person_outline,
@@ -469,7 +469,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                   const SizedBox(height: 14.0),
 
                   CustomTextField(
-                    label: 'Owner / Client Phone',
+                    label: 'Owner / Client Phone (Optional)',
                     hintText: 'e.g. +1 555 019 2831',
                     controller: _ownerPhoneController,
                     keyboardType: TextInputType.phone,

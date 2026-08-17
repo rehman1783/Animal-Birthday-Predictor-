@@ -379,7 +379,7 @@ class _SelectOrAddContactModalState extends ConsumerState<SelectOrAddContactModa
             ),
             const SizedBox(height: 14),
             CustomTextField(
-              label: 'Phone Number',
+              label: 'Phone Number (Optional)',
               hintText: 'e.g. +1 (555) 019-2834',
               controller: _phoneController,
               keyboardType: TextInputType.phone,
@@ -387,7 +387,7 @@ class _SelectOrAddContactModalState extends ConsumerState<SelectOrAddContactModa
             ),
             const SizedBox(height: 14),
             CustomTextField(
-              label: 'Email Address',
+              label: 'Email Address (Optional)',
               hintText: 'e.g. contact@clinic.com',
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -395,14 +395,14 @@ class _SelectOrAddContactModalState extends ConsumerState<SelectOrAddContactModa
             ),
             const SizedBox(height: 14),
             CustomTextField(
-              label: 'Clinic / Business Name',
+              label: 'Clinic / Business Name (Optional)',
               hintText: 'e.g. Valley Equine Hospital',
               controller: _clinicController,
               prefixIcon: Icons.business_outlined,
             ),
             const SizedBox(height: 14),
             CustomTextField(
-              label: 'Notes / Address',
+              label: 'Notes / Address (Optional)',
               hintText: 'e.g. 104 Highway 1, primary vet for ultrasound...',
               controller: _notesController,
               maxLines: 2,
