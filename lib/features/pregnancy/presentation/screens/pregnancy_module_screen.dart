@@ -47,9 +47,31 @@ class PregnancyModuleScreen extends ConsumerWidget {
                       style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 14),
-                    GradientCtaButton(
-                      text: '+ RECORD BREEDING EVENT',
-                      onPressed: () => Navigator.pushNamed(context, '/breeding-details'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GradientCtaButton(
+                            text: '+ LOG BREEDING',
+                            onPressed: () => Navigator.pushNamed(context, '/breeding-details'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.pushNamed(context, '/vet-pregnancy-scans'),
+                            icon: const Icon(Icons.medical_services_outlined, color: AppColors.primaryGold, size: 16),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('VET & SCANS', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.primaryGold),
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -60,7 +82,11 @@ class PregnancyModuleScreen extends ConsumerWidget {
               const SizedBox(height: 14.0),
 
               horsesAsync.when(
-                data: (horses) {
+                data: (allHorses) {
+                  final horses = allHorses
+                      .where((h) => h.species.toLowerCase().trim() == 'horse')
+                      .toList();
+
                   if (horses.isEmpty) {
                     return Center(
                       child: Padding(
@@ -97,13 +123,17 @@ class PregnancyModuleScreen extends ConsumerWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  horse.name,
-                                  style: AppTypography.displayHeadline.copyWith(
-                                    fontSize: 16,
-                                    color: AppColors.primaryGold,
+                                Expanded(
+                                  child: Text(
+                                    horse.name,
+                                    style: AppTypography.displayHeadline.copyWith(
+                                      fontSize: 16,
+                                      color: AppColors.primaryGold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 Text(
                                   horse.breed ?? 'Equine',
                                   style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
@@ -128,10 +158,14 @@ class PregnancyModuleScreen extends ConsumerWidget {
                                       );
                                     },
                                     icon: const Icon(Icons.favorite_outline, size: 16, color: AppColors.primaryGold),
-                                    label: const Text('Log Breeding'),
+                                    label: const FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text('Log Breeding', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
                                     style: OutlinedButton.styleFrom(
                                       side: const BorderSide(color: AppColors.primaryGold),
                                       foregroundColor: AppColors.primaryGold,
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                     ),
                                   ),
                                 ),
@@ -141,15 +175,19 @@ class PregnancyModuleScreen extends ConsumerWidget {
                                     onPressed: () {
                                       Navigator.pushNamed(
                                         context,
-                                        '/pregnancy-details',
+                                        '/vet-pregnancy-scans',
                                         arguments: {'carrierAnimalId': horse.id},
                                       );
                                     },
-                                    icon: const Icon(Icons.monitor_heart, size: 16),
-                                    label: const Text('Scans / Preg'),
+                                    icon: const Icon(Icons.medical_services_outlined, size: 16),
+                                    label: const FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text('Scans & Vet', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primaryGold,
                                       foregroundColor: AppColors.background,
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                     ),
                                   ),
                                 ),

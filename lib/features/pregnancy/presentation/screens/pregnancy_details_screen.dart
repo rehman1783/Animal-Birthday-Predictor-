@@ -331,30 +331,58 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                     ),
                     const SizedBox(height: 16.0),
 
-                    // Advanced Pregnancy Info Entry Action
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        if (_record != null) {
-                          Navigator.pushNamed(
-                            context,
-                            '/advanced-pregnancy',
-                            arguments: _record!.id,
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.science_outlined, color: AppColors.primaryGold),
-                      label: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          'ADVANCED PROCEDURES (CASLICK & FETAL SEXING)',
-                          style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 13),
+                    // Action Shortcuts
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                context,
+                                '/vet-pregnancy-scans',
+                                arguments: {
+                                  'carrierAnimalId': widget.carrierAnimalId,
+                                  'pregnancyRecordId': _record?.id,
+                                },
+                              );
+                            },
+                            icon: const Icon(Icons.medical_services_outlined, color: AppColors.primaryGold, size: 16),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('VET & SCANS', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.primaryGold),
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                            ),
+                          ),
                         ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.primaryGold),
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
-                      ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              if (_record != null) {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/advanced-pregnancy',
+                                  arguments: _record!.id,
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.science_outlined, color: AppColors.primaryGold, size: 16),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('ADVANCED INFO', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.surface),
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24.0),
 

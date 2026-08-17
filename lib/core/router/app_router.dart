@@ -11,10 +11,11 @@ import '../../features/animals/domain/animal.dart';
 import '../../features/animals/presentation/screens/species_selection_screen.dart';
 import '../../features/animals/presentation/screens/saved_animals_screen.dart';
 import '../../features/animals/presentation/screens/animal_details_screen.dart';
+import '../../features/animals/presentation/screens/animal_profile_screen.dart';
 import '../../features/animals/presentation/screens/markings_screen.dart';
 import '../../features/pregnancy/presentation/screens/breeding_details_screen.dart';
 import '../../features/pregnancy/presentation/screens/pregnancy_details_screen.dart';
-import '../../features/pregnancy/presentation/screens/pregnancy_scans_screen.dart';
+import '../../features/pregnancy/presentation/screens/veterinarian_pregnancy_scans_screen.dart';
 import '../../features/pregnancy/presentation/screens/advanced_pregnancy_info_screen.dart';
 import '../../features/pregnancy/presentation/screens/preventative_care_screen.dart';
 import '../../features/foal/domain/foal_record.dart';
@@ -48,6 +49,13 @@ abstract class AppRouter {
       case '/saved-animals':
         return MaterialPageRoute(
           builder: (_) => const SavedAnimalsScreen(),
+          settings: settings,
+        );
+
+      case '/animal-profile':
+        final animal = settings.arguments as Animal;
+        return MaterialPageRoute(
+          builder: (_) => AnimalProfileScreen(animal: animal),
           settings: settings,
         );
 
@@ -135,11 +143,12 @@ abstract class AppRouter {
           settings: settings,
         );
 
+      case '/vet-pregnancy-scans':
       case '/pregnancy-scans':
         final args = settings.arguments as Map<String, dynamic>? ?? {};
         return MaterialPageRoute(
-          builder: (_) => PregnancyScansScreen(
-            carrierAnimalId: (args['carrierAnimalId'] as String?) ?? '',
+          builder: (_) => VeterinarianPregnancyScansScreen(
+            carrierAnimalId: (args['carrierAnimalId'] as String?) ?? (args['carrierId'] as String?),
             pregnancyRecordId: args['pregnancyRecordId'] as String?,
           ),
           settings: settings,

@@ -20,23 +20,28 @@ class AnimalRepository {
 
   Future<List<Animal>> getAnimals({String? species}) async {
     final c = client;
+    final normalizedSpecies = species?.toLowerCase().trim();
     if (c == null) {
-      if (species != null && species.isNotEmpty) {
-        return _inMemoryAnimals.where((a) => a.species.toLowerCase() == species.toLowerCase()).toList();
+      if (normalizedSpecies != null && normalizedSpecies.isNotEmpty) {
+        return _inMemoryAnimals.where((a) => a.species.toLowerCase().trim() == normalizedSpecies).toList();
       }
       return List.unmodifiable(_inMemoryAnimals);
     }
     try {
       var query = c.from('animals').select();
-      if (species != null && species.isNotEmpty) {
-        query = query.eq('species', species);
+      if (normalizedSpecies != null && normalizedSpecies.isNotEmpty) {
+        query = query.eq('species', normalizedSpecies);
       }
       final data = await query.order('created_at', ascending: false);
-      return (data as List).map((json) => Animal.fromJson(json)).toList();
+      final list = (data as List).map((json) => Animal.fromJson(json)).toList();
+      if (normalizedSpecies != null && normalizedSpecies.isNotEmpty) {
+        return list.where((a) => a.species.toLowerCase().trim() == normalizedSpecies).toList();
+      }
+      return list;
     } catch (e) {
       debugPrint('Supabase getAnimals error: $e');
-      if (species != null && species.isNotEmpty) {
-        return _inMemoryAnimals.where((a) => a.species.toLowerCase() == species.toLowerCase()).toList();
+      if (normalizedSpecies != null && normalizedSpecies.isNotEmpty) {
+        return _inMemoryAnimals.where((a) => a.species.toLowerCase().trim() == normalizedSpecies).toList();
       }
       return List.unmodifiable(_inMemoryAnimals);
     }
@@ -66,7 +71,11 @@ class AnimalRepository {
     final user = c?.auth.currentUser;
     final accountId = user?.id ?? (AppUuid.isValid(animal.accountId) ? animal.accountId : '00000000-0000-0000-0000-000000000000');
     final validId = AppUuid.isValid(animal.id) ? animal.id : AppUuid.generate();
-    final toSave = animal.copyWith(id: validId, accountId: accountId);
+    final toSave = animal.copyWith(
+      id: validId,
+      accountId: accountId,
+      species: animal.species.toLowerCase().trim(),
+    );
 
     if (c == null) {
       final index = _inMemoryAnimals.indexWhere((a) => a.id == toSave.id);

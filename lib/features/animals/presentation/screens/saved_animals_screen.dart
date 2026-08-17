@@ -93,7 +93,11 @@ class _SpeciesAnimalList extends ConsumerWidget {
     final animalsAsync = ref.watch(animalsListProvider(species));
 
     return animalsAsync.when(
-      data: (animals) {
+      data: (allAnimals) {
+        final animals = allAnimals
+            .where((a) => a.species.toLowerCase().trim() == species.toLowerCase().trim())
+            .toList();
+
         if (animals.isEmpty) {
           return Center(
             child: SingleChildScrollView(
@@ -120,7 +124,7 @@ class _SpeciesAnimalList extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Register your animals once in the universal registry and select them anytime across breeding and foal records.',
+                      'Register your ${species.toLowerCase()}s in the registry and view their complete profile, breeding history, and health logs.',
                       style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                       textAlign: TextAlign.center,
                     ),
@@ -167,8 +171,8 @@ class _SpeciesAnimalList extends ConsumerWidget {
                   onTap: () async {
                     final updated = await Navigator.pushNamed(
                       context,
-                      '/animal-details',
-                      arguments: {'animal': animal, 'species': species},
+                      '/animal-profile',
+                      arguments: animal,
                     );
                     if (updated != null) {
                       ref.invalidate(animalsListProvider(species));
