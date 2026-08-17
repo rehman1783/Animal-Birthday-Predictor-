@@ -12,6 +12,8 @@ import 'package:animal_birthday_predictor/features/animals/data/animal_repositor
 import 'package:animal_birthday_predictor/features/animals/presentation/providers/animal_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animal_birthday_predictor/core/router/app_router.dart';
+import 'package:animal_birthday_predictor/core/widgets/app_thumbnail_avatar.dart';
+import 'package:animal_birthday_predictor/core/widgets/app_image_picker.dart';
 
 void main() {
   setUp(() {
@@ -385,6 +387,36 @@ void main() {
       // Verify both are shown again
       expect(find.text('Lady Guinevere'), findsOneWidget);
       expect(find.text('King Arthur'), findsOneWidget);
+    });
+
+    testWidgets('AppThumbnailAvatar and AppImagePicker render Base64 data URI images without crashing', (tester) async {
+      // 1x1 transparent PNG encoded in base64
+      const transparentPngBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                const AppThumbnailAvatar(
+                  imagePath: transparentPngBase64,
+                  size: 60,
+                ),
+                AppImagePicker(
+                  label: 'Animal Photo',
+                  currentImagePath: transparentPngBase64,
+                  onImagePicked: (_) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppThumbnailAvatar), findsOneWidget);
+      expect(find.byType(AppImagePicker), findsOneWidget);
+      expect(find.byType(Image), findsNWidgets(2));
     });
   });
 }

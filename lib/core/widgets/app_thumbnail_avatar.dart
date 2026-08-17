@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,22 @@ class AppThumbnailAvatar extends StatelessWidget {
     final path = imagePath?.trim();
     if (path == null || path.isEmpty) {
       content = fallbackWidget;
-    } else if (path.startsWith('http://') || path.startsWith('https://') || kIsWeb) {
+    } else if (path.startsWith('data:image/') || path.startsWith('base64,')) {
+      try {
+        final commaIndex = path.indexOf(',');
+        final base64String = commaIndex != -1 ? path.substring(commaIndex + 1) : path;
+        final bytes = base64Decode(base64String);
+        content = Image.memory(
+          bytes,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (ctx, err, stack) => fallbackWidget,
+        );
+      } catch (_) {
+        content = fallbackWidget;
+      }
+    } else if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) {
       content = Image.network(
         path,
         width: size,
@@ -39,7 +55,21 @@ class AppThumbnailAvatar extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (ctx, err, stack) => fallbackWidget,
       );
-    } else {
+    } else if (path.length > 200 && !path.contains(Platform.pathSeparator) && !path.contains('/')) {
+      // Try raw Base64 without data URI scheme
+      try {
+        final bytes = base64Decode(path);
+        content = Image.memory(
+          bytes,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (ctx, err, stack) => fallbackWidget,
+        );
+      } catch (_) {
+        content = fallbackWidget;
+      }
+    } else if (!kIsWeb) {
       try {
         final file = File(path);
         if (file.existsSync()) {
@@ -56,6 +86,8 @@ class AppThumbnailAvatar extends StatelessWidget {
       } catch (_) {
         content = fallbackWidget;
       }
+    } else {
+      content = fallbackWidget;
     }
 
     return Container(

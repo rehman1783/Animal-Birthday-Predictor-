@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,21 @@ class AppImagePicker extends StatelessWidget {
     this.errorText,
   })  : currentImagePath = currentImagePath ?? initialImageUrl,
         onImagePicked = onImagePicked ?? onImageSelected ?? ((_) {});
+
+  Future<void> _handleImagePicked(XFile? picked) async {
+    if (picked == null) return;
+    try {
+      final bytes = await picked.readAsBytes();
+      if (bytes.isNotEmpty) {
+        final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        onImagePicked(base64String);
+      } else {
+        onImagePicked(picked.path);
+      }
+    } catch (_) {
+      onImagePicked(picked.path);
+    }
+  }
 
   Future<void> _showPickerOptions(BuildContext context) async {
     final picker = ImagePicker();
@@ -67,11 +83,11 @@ class AppImagePicker extends StatelessWidget {
                     try {
                       final picked = await picker.pickImage(
                         source: ImageSource.camera,
-                        imageQuality: 85,
+                        maxWidth: 800,
+                        maxHeight: 800,
+                        imageQuality: 75,
                       );
-                      if (picked != null) {
-                        onImagePicked(picked.path);
-                      }
+                      await _handleImagePicked(picked);
                     } catch (e) {
                       debugPrint('Camera picker error: $e');
                     }
@@ -85,11 +101,11 @@ class AppImagePicker extends StatelessWidget {
                     try {
                       final picked = await picker.pickImage(
                         source: ImageSource.gallery,
-                        imageQuality: 85,
+                        maxWidth: 800,
+                        maxHeight: 800,
+                        imageQuality: 75,
                       );
-                      if (picked != null) {
-                        onImagePicked(picked.path);
-                      }
+                      await _handleImagePicked(picked);
                     } catch (e) {
                       debugPrint('Gallery picker error: $e');
                     }
@@ -112,10 +128,83 @@ class AppImagePicker extends StatelessWidget {
     );
   }
 
+  Widget _buildImagePreview() {
+    final path = currentImagePath?.trim();
+    if (path == null || path.isEmpty) {
+      return const Center(
+        child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+      );
+    }
+
+    // 1. Data URI / Base64 format
+    if (path.startsWith('data:image/') || path.startsWith('base64,')) {
+      try {
+        final commaIndex = path.indexOf(',');
+        final base64String = commaIndex != -1 ? path.substring(commaIndex + 1) : path;
+        final bytes = base64Decode(base64String);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Center(
+            child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+          ),
+        );
+      } catch (_) {
+        return const Center(
+          child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+        );
+      }
+    }
+
+    // 2. HTTP / HTTPS / Blob network URLs
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Center(
+          child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+        ),
+      );
+    }
+
+    // 3. Raw Base64 string fallback
+    if (path.length > 200 && !path.contains(Platform.pathSeparator) && !path.contains('/')) {
+      try {
+        final bytes = base64Decode(path);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Center(
+            child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+          ),
+        );
+      } catch (_) {}
+    }
+
+    // 4. Local File (non-web)
+    if (!kIsWeb) {
+      try {
+        final file = File(path);
+        if (file.existsSync()) {
+          return Image.file(
+            file,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const Center(
+              child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+            ),
+          );
+        }
+      } catch (_) {}
+    }
+
+    return const Center(
+      child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hasImage = currentImagePath != null && currentImagePath!.isNotEmpty;
-    final isNetwork = hasImage && (currentImagePath!.startsWith('http://') || currentImagePath!.startsWith('https://'));
+    final hasImage = currentImagePath != null && currentImagePath!.trim().isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,34 +246,7 @@ class AppImagePicker extends StatelessWidget {
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
-                        if (isNetwork)
-                          Image.network(
-                            currentImagePath!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => const Center(
-                              child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
-                            ),
-                          )
-                        else if (kIsWeb)
-                          Image.network(
-                            currentImagePath!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => const Center(
-                              child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
-                            ),
-                          )
-                        else if (File(currentImagePath!).existsSync())
-                          Image.file(
-                            File(currentImagePath!),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => const Center(
-                              child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
-                            ),
-                          )
-                        else
-                          const Center(
-                            child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
-                          ),
+                        _buildImagePreview(),
                         Positioned(
                           right: 8,
                           bottom: 8,
