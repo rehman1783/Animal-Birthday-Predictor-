@@ -4,6 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/app_logout_dialog.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -97,9 +98,12 @@ class ProfileScreen extends ConsumerWidget {
             GradientCtaButton(
               text: 'Sign Out & Terminate Session',
               onPressed: () async {
-                await ref.read(authControllerProvider.notifier).signOut();
-                if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+                final confirmed = await AppLogoutDialog.show(context);
+                if (confirmed && context.mounted) {
+                  await ref.read(authControllerProvider.notifier).signOut();
+                  if (context.mounted) {
+                    Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+                  }
                 }
               },
             ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/app_logout_dialog.dart';
 import '../providers/settings_provider.dart';
 import '../../../animals/domain/animal_type.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -120,9 +121,12 @@ class SettingsScreen extends ConsumerWidget {
                   style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
                 ),
                 onPressed: () async {
-                  await ref.read(authControllerProvider.notifier).signOut();
-                  if (context.mounted) {
-                    Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+                  final confirmed = await AppLogoutDialog.show(context);
+                  if (confirmed && context.mounted) {
+                    await ref.read(authControllerProvider.notifier).signOut();
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+                    }
                   }
                 },
               ),
