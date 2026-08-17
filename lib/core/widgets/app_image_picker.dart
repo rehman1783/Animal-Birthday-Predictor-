@@ -173,13 +173,17 @@ class AppImagePicker extends StatelessWidget {
                               child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
                             ),
                           )
-                        else
+                        else if (File(currentImagePath!).existsSync())
                           Image.file(
                             File(currentImagePath!),
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => const Center(
                               child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
                             ),
+                          )
+                        else
+                          const Center(
+                            child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
                           ),
                         Positioned(
                           right: 8,

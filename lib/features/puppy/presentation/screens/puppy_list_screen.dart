@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
+import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../domain/puppy.dart';
 import '../providers/puppy_provider.dart';
 import 'puppy_details_screen.dart';
@@ -209,24 +210,13 @@ class _PuppyListCard extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
         onTap: onTap,
-        leading: Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppColors.inputField,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.6)),
-          ),
-          child: puppy.photoUrl?.isNotEmpty == true
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(9),
-                  child: Image.network(
-                    puppy.photoUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.pets, color: AppColors.primaryGold),
-                  ),
-                )
-              : const Icon(Icons.pets, color: AppColors.primaryGold),
+        leading: AppThumbnailAvatar(
+          imagePath: puppy.photoUrl,
+          fallbackIcon: Icons.pets,
+          size: 52,
+          iconSize: 24,
+          isCircle: false,
+          borderRadius: 10,
         ),
         title: Row(
           children: [

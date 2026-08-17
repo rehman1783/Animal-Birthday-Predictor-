@@ -1,9 +1,8 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../domain/animal.dart';
 
 class AnimalListTile extends StatelessWidget {
@@ -20,18 +19,21 @@ class AnimalListTile extends StatelessWidget {
     this.isSelected = false,
   });
 
-  ImageProvider? _getImageProvider(String? path) {
-    if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http://') || path.startsWith('https://') || kIsWeb) {
-      return NetworkImage(path);
+  IconData _getSpeciesIcon(String species) {
+    switch (species.toLowerCase()) {
+      case 'horse':
+        return Icons.pets_rounded;
+      case 'dog':
+        return Icons.pets;
+      case 'cat':
+        return Icons.catching_pokemon;
+      default:
+        return Icons.category_rounded;
     }
-    return FileImage(File(path));
   }
 
   @override
   Widget build(BuildContext context) {
-    final imageProvider = _getImageProvider(animal.photoUrl);
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -48,23 +50,11 @@ class AnimalListTile extends StatelessWidget {
         child: Row(
           children: [
             // Thumbnail / Avatar
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.inputField,
-                border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
-                image: imageProvider != null
-                    ? DecorationImage(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: imageProvider == null
-                  ? const Icon(Icons.pets, color: AppColors.primaryGold, size: 24)
-                  : null,
+            AppThumbnailAvatar(
+              imagePath: animal.photoUrl,
+              fallbackIcon: _getSpeciesIcon(animal.species),
+              size: 50,
+              iconSize: 24,
             ),
             const SizedBox(width: 14),
 

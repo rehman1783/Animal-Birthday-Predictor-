@@ -9,6 +9,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
+import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
 
@@ -213,27 +214,11 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                   child: Column(
                     children: [
                       // Photo or Emblem
-                      Container(
-                        width: 96,
-                        height: 96,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.inputField,
-                          border: Border.all(color: AppColors.primaryGold, width: 2),
-                          image: _currentAnimal.photoUrl != null && _currentAnimal.photoUrl!.isNotEmpty
-                              ? DecorationImage(
-                                  image: NetworkImage(_currentAnimal.photoUrl!),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: _currentAnimal.photoUrl == null || _currentAnimal.photoUrl!.isEmpty
-                            ? Icon(
-                                _getSpeciesIcon(_currentAnimal.species),
-                                size: 44,
-                                color: AppColors.primaryGold,
-                              )
-                            : null,
+                      AppThumbnailAvatar(
+                        imagePath: _currentAnimal.photoUrl,
+                        fallbackIcon: _getSpeciesIcon(_currentAnimal.species),
+                        size: 96,
+                        iconSize: 44,
                       ),
                       const SizedBox(height: 14),
 

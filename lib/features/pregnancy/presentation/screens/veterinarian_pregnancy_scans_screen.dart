@@ -26,10 +26,12 @@ class VeterinarianPregnancyScansScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<VeterinarianPregnancyScansScreen> createState() => _VeterinarianPregnancyScansScreenState();
+  ConsumerState<VeterinarianPregnancyScansScreen> createState() =>
+      _VeterinarianPregnancyScansScreenState();
 }
 
-class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianPregnancyScansScreen> {
+class _VeterinarianPregnancyScansScreenState
+    extends ConsumerState<VeterinarianPregnancyScansScreen> {
   final _vetNameController = TextEditingController();
   final _vetNumberController = TextEditingController();
   String? _selectedCarrierId;
@@ -55,7 +57,8 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
     final repo = ref.read(pregnancyRepositoryProvider);
     PregnancyRecord? rec;
 
-    if (widget.pregnancyRecordId != null && widget.pregnancyRecordId!.isNotEmpty) {
+    if (widget.pregnancyRecordId != null &&
+        widget.pregnancyRecordId!.isNotEmpty) {
       rec = await repo.getPregnancyRecordById(widget.pregnancyRecordId!);
       if (rec != null) {
         _selectedCarrierId = rec.carrierAnimalId;
@@ -96,7 +99,9 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
     final phone = _vetNumberController.text.trim();
     if (phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a veterinarian contact number first.')),
+        const SnackBar(
+          content: Text('Please enter a veterinarian contact number first.'),
+        ),
       );
       return;
     }
@@ -106,17 +111,20 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
       await launchUrl(uri);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not dial $phone')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not dial $phone')));
       }
     }
   }
 
   Future<void> _handleSave() async {
-    if (_record == null && (_selectedCarrierId == null || _selectedCarrierId!.isEmpty)) {
+    if (_record == null &&
+        (_selectedCarrierId == null || _selectedCarrierId!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select or register a mare carrier record.')),
+        const SnackBar(
+          content: Text('Please select or register a mare carrier record.'),
+        ),
       );
       return;
     }
@@ -124,7 +132,8 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(pregnancyRepositoryProvider);
-      final current = _record ??
+      final current =
+          _record ??
           PregnancyRecord(
             id: '',
             accountId: '',
@@ -161,16 +170,13 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
         AppFeedbackSnackbar.showSuccess(
           context,
           title: 'Scans & Vet Details Saved',
-          message: 'Ultrasound scan confirmations and veterinarian info updated successfully!',
+          message:
+              'Ultrasound scan confirmations and veterinarian info updated successfully!',
         );
       }
     } catch (e) {
       if (mounted) {
-        AppFeedbackSnackbar.showError(
-          context,
-          title: 'Save Failed',
-          error: e,
-        );
+        AppFeedbackSnackbar.showError(context, title: 'Save Failed', error: e);
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -196,15 +202,24 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
           onPressed: () => Navigator.maybePop(context),
         ),
-        title: const Text('VET CONTACT & SCANS OVERVIEW', style: AppTypography.sectionLabel),
+        title: const Text(
+          'VET CONTACT & SCANS OVERVIEW',
+          style: AppTypography.sectionLabel,
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGold))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primaryGold),
+              )
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
                 child: ResponsiveBody(
@@ -215,7 +230,10 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                       horsesAsync.when(
                         data: (horses) {
                           final horsesList = horses
-                              .where((a) => a.species.toLowerCase().trim() == 'horse')
+                              .where(
+                                (a) =>
+                                    a.species.toLowerCase().trim() == 'horse',
+                              )
                               .toList();
 
                           if (horsesList.isEmpty) {
@@ -227,18 +245,28 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.cardRadius,
+                              ),
                               border: Border.all(color: AppColors.surface),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('SELECTED PREGNANCY CARRIER (MARE)', style: AppTypography.inputLabel),
+                                const Text(
+                                  'SELECTED PREGNANCY CARRIER (MARE)',
+                                  style: AppTypography.inputLabel,
+                                ),
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<String>(
-                                  initialValue: horsesList.any((h) => h.id == _selectedCarrierId)
+                                  initialValue:
+                                      horsesList.any(
+                                        (h) => h.id == _selectedCarrierId,
+                                      )
                                       ? _selectedCarrierId
-                                      : (horsesList.isNotEmpty ? horsesList.first.id : null),
+                                      : (horsesList.isNotEmpty
+                                            ? horsesList.first.id
+                                            : null),
                                   dropdownColor: AppColors.surface,
                                   decoration: InputDecoration(
                                     filled: true,
@@ -247,14 +275,20 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide.none,
                                     ),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
                                   ),
                                   items: horsesList.map((h) {
                                     return DropdownMenuItem<String>(
                                       value: h.id,
                                       child: Text(
                                         '${h.name} (${h.breed ?? "Equine"})',
-                                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                     );
                                   }).toList(),
@@ -278,8 +312,12 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                          border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.6)),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.cardRadius,
+                          ),
+                          border: Border.all(
+                            color: AppColors.primaryGold.withValues(alpha: 0.6),
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,20 +328,28 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                                 Expanded(
                                   child: Text(
                                     'PREGNANCY SCANS PROGRESS',
-                                    style: AppTypography.displayHeadline.copyWith(fontSize: 14),
+                                    style: AppTypography.displayHeadline
+                                        .copyWith(fontSize: 14),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: completedScans == 3
                                         ? Colors.green.withValues(alpha: 0.2)
-                                        : AppColors.primaryGold.withValues(alpha: 0.2),
+                                        : AppColors.primaryGold.withValues(
+                                            alpha: 0.2,
+                                          ),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: completedScans == 3 ? Colors.greenAccent : AppColors.primaryGold,
+                                      color: completedScans == 3
+                                          ? Colors.greenAccent
+                                          : AppColors.primaryGold,
                                     ),
                                   ),
                                   child: FittedBox(
@@ -311,7 +357,9 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                                     child: Text(
                                       '$completedScans / 3 CONFIRMED',
                                       style: TextStyle(
-                                        color: completedScans == 3 ? Colors.greenAccent : AppColors.primaryGold,
+                                        color: completedScans == 3
+                                            ? Colors.greenAccent
+                                            : AppColors.primaryGold,
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -328,7 +376,9 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                                 minHeight: 6,
                                 backgroundColor: AppColors.inputField,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  completedScans == 3 ? Colors.greenAccent : AppColors.primaryGold,
+                                  completedScans == 3
+                                      ? Colors.greenAccent
+                                      : AppColors.primaryGold,
                                 ),
                               ),
                             ),
@@ -338,7 +388,9 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                       const SizedBox(height: 20.0),
 
                       // 3. Veterinarian Contact Details Section
-                      const SectionDividerLabel(label: 'VETERINARIAN CONTACT DETAILS'),
+                      const SectionDividerLabel(
+                        label: 'VETERINARIAN CONTACT DETAILS',
+                      ),
                       const SizedBox(height: 14.0),
 
                       ContactNumberBlock(
@@ -358,15 +410,32 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: _callVet,
-                              icon: const Icon(Icons.call, color: AppColors.primaryGold, size: 16),
+                              icon: const Icon(
+                                Icons.call,
+                                color: AppColors.primaryGold,
+                                size: 16,
+                              ),
                               label: const FittedBox(
                                 fit: BoxFit.scaleDown,
-                                child: Text('CALL VETERINARIAN NOW', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+                                child: Text(
+                                  'CALL VETERINARIAN NOW',
+                                  style: TextStyle(
+                                    color: AppColors.primaryGold,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: AppColors.primaryGold),
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                side: const BorderSide(
+                                  color: AppColors.primaryGold,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 8,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                             ),
                           ),
@@ -377,13 +446,21 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                               icon: const Icon(Icons.save_outlined, size: 16),
                               label: const FittedBox(
                                 fit: BoxFit.scaleDown,
-                                child: Text('SAVE VET INFO', style: TextStyle(fontWeight: FontWeight.bold)),
+                                child: Text(
+                                  'SAVE VET INFO',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primaryGold,
                                 foregroundColor: AppColors.background,
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 8,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                             ),
                           ),
@@ -392,7 +469,9 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                       const SizedBox(height: 24.0),
 
                       // 4. Ultrasound Scans Overview
-                      const SectionDividerLabel(label: 'ULTRASOUND SCANS OVERVIEW & PROTOCOLS'),
+                      const SectionDividerLabel(
+                        label: 'ULTRASOUND SCANS OVERVIEW & PROTOCOLS',
+                      ),
                       const SizedBox(height: 14.0),
 
                       // Scan 1
@@ -401,9 +480,12 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                         dueDate: _record?.scan1DueDate,
                         isConfirmed: _scan1Confirmed,
                         imageUrl: _scan1Image,
-                        helperGuidance: 'Day 14-16. Checks pregnancy vesicle (98% accuracy) & twin detection prior to fixation at Day 16.',
-                        onToggleConfirmed: (val) => setState(() => _scan1Confirmed = val ?? false),
-                        onImageSelected: (url) => setState(() => _scan1Image = url),
+                        helperGuidance:
+                            'Day 14-16. Checks pregnancy vesicle (98% accuracy) & twin detection prior to fixation at Day 16.',
+                        onToggleConfirmed: (val) =>
+                            setState(() => _scan1Confirmed = val ?? false),
+                        onImageSelected: (url) =>
+                            setState(() => _scan1Image = url),
                       ),
 
                       // Scan 2
@@ -412,9 +494,12 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                         dueDate: _record?.scan2DueDate,
                         isConfirmed: _scan2Confirmed,
                         imageUrl: _scan2Image,
-                        helperGuidance: 'Day 28-30. Confirms viable embryonic heartbeat & rules out early embryonic loss.',
-                        onToggleConfirmed: (val) => setState(() => _scan2Confirmed = val ?? false),
-                        onImageSelected: (url) => setState(() => _scan2Image = url),
+                        helperGuidance:
+                            'Day 28-30. Confirms viable embryonic heartbeat & rules out early embryonic loss.',
+                        onToggleConfirmed: (val) =>
+                            setState(() => _scan2Confirmed = val ?? false),
+                        onImageSelected: (url) =>
+                            setState(() => _scan2Image = url),
                       ),
 
                       // Scan 3
@@ -423,15 +508,20 @@ class _VeterinarianPregnancyScansScreenState extends ConsumerState<VeterinarianP
                         dueDate: _record?.scan3DueDate,
                         isConfirmed: _scan3Confirmed,
                         imageUrl: _scan3Image,
-                        helperGuidance: 'Day 45. Verifies complete organogenesis & endometrial cups formation before wintering.',
-                        onToggleConfirmed: (val) => setState(() => _scan3Confirmed = val ?? false),
-                        onImageSelected: (url) => setState(() => _scan3Image = url),
+                        helperGuidance:
+                            'Day 45. Verifies complete organogenesis & endometrial cups formation before wintering.',
+                        onToggleConfirmed: (val) =>
+                            setState(() => _scan3Confirmed = val ?? false),
+                        onImageSelected: (url) =>
+                            setState(() => _scan3Image = url),
                       ),
                       const SizedBox(height: 20.0),
 
                       // Save All Updates CTA
                       GradientCtaButton(
-                        text: _isSaving ? 'SAVING SCANS & VET...' : 'SAVE ALL SCAN & VET UPDATES',
+                        text: _isSaving
+                            ? 'SAVING SCANS & VET...'
+                            : 'SAVE ALL SCAN & VET UPDATES',
                         onPressed: _isSaving ? null : _handleSave,
                       ),
                       const SizedBox(height: 28.0),
