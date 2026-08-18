@@ -45,7 +45,7 @@ void main() {
       fakeAuthRepository = FakeAuthRepository();
     });
 
-    testWidgets('Displays target email address and Verify Link CTA button', (tester) async {
+    testWidgets('Displays target email address, Waiting for Verification indicator and Resend button', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -59,43 +59,14 @@ void main() {
 
       expect(find.text('Verify Your Email'), findsOneWidget);
       expect(find.text('alex.sterling@example.com'), findsOneWidget);
-      expect(find.text('Verify Link'), findsOneWidget);
+      expect(find.text('Waiting for Verification...'), findsOneWidget);
       expect(find.text('Resend Verification Email'), findsOneWidget);
+      // Verify manual check button is removed
+      expect(find.text('Verify Link'), findsNothing);
+      expect(find.text('I have verified'), findsNothing);
     });
 
-    testWidgets('Shows error message when email is not verified yet and stays on screen', (tester) async {
-      tester.view.physicalSize = const Size(800, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
-
-      fakeAuthRepository.isVerifiedResponse = false;
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authRepositoryProvider.overrideWithValue(fakeAuthRepository),
-          ],
-          child: const MaterialApp(
-            home: EmailVerificationScreen(email: 'alex.sterling@example.com'),
-          ),
-        ),
-      );
-
-      final verifyBtn = find.text('Verify Link');
-      await tester.ensureVisible(verifyBtn);
-      await tester.tap(verifyBtn);
-      await tester.pumpAndSettle();
-
-      expect(fakeAuthRepository.checkVerifiedCalls, 1);
-      expect(
-        find.textContaining('Your email has not been verified yet'),
-        findsOneWidget,
-      );
-      // Stays on email verification screen
-      expect(find.text('Verify Your Email'), findsOneWidget);
-    });
-
-    testWidgets('Shows success message and navigates to /home when email is verified', (tester) async {
+    testWidgets('Automatically navigates to /home when email is detected as verified via polling', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -117,17 +88,13 @@ void main() {
         ),
       );
 
-      final verifyBtn = find.text('Verify Link');
-      await tester.ensureVisible(verifyBtn);
-      await tester.tap(verifyBtn);
-      await tester.pumpAndSettle();
+      // Trigger the 3-second periodic timer
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 500));
 
-      expect(fakeAuthRepository.checkVerifiedCalls, 1);
-      expect(
-        find.textContaining('Email verified successfully!'),
-        findsOneWidget,
-      );
+      expect(fakeAuthRepository.checkVerifiedCalls, greaterThanOrEqualTo(1));
       expect(find.text('Home Screen Content'), findsOneWidget);
+      expect(find.text('Email Verified'), findsOneWidget);
     });
 
     testWidgets('Resend verification email triggers cooldown timer and single message', (tester) async {
@@ -154,10 +121,7 @@ void main() {
       await tester.pump();
 
       expect(fakeAuthRepository.resendCalls, 1);
-      expect(
-        find.textContaining('Verification email resent!'),
-        findsOneWidget,
-      );
+      expect(find.text('Verification Link Sent'), findsOneWidget);
       expect(find.textContaining('Resend in'), findsOneWidget);
     });
   });

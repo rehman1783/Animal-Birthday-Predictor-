@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/auth_header_banner.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -26,13 +28,71 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
   static const int _initialCooldownSeconds = 60;
   int _cooldownSeconds = 0;
   Timer? _cooldownTimer;
-  bool _isCheckingVerification = false;
+  Timer? _pollingTimer;
+  StreamSubscription<AuthState>? _authSubscription;
+  bool _isAutoRedirecting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAuthListener();
+  }
 
   @override
   void dispose() {
     _cooldownTimer?.cancel();
+    _pollingTimer?.cancel();
+    _authSubscription?.cancel();
     _emailController.dispose();
     super.dispose();
+  }
+
+  void _startAuthListener() {
+    try {
+      final repo = ref.read(authRepositoryProvider);
+      _authSubscription = repo.onAuthStateChange.listen((data) {
+        if (!mounted || _isAutoRedirecting) return;
+        if (data.event == AuthChangeEvent.passwordRecovery) {
+          _triggerSuccessRedirect();
+        }
+      });
+    } catch (_) {}
+  }
+
+  void _startPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (!mounted || _isAutoRedirecting || !_isSent) return;
+      final targetEmail = _emailController.text.trim();
+      if (targetEmail.isEmpty) return;
+
+      try {
+        final isVerified = await ref
+            .read(authControllerProvider.notifier)
+            .checkIsPasswordResetVerified(targetEmail);
+
+        if (isVerified && mounted && !_isAutoRedirecting) {
+          timer.cancel();
+          _triggerSuccessRedirect();
+        }
+      } catch (_) {}
+    });
+  }
+
+  void _triggerSuccessRedirect() {
+    if (_isAutoRedirecting || !mounted) return;
+    setState(() => _isAutoRedirecting = true);
+    _pollingTimer?.cancel();
+    _authSubscription?.cancel();
+
+    AppFeedbackSnackbar.showSuccess(
+      context,
+      title: 'Reset Link Verified',
+      message: 'Email link verified! Please set your new password.',
+      duration: const Duration(seconds: 3),
+    );
+
+    Navigator.pushReplacementNamed(context, '/update-password');
   }
 
   void _startCooldownTimer() {
@@ -91,14 +151,11 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
         _isSent = true;
       });
       _startCooldownTimer();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Password reset link sent! Please check your email inbox.',
-          ),
-          backgroundColor: AppColors.surface,
-          duration: Duration(seconds: 4),
-        ),
+      _startPolling();
+      AppFeedbackSnackbar.showSuccess(
+        context,
+        title: 'Reset Link Sent',
+        message: 'Password reset link sent! Please check your email inbox.',
       );
     } else {
       final errorState = ref.read(authControllerProvider);
@@ -112,8 +169,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
           _emailError = errorMsg;
         }
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg), backgroundColor: AppColors.error),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Send Failed',
+        error: errorMsg,
       );
     }
   }
@@ -130,65 +189,21 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
     if (success) {
       _startCooldownTimer();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset link resent! Please check your inbox.'),
-          backgroundColor: AppColors.surface,
-          duration: Duration(seconds: 4),
-        ),
+      AppFeedbackSnackbar.showSuccess(
+        context,
+        title: 'Link Resent',
+        message: 'Password reset link resent! Please check your inbox.',
       );
     } else {
       final errorState = ref.read(authControllerProvider);
       final errorMsg =
           errorState.error?.toString() ?? 'Failed to resend reset link.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg), backgroundColor: AppColors.error),
-      );
-    }
-  }
-
-  Future<void> _handleCheckVerified() async {
-    if (_isCheckingVerification) return;
-
-    setState(() {
-      _isCheckingVerification = true;
-    });
-
-    final targetEmail = _emailController.text.trim();
-    final isVerified = await ref
-        .read(authControllerProvider.notifier)
-        .checkIsPasswordResetVerified(targetEmail);
-
-    if (!mounted) return;
-
-    setState(() {
-      _isCheckingVerification = false;
-    });
-
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-    if (isVerified) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Reset link verified! Please enter your new password.'),
-          backgroundColor: AppColors.surface,
-          duration: Duration(seconds: 3),
-        ),
-      );
-      Navigator.pushReplacementNamed(context, '/update-password');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Your password reset link has not been verified yet. Please check your email inbox and tap the link first.',
-          ),
-          backgroundColor: AppColors.error,
-          duration: Duration(seconds: 4),
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Resend Failed',
+        error: errorMsg,
       );
     }
   }
@@ -206,7 +221,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
         left: true,
         right: true,
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           child: ResponsiveBody(
             child: Column(
               children: [
@@ -249,7 +264,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                           onPressed: _handleSendResetLink,
                         ),
                       ] else ...[
-                        // Confirmation View (State-Swap UI with 2 Action Buttons)
+                        // Confirmation View (State-Swap UI)
                         Container(
                           padding: const EdgeInsets.all(20.0),
                           decoration: BoxDecoration(
@@ -294,32 +309,47 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
 
                         const SizedBox(height: 24.0),
 
-                        // Info Note Box
+                        // Information Card with Automatic Detection Indicator
                         Container(
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
-                            color: AppColors.inputField,
+                            color: AppColors.surface,
                             borderRadius: BorderRadius.circular(
                               AppSpacing.cardRadius,
                             ),
                             border: Border.all(
-                              color: AppColors.inputBorder,
+                              color: AppColors.primaryGold.withValues(alpha: 0.3),
                               width: 1,
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.info_outline,
+                              const Icon(
+                                Icons.mark_email_unread_outlined,
                                 color: AppColors.primaryGold,
-                                size: 20,
+                                size: 26,
                               ),
-                              SizedBox(width: 12.0),
+                              const SizedBox(width: 14.0),
                               Expanded(
-                                child: Text(
-                                  'Please open your email app (e.g. Gmail), tap the reset link sent by ABP, and then tap “I Have Verified Link” below.',
-                                  style: AppTypography.body,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Waiting for Verification...',
+                                      style: AppTypography.featureTitle.copyWith(
+                                        fontSize: 15,
+                                        color: AppColors.primaryGold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Open your Gmail or email app and tap the password reset link. The app will automatically open and redirect you to set your new password.',
+                                      style: AppTypography.bodySmall.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -328,61 +358,20 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
 
                         const SizedBox(height: 28.0),
 
-                        // Button 1 (Primary): "I Have Verified Link"
+                        // Primary CTA: "Resend Reset Link" (with Cooldown)
                         GradientCtaButton(
-                          text: 'I Have Verified Link',
+                          text: _cooldownSeconds > 0
+                              ? 'Resend in ${_cooldownSeconds}s'
+                              : 'Resend Reset Link',
                           icon: const Icon(
-                            Icons.verified_outlined,
+                            Icons.refresh_rounded,
                             color: AppColors.background,
                             size: 20,
                           ),
-                          isLoading: _isCheckingVerification,
-                          onPressed: _isCheckingVerification
-                              ? null
-                              : _handleCheckVerified,
-                        ),
-
-                        const SizedBox(height: 16.0),
-
-                        // Button 2 (Secondary Outlined): "Resend Reset Link" (with Cooldown)
-                        OutlinedButton(
+                          isLoading: isLoading,
                           onPressed: (_cooldownSeconds > 0 || isLoading)
                               ? null
                               : _handleResendResetLink,
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                            side: BorderSide(
-                              color: _cooldownSeconds > 0
-                                  ? AppColors.inputBorder
-                                  : AppColors.primaryGold,
-                              width: 1.5,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                AppSpacing.cardRadius,
-                              ),
-                            ),
-                          ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.primaryGold,
-                                  ),
-                                )
-                              : Text(
-                                  _cooldownSeconds > 0
-                                      ? 'Resend in ${_cooldownSeconds}s'
-                                      : 'Resend Reset Link',
-                                  style: AppTypography.body.copyWith(
-                                    color: _cooldownSeconds > 0
-                                        ? AppColors.textMuted
-                                        : AppColors.primaryGold,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
                         ),
                       ],
 

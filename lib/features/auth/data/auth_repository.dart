@@ -516,10 +516,14 @@ class AuthRepository {
     } catch (_) {}
 
     // 4. Fallback check on active session user object
-    final currentUser = _supabase.auth.currentUser;
-    return currentUser != null &&
-        currentUser.emailConfirmedAt != null &&
-        currentUser.emailConfirmedAt!.isNotEmpty;
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      return currentUser != null &&
+          currentUser.emailConfirmedAt != null &&
+          currentUser.emailConfirmedAt!.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Permanently delete user account and all data after password confirmation

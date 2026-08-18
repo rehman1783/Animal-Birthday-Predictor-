@@ -55,7 +55,7 @@ void main() {
     });
 
     testWidgets(
-      'PasswordResetScreen: Shows error SnackBar and stays on screen when link is not verified yet',
+      'PasswordResetScreen: Displays Waiting for Verification indicator and Resend button, and automatically navigates to /update-password when link is verified',
       (tester) async {
         tester.view.physicalSize = const Size(800, 1200);
         tester.view.devicePixelRatio = 1.0;
@@ -80,83 +80,34 @@ void main() {
         );
 
         // Enter email
-        await tester.enterText(find.byType(TextField), 'user@example.com');
+        await tester.enterText(find.byType(TextFormField).first, 'user@example.com');
         await tester.pump();
 
         // Tap Send Reset Link
         final sendBtn = find.text('Send Reset Link ➤');
         await tester.ensureVisible(sendBtn);
         await tester.tap(sendBtn);
-        await tester.pumpAndSettle();
-
-        expect(find.text('Check Your Email'), findsOneWidget);
-
-        // Tap "I Have Verified Link" when not verified
-        final verifyBtn = find.text('I Have Verified Link');
-        await tester.ensureVisible(verifyBtn);
-        await tester.tap(verifyBtn);
-        await tester.pumpAndSettle();
-
-        expect(fakeRepo.checkVerifiedCalls, 1);
-        // Clean error SnackBar without any bypass button
-        expect(
-          find.textContaining(
-            'Your password reset link has not been verified yet',
-          ),
-          findsOneWidget,
-        );
-        // Stays on confirmation screen
-        expect(find.text('Check Your Email'), findsOneWidget);
-        expect(find.text('Update Password Screen Target'), findsNothing);
-      },
-    );
-
-    testWidgets(
-      'PasswordResetScreen: Navigates to /update-password when link is verified',
-      (tester) async {
-        tester.view.physicalSize = const Size(800, 1200);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(() => tester.view.resetPhysicalSize());
-
-        fakeRepo.isResetVerifiedResponse = true;
-
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [authRepositoryProvider.overrideWithValue(fakeRepo)],
-            child: MaterialApp(
-              routes: {
-                '/': (context) => const PasswordResetScreen(),
-                '/update-password': (context) =>
-                    const Scaffold(body: Text('Update Password Screen Target')),
-                '/signin': (context) =>
-                    const Scaffold(body: Text('Sign In Screen Target')),
-              },
-              initialRoute: '/',
-            ),
-          ),
-        );
-
-        // Enter email
-        await tester.enterText(find.byType(TextField), 'user@example.com');
-        await tester.pump();
-
-        // Tap Send Reset Link
-        final sendBtn = find.text('Send Reset Link ➤');
-        await tester.ensureVisible(sendBtn);
-        await tester.tap(sendBtn);
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 500));
 
         expect(fakeRepo.resetCalls, 1);
         expect(find.text('Check Your Email'), findsOneWidget);
+        expect(find.text('Waiting for Verification...'), findsOneWidget);
+        expect(find.textContaining('Resend'), findsOneWidget);
 
-        // Tap "I Have Verified Link" -> Navigates to /update-password
-        final verifyBtn = find.text('I Have Verified Link');
-        await tester.ensureVisible(verifyBtn);
-        await tester.tap(verifyBtn);
-        await tester.pumpAndSettle();
+        // Ensure manual verify button is removed
+        expect(find.text('I Have Verified Link'), findsNothing);
+        expect(find.text('Verify Link'), findsNothing);
 
-        expect(fakeRepo.checkVerifiedCalls, 1);
+        // Now simulate user verifying in email/browser
+        fakeRepo.isResetVerifiedResponse = true;
+
+        // Advance 3 seconds for auto-poll
+        await tester.pump(const Duration(seconds: 3));
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(fakeRepo.checkVerifiedCalls, greaterThanOrEqualTo(1));
         expect(find.text('Update Password Screen Target'), findsOneWidget);
+        expect(find.text('Reset Link Verified'), findsOneWidget);
       },
     );
 
