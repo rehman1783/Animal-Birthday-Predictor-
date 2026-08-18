@@ -47,9 +47,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     });
 
     bool isValid = true;
-    final currentPassword = _currentPasswordController.text;
-    final newPassword = _newPasswordController.text;
-    final confirmPassword = _confirmPasswordController.text;
+    final currentPassword = _currentPasswordController.text.trim();
+    final newPassword = _newPasswordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
 
     if (currentPassword.isEmpty) {
       _currentPasswordError = 'Current password is required';
@@ -89,8 +89,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       _confirmPasswordError = null;
     });
 
-    final currentPassword = _currentPasswordController.text;
-    final newPassword = _newPasswordController.text;
+    final currentPassword = _currentPasswordController.text.trim();
+    final newPassword = _newPasswordController.text.trim();
 
     try {
       final repo = ref.read(authRepositoryProvider);
@@ -119,7 +119,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       setState(() {
         if (errorMsg.toLowerCase().contains('current password') ||
             errorMsg.toLowerCase().contains('incorrect')) {
-          _currentPasswordError = errorMsg;
+          _currentPasswordError = 'Incorrect current password. Please try again.';
         }
       });
 

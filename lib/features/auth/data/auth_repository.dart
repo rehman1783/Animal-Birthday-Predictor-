@@ -288,31 +288,65 @@ class AuthRepository {
     }
   }
 
+  /// Safely verify credentials without mutating local Supabase session state
+  Future<({bool isValid, String? accessToken, String? refreshToken, String? errorMessage})> verifyCredentialsWithToken({
+    required String email,
+    required String password,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanPassword = password.trim();
+    if (cleanEmail.isEmpty || cleanPassword.isEmpty) {
+      return (isValid: false, accessToken: null, refreshToken: null, errorMessage: 'Email and password are required.');
+    }
+
+    final cleanBaseUrl = AppEnv.supabaseUrl.replaceAll(RegExp(r'/+$'), '');
+    try {
+      final client = HttpClient();
+      final uri = Uri.parse('$cleanBaseUrl/auth/v1/token?grant_type=password');
+      final request = await client.postUrl(uri);
+      request.headers.set('apikey', AppEnv.supabaseKey);
+      request.headers.set('Authorization', 'Bearer ${AppEnv.supabaseKey}');
+      request.headers.set('Content-Type', 'application/json');
+      request.add(utf8.encode(jsonEncode({
+        'email': cleanEmail,
+        'password': cleanPassword,
+      })));
+      final response = await request.close();
+      final statusCode = response.statusCode;
+      final responseBody = await utf8.decodeStream(response);
+      client.close();
+
+      debugPrint('verifyCredentials statusCode: $statusCode, response: $responseBody');
+
+      if (statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(responseBody) as Map<String, dynamic>;
+        final accessToken = data['access_token'] as String?;
+        final refreshToken = data['refresh_token'] as String?;
+        return (isValid: true, accessToken: accessToken, refreshToken: refreshToken, errorMessage: null);
+      } else {
+        String? msg;
+        try {
+          final Map<String, dynamic> errData = jsonDecode(responseBody) as Map<String, dynamic>;
+          msg = errData['msg'] as String? ?? errData['error_description'] as String? ?? errData['error'] as String?;
+        } catch (_) {}
+        return (isValid: false, accessToken: null, refreshToken: null, errorMessage: msg ?? 'Incorrect current password. Please try again.');
+      }
+    } catch (e) {
+      debugPrint('verifyCredentials check notice: $e');
+      if (ErrorHandler.isNetworkError(e)) {
+        throw _handleError(e);
+      }
+      return (isValid: false, accessToken: null, refreshToken: null, errorMessage: 'Network error. Please try again.');
+    }
+  }
+
   /// Safely verify if credentials are valid without disrupting the active Supabase session
   Future<bool> verifyCredentials({
     required String email,
     required String password,
   }) async {
-    final cleanEmail = email.trim().toLowerCase();
-    try {
-      final client = HttpClient();
-      final uri = Uri.parse('${AppEnv.supabaseUrl}/auth/v1/token?grant_type=password');
-      final request = await client.postUrl(uri);
-      request.headers.set('apikey', AppEnv.supabaseKey);
-      request.headers.set('Content-Type', 'application/json');
-      request.add(utf8.encode(jsonEncode({
-        'email': cleanEmail,
-        'password': password,
-      })));
-      final response = await request.close();
-      final statusCode = response.statusCode;
-      client.close();
-
-      return statusCode == 200;
-    } catch (e) {
-      debugPrint('verifyCredentials check notice: $e');
-      return false;
-    }
+    final res = await verifyCredentialsWithToken(email: email, password: password);
+    return res.isValid;
   }
 
   /// Change Password with Current Password Verification (for in-app Profile)
@@ -328,21 +362,79 @@ class AuthRepository {
     }
 
     final cleanEmail = email.trim().toLowerCase();
+    final cleanCurrentPassword = currentPassword.trim();
+    final cleanNewPassword = newPassword.trim();
 
-    // 1. Verify Current Password safely without mutating local session state
-    final isValidCurrentPassword = await verifyCredentials(
+    // 1. Verify Current Password and obtain fresh access token
+    final verification = await verifyCredentialsWithToken(
       email: cleanEmail,
-      password: currentPassword,
+      password: cleanCurrentPassword,
     );
 
-    if (!isValidCurrentPassword) {
-      throw const AuthExceptionCustom('Incorrect current password. Please try again.');
+    if (!verification.isValid) {
+      throw AuthExceptionCustom(
+        verification.errorMessage ?? 'Incorrect current password. Please try again.',
+      );
     }
 
-    // 2. Update to new password
+    final freshAccessToken = verification.accessToken;
+    final cleanBaseUrl = AppEnv.supabaseUrl.replaceAll(RegExp(r'/+$'), '');
+
+    // 2. Update to new password using the freshly verified authenticated access token
+    if (freshAccessToken != null && freshAccessToken.isNotEmpty) {
+      try {
+        final client = HttpClient();
+        final uri = Uri.parse('$cleanBaseUrl/auth/v1/user');
+        final request = await client.putUrl(uri);
+        request.headers.set('apikey', AppEnv.supabaseKey);
+        request.headers.set('Authorization', 'Bearer $freshAccessToken');
+        request.headers.set('Content-Type', 'application/json');
+        request.add(utf8.encode(jsonEncode({
+          'password': cleanNewPassword,
+          'current_password': cleanCurrentPassword,
+        })));
+        final response = await request.close();
+        final statusCode = response.statusCode;
+        final responseBody = await utf8.decodeStream(response);
+        client.close();
+
+        debugPrint('updatePassword HTTP statusCode: $statusCode, response: $responseBody');
+
+        if (statusCode == 200) {
+          // If refresh token exists, update local session
+          if (verification.refreshToken != null) {
+            try {
+              await _supabase.auth.setSession(verification.refreshToken!);
+            } catch (_) {}
+          }
+          return;
+        } else {
+          try {
+            final Map<String, dynamic> errData = jsonDecode(responseBody) as Map<String, dynamic>;
+            final msg = errData['msg'] as String? ?? errData['error_description'] as String? ?? errData['error'] as String?;
+            if (msg != null && msg.isNotEmpty) {
+              throw AuthExceptionCustom(msg);
+            }
+          } catch (jsonErr) {
+            if (jsonErr is AuthExceptionCustom) rethrow;
+          }
+          throw const AuthExceptionCustom('Failed to update password. Please try again.');
+        }
+      } catch (e) {
+        if (e is AuthExceptionCustom) rethrow;
+        if (ErrorHandler.isNetworkError(e)) {
+          throw _handleError(e);
+        }
+      }
+    }
+
+    // Fallback: Use standard _supabase.auth.updateUser with currentPassword
     try {
       await _supabase.auth.updateUser(
-        UserAttributes(password: newPassword),
+        UserAttributes(
+          password: cleanNewPassword,
+          currentPassword: cleanCurrentPassword,
+        ),
       );
     } on AuthException catch (e) {
       throw _handleError(e);
