@@ -12,6 +12,7 @@ import 'package:animal_birthday_predictor/features/foal/presentation/providers/f
 import 'package:animal_birthday_predictor/features/puppy/domain/puppy.dart';
 import 'package:animal_birthday_predictor/features/puppy/presentation/providers/puppy_provider.dart';
 import 'package:animal_birthday_predictor/features/puppy/presentation/screens/puppy_details_screen.dart';
+import 'package:animal_birthday_predictor/features/main/presentation/providers/main_navigation_provider.dart';
 
 class FoalModuleScreen extends ConsumerStatefulWidget {
   final String? initialCategory;
@@ -31,20 +32,23 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
   late TabController _tabController;
   final List<String> _categoryTabs = const ['foals', 'puppies', 'kittens', 'other'];
 
+  int _categoryToIndex(String? category) {
+    if (category == null) return 0;
+    final cat = category.toLowerCase();
+    if (cat.contains('puppy') || cat.contains('dog')) {
+      return 1;
+    } else if (cat.contains('kitten') || cat.contains('cat')) {
+      return 2;
+    } else if (cat.contains('other')) {
+      return 3;
+    }
+    return 0;
+  }
+
   @override
   void initState() {
     super.initState();
-    int initialIndex = widget.initialTab ?? 0;
-    if (widget.initialCategory != null) {
-      final cat = widget.initialCategory!.toLowerCase();
-      if (cat.contains('puppy') || cat.contains('dog')) {
-        initialIndex = 1;
-      } else if (cat.contains('kitten') || cat.contains('cat')) {
-        initialIndex = 2;
-      } else if (cat.contains('other')) {
-        initialIndex = 3;
-      }
-    }
+    int initialIndex = widget.initialTab ?? _categoryToIndex(widget.initialCategory);
     if (initialIndex < 0 || initialIndex >= _categoryTabs.length) {
       initialIndex = 0;
     }
@@ -57,6 +61,17 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant FoalModuleScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialCategory != null && widget.initialCategory != oldWidget.initialCategory) {
+      final targetIdx = _categoryToIndex(widget.initialCategory);
+      if (targetIdx != _tabController.index) {
+        _tabController.animateTo(targetIdx);
+      }
+    }
   }
 
   @override
@@ -104,6 +119,15 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(mainNavigationProvider, (previous, next) {
+      if (next.selectedIndex == 3 && next.initialCategory != null) {
+        final targetIdx = _categoryToIndex(next.initialCategory);
+        if (targetIdx != _tabController.index) {
+          _tabController.animateTo(targetIdx);
+        }
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(

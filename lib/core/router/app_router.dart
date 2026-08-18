@@ -66,8 +66,24 @@ abstract class AppRouter {
         );
 
       case '/home':
+      case '/dashboard':
+        int initialIndex = 0;
+        String? category;
+        String? speciesTab;
+        if (settings.arguments is int) {
+          initialIndex = settings.arguments as int;
+        } else if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          initialIndex = (map['tabIndex'] as int?) ?? (map['initialIndex'] as int?) ?? 0;
+          category = map['category'] as String?;
+          speciesTab = map['species'] as String?;
+        }
         return MaterialPageRoute(
-          builder: (_) => const MainNavigationScreen(),
+          builder: (_) => MainNavigationScreen(
+            initialIndex: initialIndex,
+            initialFoalCategory: category,
+            initialSpeciesTab: speciesTab,
+          ),
           settings: settings,
         );
 
@@ -97,8 +113,18 @@ abstract class AppRouter {
         );
 
       case '/saved-animals':
+      case '/animals':
+        String? initialSpecies;
+        if (settings.arguments is String) {
+          initialSpecies = settings.arguments as String;
+        } else if (settings.arguments is Map) {
+          initialSpecies = (settings.arguments as Map)['species'] as String?;
+        }
         return MaterialPageRoute(
-          builder: (_) => const SavedAnimalsScreen(),
+          builder: (_) => MainNavigationScreen(
+            initialIndex: 1,
+            initialSpeciesTab: initialSpecies,
+          ),
           settings: settings,
         );
 
@@ -147,7 +173,10 @@ abstract class AppRouter {
 
       case '/puppies':
         return MaterialPageRoute(
-          builder: (_) => const FoalModuleScreen(initialCategory: 'puppy'),
+          builder: (_) => const MainNavigationScreen(
+            initialIndex: 3,
+            initialFoalCategory: 'puppy',
+          ),
           settings: settings,
         );
 
@@ -248,20 +277,34 @@ abstract class AppRouter {
           settings: settings,
         );
 
+      case '/pregnancy':
+      case '/pregnancy-module':
+        return MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(initialIndex: 2),
+          settings: settings,
+        );
+
       case '/foals':
       case '/foal-module':
       case '/birth-log':
         String? initialCat;
-        int? initialTab;
         if (settings.arguments is String) {
           initialCat = settings.arguments as String;
         } else if (settings.arguments is Map) {
           final map = settings.arguments as Map;
           initialCat = (map['initialCategory'] as String?) ?? (map['species'] as String?);
-          initialTab = map['initialTab'] as int?;
         }
         return MaterialPageRoute(
-          builder: (_) => FoalModuleScreen(initialCategory: initialCat, initialTab: initialTab),
+          builder: (_) => MainNavigationScreen(
+            initialIndex: 3,
+            initialFoalCategory: initialCat ?? 'foals',
+          ),
+          settings: settings,
+        );
+
+      case '/profile':
+        return MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(initialIndex: 4),
           settings: settings,
         );
 
@@ -308,15 +351,20 @@ abstract class AppRouter {
       '/reset-password': (context) => const PasswordResetScreen(),
       '/update-password': (context) => const UpdatePasswordScreen(),
       '/home': (context) => const MainNavigationScreen(),
+      '/dashboard': (context) => const MainNavigationScreen(initialIndex: 0),
       '/species-select': (context) => const SpeciesSelectionScreen(),
-      '/saved-animals': (context) => const SavedAnimalsScreen(),
+      '/saved-animals': (context) => const MainNavigationScreen(initialIndex: 1),
+      '/animals': (context) => const MainNavigationScreen(initialIndex: 1),
+      '/pregnancy': (context) => const MainNavigationScreen(initialIndex: 2),
+      '/pregnancy-module': (context) => const MainNavigationScreen(initialIndex: 2),
+      '/foals': (context) => const MainNavigationScreen(initialIndex: 3, initialFoalCategory: 'foals'),
+      '/puppies': (context) => const MainNavigationScreen(initialIndex: 3, initialFoalCategory: 'puppies'),
+      '/birth-log': (context) => const MainNavigationScreen(initialIndex: 3),
+      '/profile': (context) => const MainNavigationScreen(initialIndex: 4),
       '/animal-details': (context) => const AnimalDetailsScreen(),
       '/settings': (context) => const SettingsScreen(),
       '/delete-account': (context) => const DeleteAccountScreen(),
       '/contacts': (context) => const ContactsDirectoryScreen(),
-      '/puppies': (context) => const FoalModuleScreen(initialCategory: 'puppy'),
-      '/foals': (context) => const FoalModuleScreen(),
-      '/birth-log': (context) => const FoalModuleScreen(),
     };
   }
 }

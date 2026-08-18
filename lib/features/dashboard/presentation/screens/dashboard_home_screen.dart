@@ -12,6 +12,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../contacts/presentation/providers/contact_provider.dart';
 import '../../../foal/presentation/providers/foal_provider.dart';
 import '../../../puppy/presentation/providers/puppy_provider.dart';
+import 'package:animal_birthday_predictor/features/main/presentation/providers/main_navigation_provider.dart';
 
 class DashboardHomeScreen extends ConsumerWidget {
   final Function(int)? onNavigateTab;
@@ -96,7 +97,12 @@ class DashboardHomeScreen extends ConsumerWidget {
                           count: '${horses.length}',
                           icon: Icons.pets,
                           accentColor: AppColors.primaryGold,
-                          onTap: () => Navigator.pushNamed(context, '/saved-animals'),
+                          onTap: () {
+                            if (onNavigateTab != null) {
+                              onNavigateTab!(1);
+                            }
+                            ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'horse');
+                          },
                         ),
                         loading: () => const _StatCard(title: 'Saved Horses', count: '...', icon: Icons.pets, accentColor: AppColors.primaryGold),
                         error: (err, stack) => const _StatCard(title: 'Saved Horses', count: '0', icon: Icons.pets, accentColor: AppColors.primaryGold),
@@ -113,9 +119,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           onTap: () {
                             if (onNavigateTab != null) {
                               onNavigateTab!(3);
-                            } else {
-                              Navigator.pushNamed(context, '/foals');
                             }
+                            ref.read(mainNavigationProvider.notifier).setTab(3, category: 'foals');
                           },
                         ),
                         loading: () => const _StatCard(title: 'Foal Records', count: '...', icon: Icons.child_care, accentColor: AppColors.primaryGold),
@@ -135,7 +140,12 @@ class DashboardHomeScreen extends ConsumerWidget {
                           count: '${puppies.length}',
                           icon: Icons.bedroom_baby_outlined,
                           accentColor: AppColors.primaryGold,
-                          onTap: () => Navigator.pushNamed(context, '/puppies'),
+                          onTap: () {
+                            if (onNavigateTab != null) {
+                              onNavigateTab!(3);
+                            }
+                            ref.read(mainNavigationProvider.notifier).setTab(3, category: 'puppies');
+                          },
                         ),
                         loading: () => const _StatCard(title: 'Puppy Registry', count: '...', icon: Icons.bedroom_baby_outlined, accentColor: AppColors.primaryGold),
                         error: (err, stack) => const _StatCard(title: 'Puppy Registry', count: '0', icon: Icons.bedroom_baby_outlined, accentColor: AppColors.primaryGold),
@@ -174,7 +184,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           ref.invalidate(animalsListProvider('horse'));
                           ref.invalidate(animalsListProvider('dog'));
                           if (newAnimal != null && context.mounted) {
-                            Navigator.pushNamed(context, '/saved-animals');
+                            if (onNavigateTab != null) onNavigateTab!(1);
+                            ref.read(mainNavigationProvider.notifier).setTab(1);
                           }
                         },
                       ),
@@ -204,9 +215,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           if (newFoal != null) {
                             if (onNavigateTab != null) {
                               onNavigateTab!(3);
-                            } else if (context.mounted) {
-                              Navigator.pushNamed(context, '/foals');
                             }
+                            ref.read(mainNavigationProvider.notifier).setTab(3, category: 'foals');
                           }
                         },
                         icon: const Icon(Icons.child_care, color: AppColors.primaryGold, size: 16),
@@ -230,8 +240,11 @@ class DashboardHomeScreen extends ConsumerWidget {
                         onPressed: () async {
                           final newPuppy = await Navigator.pushNamed(context, '/puppy-details');
                           ref.invalidate(puppiesListProvider(null));
-                          if (newPuppy != null && context.mounted) {
-                            Navigator.pushNamed(context, '/puppies'); // Navigate directly to Puppies overview
+                          if (newPuppy != null) {
+                            if (onNavigateTab != null) {
+                              onNavigateTab!(3);
+                            }
+                            ref.read(mainNavigationProvider.notifier).setTab(3, category: 'puppies');
                           }
                         },
                         icon: const Icon(Icons.bedroom_baby_outlined, color: AppColors.primaryGold, size: 16),
@@ -257,7 +270,10 @@ class DashboardHomeScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => Navigator.pushNamed(context, '/saved-animals'),
+                        onPressed: () {
+                          if (onNavigateTab != null) onNavigateTab!(1);
+                          ref.read(mainNavigationProvider.notifier).setTab(1);
+                        },
                         icon: const Icon(Icons.list_alt, color: AppColors.primaryGold, size: 16),
                         label: const FittedBox(
                           fit: BoxFit.scaleDown,
@@ -305,7 +321,10 @@ class DashboardHomeScreen extends ConsumerWidget {
                   subtitle: 'Natural, Chilled, Frozen & ICSI pregnancy tracking with embryo transfer support.',
                   icon: Icons.pets_rounded,
                   isAvailable: true,
-                  onTap: () => Navigator.pushNamed(context, '/saved-animals'),
+                  onTap: () {
+                    if (onNavigateTab != null) onNavigateTab!(1);
+                    ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'horse');
+                  },
                 ),
                 const SizedBox(height: 10.0),
 
@@ -314,7 +333,10 @@ class DashboardHomeScreen extends ConsumerWidget {
                   subtitle: 'Puppy litters, collar tags, weight logs & dual-date health protocols.',
                   icon: Icons.bedroom_baby_outlined,
                   isAvailable: true,
-                  onTap: () => Navigator.pushNamed(context, '/puppies'),
+                  onTap: () {
+                    if (onNavigateTab != null) onNavigateTab!(3);
+                    ref.read(mainNavigationProvider.notifier).setTab(3, category: 'puppies');
+                  },
                 ),
                 const SizedBox(height: 10.0),
 

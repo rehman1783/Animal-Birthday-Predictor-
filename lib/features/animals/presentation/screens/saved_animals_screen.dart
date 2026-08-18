@@ -10,8 +10,12 @@ import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
 import '../widgets/animal_list_tile.dart';
 
+import 'package:animal_birthday_predictor/features/main/presentation/providers/main_navigation_provider.dart';
+
 class SavedAnimalsScreen extends ConsumerStatefulWidget {
-  const SavedAnimalsScreen({super.key});
+  final String? initialSpecies;
+
+  const SavedAnimalsScreen({super.key, this.initialSpecies});
 
   @override
   ConsumerState<SavedAnimalsScreen> createState() => _SavedAnimalsScreenState();
@@ -24,7 +28,27 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _speciesTabs.length, vsync: this);
+    int initialIndex = 0;
+    if (widget.initialSpecies != null) {
+      final idx = _speciesTabs.indexOf(widget.initialSpecies!.toLowerCase());
+      if (idx != -1) initialIndex = idx;
+    }
+    _tabController = TabController(
+      length: _speciesTabs.length,
+      vsync: this,
+      initialIndex: initialIndex,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant SavedAnimalsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialSpecies != null && widget.initialSpecies != oldWidget.initialSpecies) {
+      final idx = _speciesTabs.indexOf(widget.initialSpecies!.toLowerCase());
+      if (idx != -1 && idx != _tabController.index) {
+        _tabController.animateTo(idx);
+      }
+    }
   }
 
   @override
@@ -41,6 +65,15 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(mainNavigationProvider, (previous, next) {
+      if (next.selectedIndex == 1 && next.initialSpeciesTab != null) {
+        final idx = _speciesTabs.indexOf(next.initialSpeciesTab!.toLowerCase());
+        if (idx != -1 && idx != _tabController.index) {
+          _tabController.animateTo(idx);
+        }
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(

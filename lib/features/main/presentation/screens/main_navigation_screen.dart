@@ -1,45 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../dashboard/presentation/screens/dashboard_home_screen.dart';
-import '../../../animals/presentation/screens/animal_listings_screen.dart';
+import '../../../animals/presentation/screens/saved_animals_screen.dart';
 import '../../../pregnancy/presentation/screens/pregnancy_module_screen.dart';
 import '../../../foal/presentation/screens/foal_module_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
+import '../providers/main_navigation_provider.dart';
 
-class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+class MainNavigationScreen extends ConsumerStatefulWidget {
+  final int? initialIndex;
+  final String? initialFoalCategory;
+  final String? initialSpeciesTab;
+
+  const MainNavigationScreen({
+    super.key,
+    this.initialIndex,
+    this.initialFoalCategory,
+    this.initialSpeciesTab,
+  });
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 0;
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialIndex != null || widget.initialFoalCategory != null || widget.initialSpeciesTab != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(mainNavigationProvider.notifier).setTab(
+                widget.initialIndex ?? 0,
+                category: widget.initialFoalCategory,
+                speciesTab: widget.initialSpeciesTab,
+              );
+        }
+      });
+    }
+  }
 
   void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    ref.read(mainNavigationProvider.notifier).setTab(index);
   }
 
   @override
   Widget build(BuildContext context) {
+    final navState = ref.watch(mainNavigationProvider);
+    final currentIndex = navState.selectedIndex;
+
     final List<Widget> screens = [
       DashboardHomeScreen(onNavigateTab: _onTabTapped),
-      const AnimalListingsScreen(),
+      SavedAnimalsScreen(initialSpecies: navState.initialSpeciesTab),
       const PregnancyModuleScreen(),
-      const FoalModuleScreen(),
+      FoalModuleScreen(initialCategory: navState.initialCategory),
       const ProfileScreen(),
     ];
 
     return PopScope(
-      canPop: _currentIndex == 0,
+      canPop: currentIndex == 0,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_currentIndex != 0) {
-          setState(() {
-            _currentIndex = 0;
-          });
+        if (currentIndex != 0) {
+          ref.read(mainNavigationProvider.notifier).setTab(0);
         }
       },
       child: Scaffold(
@@ -48,7 +73,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           left: true,
           right: true,
           child: IndexedStack(
-            index: _currentIndex,
+            index: currentIndex,
             children: screens,
           ),
         ),
@@ -60,7 +85,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
           ),
           child: BottomNavigationBar(
-            currentIndex: _currentIndex,
+            currentIndex: currentIndex,
             onTap: _onTabTapped,
             backgroundColor: AppColors.surface,
             type: BottomNavigationBarType.fixed,
