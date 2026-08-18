@@ -134,8 +134,10 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
       await repo.deletePregnancyRecord(_record!.id);
       ref.invalidate(pregnancyRecordForCarrierProvider(widget.carrierAnimalId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pregnancy record deleted successfully.')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Record Deleted',
+          message: 'Pregnancy record deleted successfully.',
         );
         Navigator.pop(context);
       }

@@ -156,10 +156,10 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
 
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please complete all required fields (* Name is required).'),
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Required Field',
+        error: 'Please enter the animal name before saving.',
       );
       return;
     }
@@ -263,8 +263,10 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
       ref.invalidate(animalByIdProvider(currentAnimal.id));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${currentAnimal.name} deleted from registry.')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Animal Deleted',
+          message: '${currentAnimal.name} deleted from registry.',
         );
         Navigator.pop(context, true);
       }

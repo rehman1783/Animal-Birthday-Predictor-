@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_error_view.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -136,15 +137,19 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
       ref.invalidate(advancedPregnancyInfoProvider(widget.pregnancyRecordId));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Advanced pregnancy info saved successfully!')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Info Saved',
+          message: 'Advanced pregnancy info saved successfully!',
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Save Failed',
+          error: e,
         );
       }
     } finally {

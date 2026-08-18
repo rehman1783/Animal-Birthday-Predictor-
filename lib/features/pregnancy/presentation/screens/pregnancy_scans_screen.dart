@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -115,14 +116,18 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
 
       if (mounted) {
         setState(() => _record = saved);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ultrasound scans & vet info saved!')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Scans Saved',
+          message: 'Ultrasound scans & vet info saved successfully!',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save scans: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Save Failed',
+          error: e,
         );
       }
     } finally {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/auth_header_banner.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -73,22 +74,20 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password updated successfully! Welcome to Animal Birthday Predictor.'),
-          backgroundColor: AppColors.surface,
-          duration: Duration(seconds: 3),
-        ),
+      AppFeedbackSnackbar.showSuccess(
+        context,
+        title: 'Password Updated',
+        message: 'Password updated successfully! Welcome to Animal Birthday Predictor.',
+        duration: const Duration(seconds: 4),
       );
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
     } else {
       final errorState = ref.read(authControllerProvider);
       final errorMsg = errorState.error?.toString() ?? 'Failed to update password.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: AppColors.error,
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Update Failed',
+        error: errorMsg,
       );
     }
   }

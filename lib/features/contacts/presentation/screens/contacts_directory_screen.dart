@@ -42,8 +42,10 @@ class _ContactsDirectoryScreenState extends ConsumerState<ContactsDirectoryScree
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cannot initiate phone call to $phone')),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Call Unavailable',
+        error: 'Cannot initiate phone call to $phone',
       );
     }
   }
@@ -53,8 +55,10 @@ class _ContactsDirectoryScreenState extends ConsumerState<ContactsDirectoryScree
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cannot launch email client for $email')),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Email Client Unavailable',
+        error: 'Cannot launch email client for $email',
       );
     }
   }

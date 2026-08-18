@@ -171,15 +171,19 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
 
   Future<void> _handleSave() async {
     if (_selectedMare == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select or register the donor mare.')),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Mare Required',
+        error: 'Please select or register the donor mare.',
       );
       return;
     }
 
     if (_isEmbryoTransfer && _selectedRecipient == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select or register the recipient mare carrying the embryo.')),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Recipient Required',
+        error: 'Please select or register the recipient mare carrying the embryo.',
       );
       return;
     }

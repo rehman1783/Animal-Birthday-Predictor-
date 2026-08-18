@@ -201,8 +201,10 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
       await repo.deletePuppy(widget.puppy!.id);
       ref.invalidate(puppiesListProvider(null));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${widget.puppy?.puppyName ?? "Puppy"} record deleted.')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Puppy Deleted',
+          message: '${widget.puppy?.puppyName ?? "Puppy"} record deleted.',
         );
         Navigator.pop(context, true);
       }

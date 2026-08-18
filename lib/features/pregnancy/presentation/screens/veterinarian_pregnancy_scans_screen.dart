@@ -82,10 +82,10 @@ class _VeterinarianPregnancyScansScreenState
   Future<void> _handleSaveScan(int scanNumber) async {
     if (_record == null &&
         (_selectedCarrierId == null || _selectedCarrierId!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select or register a mare carrier record.'),
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Carrier Required',
+        error: 'Please select or register a mare carrier record.',
       );
       return;
     }
@@ -207,10 +207,10 @@ class _VeterinarianPregnancyScansScreenState
   Future<void> _callVet() async {
     final phone = _vetNumberController.text.trim();
     if (phone.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a veterinarian contact number first.'),
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Number Required',
+        error: 'Please enter a veterinarian contact number first.',
       );
       return;
     }
@@ -220,9 +220,11 @@ class _VeterinarianPregnancyScansScreenState
       await launchUrl(uri);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(
+        AppFeedbackSnackbar.showError(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not dial $phone')));
+          title: 'Dial Failed',
+          error: 'Could not dial $phone',
+        );
       }
     }
   }
@@ -230,10 +232,10 @@ class _VeterinarianPregnancyScansScreenState
   Future<void> _handleSave() async {
     if (_record == null &&
         (_selectedCarrierId == null || _selectedCarrierId!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select or register a mare carrier record.'),
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Carrier Required',
+        error: 'Please select or register a mare carrier record.',
       );
       return;
     }

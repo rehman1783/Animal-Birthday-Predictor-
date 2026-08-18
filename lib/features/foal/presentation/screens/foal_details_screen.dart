@@ -215,8 +215,10 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
       await repo.deleteFoal(widget.foal!.id);
       ref.invalidate(foalsListProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${widget.foal?.foalName ?? "Foal"} record deleted.')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Foal Deleted',
+          message: '${widget.foal?.foalName ?? "Foal"} record deleted.',
         );
         Navigator.pop(context, true);
       }
@@ -225,8 +227,10 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
 
   Future<void> _handleSave() async {
     if (_selectedMare == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select or register the Dam Mare (* required).')),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Mare Required',
+        error: 'Please select or register the Dam Mare (* required).',
       );
       return;
     }

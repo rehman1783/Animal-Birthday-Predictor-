@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../animals/domain/animal.dart';
@@ -84,8 +85,10 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export error: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Export Error',
+          error: e,
         );
       }
     } finally {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/auth_header_banner.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -89,32 +90,23 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               'This account does not exist. Please create an account first.';
         } else if (errorMsg.contains('Incorrect password')) {
           _passwordError = 'Incorrect password. Please try again.';
+          AppFeedbackSnackbar.showError(
+            context,
+            title: 'Incorrect Password',
+            error: 'The password you entered is incorrect. Please try again.',
+          );
         } else if (errorMsg.contains('verify your email')) {
           _emailError = 'Please verify your email address before signing in.';
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'Please verify your email address before signing in.',
-              ),
-              backgroundColor: AppColors.error,
-              action: SnackBarAction(
-                label: 'Verify Now',
-                textColor: AppColors.primaryGold,
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/email-verification',
-                    arguments: _emailController.text.trim(),
-                  );
-                },
-              ),
-            ),
+          AppFeedbackSnackbar.showError(
+            context,
+            title: 'Email Not Verified',
+            error: 'Please check your Gmail/inbox and verify your email before signing in.',
           );
         } else {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMsg), backgroundColor: AppColors.error),
+          AppFeedbackSnackbar.showError(
+            context,
+            title: 'Sign In Failed',
+            error: errorMsg,
           );
         }
       });

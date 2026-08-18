@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
+import '../../main.dart' show rootScaffoldMessengerKey;
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_typography.dart';
 import '../utils/error_handler.dart';
 
 class AppFeedbackSnackbar {
+  static ScaffoldMessengerState? _getMessenger(BuildContext? context) {
+    if (context != null) {
+      final local = ScaffoldMessenger.maybeOf(context);
+      if (local != null) return local;
+    }
+    return rootScaffoldMessengerKey.currentState;
+  }
+
   static void showSuccess(
-    BuildContext context, {
+    BuildContext? context, {
     required String message,
     String? title,
     Duration duration = const Duration(seconds: 3),
   }) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = _getMessenger(context);
+    if (messenger == null) return;
+
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
       SnackBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -77,18 +89,21 @@ class AppFeedbackSnackbar {
   }
 
   static void showError(
-    BuildContext context, {
+    BuildContext? context, {
     required dynamic error,
     String? title,
     Duration duration = const Duration(seconds: 4),
     VoidCallback? onRetry,
   }) {
+    final messenger = _getMessenger(context);
+    if (messenger == null) return;
+
     final isNetwork = ErrorHandler.isNetworkError(error);
     final displayTitle = title ?? ErrorHandler.getUserFriendlyTitle(error);
     final displayMessage = ErrorHandler.getUserFriendlyMessage(error);
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
       SnackBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -158,7 +173,7 @@ class AppFeedbackSnackbar {
                 const SizedBox(width: 8),
                 TextButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    messenger.hideCurrentSnackBar();
                     onRetry();
                   },
                   style: TextButton.styleFrom(
@@ -177,6 +192,80 @@ class AppFeedbackSnackbar {
                   ),
                 ),
               ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void showInfo(
+    BuildContext? context, {
+    required String message,
+    String? title,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final messenger = _getMessenger(context);
+    if (messenger == null) return;
+
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: duration,
+        content: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B), // Deep slate background
+            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+            border: Border.all(color: AppColors.primaryGold, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryGold.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryGold,
+                ),
+                child: const Icon(Icons.info_outline, color: AppColors.background, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (title != null)
+                      Text(
+                        title,
+                        style: AppTypography.displayHeadline.copyWith(
+                          fontSize: 14,
+                          color: AppColors.primaryGold,
+                        ),
+                      ),
+                    Text(
+                      message,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

@@ -4,6 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/app_uuid.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../domain/contact.dart';
@@ -102,12 +103,19 @@ class _SelectOrAddContactModalState extends ConsumerState<SelectOrAddContactModa
       ref.invalidate(contactsListProvider(_selectedRole));
 
       if (mounted) {
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Contact Saved',
+          message: '${saved.name} added to contacts.',
+        );
         Navigator.pop(context, saved);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save contact: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Save Failed',
+          error: e,
         );
       }
     } finally {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/auth_header_banner.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -119,25 +120,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         }
       });
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isAlreadyRegistered
-                ? 'This email is already registered. Please log in.'
-                : errorMsg,
-          ),
-          backgroundColor: AppColors.error,
-          action: isAlreadyRegistered
-              ? SnackBarAction(
-                  label: 'Sign In',
-                  textColor: AppColors.primaryGold,
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/signin');
-                  },
-                )
-              : null,
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: isAlreadyRegistered ? 'Email Already Registered' : 'Registration Notice',
+        error: isAlreadyRegistered
+            ? 'This email is already registered. Please log in.'
+            : errorMsg,
       );
     }
   }

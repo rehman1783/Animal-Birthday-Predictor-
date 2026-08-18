@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../contacts/presentation/providers/contact_provider.dart';
 import '../../../contacts/presentation/widgets/select_or_add_contact_modal.dart';
@@ -41,15 +42,19 @@ class ContactNumberBlock extends ConsumerWidget {
         await launchUrl(uri);
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Cannot launch dialer for $number')),
+          AppFeedbackSnackbar.showError(
+            context,
+            title: 'Call Unavailable',
+            error: 'Cannot launch dialer for $number',
           );
         }
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Calling $number...')),
+        AppFeedbackSnackbar.showInfo(
+          context,
+          title: 'Dialing',
+          message: 'Calling $number...',
         );
       }
     }

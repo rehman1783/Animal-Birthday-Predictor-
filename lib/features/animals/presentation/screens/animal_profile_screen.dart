@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -93,8 +94,10 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
       await launchUrl(uri);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not dial $phoneNumber')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Dial Failed',
+          error: 'Could not dial $phoneNumber',
         );
       }
     }
@@ -142,8 +145,10 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
       ref.invalidate(animalByIdProvider(_currentAnimal.id));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${_currentAnimal.name} removed from registry.')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Animal Deleted',
+          message: '${_currentAnimal.name} removed from registry.',
         );
         Navigator.pop(context, true);
       }
@@ -312,8 +317,10 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                                 icon: const Icon(Icons.copy, size: 16, color: AppColors.primaryGold),
                                 onPressed: () {
                                   Clipboard.setData(ClipboardData(text: _currentAnimal.microchipNo!));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Microchip copied to clipboard!')),
+                                  AppFeedbackSnackbar.showInfo(
+                                    context,
+                                    title: 'Copied to Clipboard',
+                                    message: 'Microchip number copied to clipboard.',
                                   );
                                 },
                               )

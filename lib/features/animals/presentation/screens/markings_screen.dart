@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
@@ -92,15 +93,19 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
 
       if (mounted) {
         setState(() => _initialMarkings = saved);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Markings details saved successfully!')),
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Markings Saved',
+          message: 'Markings details saved successfully!',
         );
         Navigator.pop(context, saved);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save markings: $e')),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Save Failed',
+          error: e,
         );
       }
     } finally {

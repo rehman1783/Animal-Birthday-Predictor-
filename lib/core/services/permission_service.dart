@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_typography.dart';
+import '../widgets/app_feedback_snackbar.dart';
 
 /// Centralized service to manage runtime permissions (Camera, Gallery / Photos)
 /// with elegant UI feedback and Settings redirect if permanently denied.
@@ -54,11 +55,10 @@ class PermissionService {
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Camera permission was denied. Please allow permission to take photos.'),
-            backgroundColor: AppColors.surface,
-          ),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Camera Permission Denied',
+          error: 'Please allow camera permission to take photos.',
         );
       }
       return false;
@@ -128,11 +128,10 @@ class PermissionService {
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Photo library permission was denied. Please allow permission to upload photos.'),
-            backgroundColor: AppColors.surface,
-          ),
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Photos Permission Denied',
+          error: 'Please allow photo library permission to upload photos.',
         );
       }
       return false;
