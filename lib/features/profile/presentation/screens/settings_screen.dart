@@ -112,23 +112,38 @@ class SettingsScreen extends ConsumerWidget {
 
             const SizedBox(height: 28),
 
-            // Logout Option
+            // Account Actions
             Center(
-              child: TextButton.icon(
-                icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-                label: const Text(
-                  'Log Out of ABP Account',
-                  style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () async {
-                  final confirmed = await AppLogoutDialog.show(context);
-                  if (confirmed && context.mounted) {
-                    await ref.read(authControllerProvider.notifier).signOut();
-                    if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
-                    }
-                  }
-                },
+              child: Column(
+                children: [
+                  TextButton.icon(
+                    icon: const Icon(Icons.logout_rounded, color: AppColors.primaryGold),
+                    label: const Text(
+                      'Log Out of ABP Account',
+                      style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () async {
+                      final confirmed = await AppLogoutDialog.show(context);
+                      if (confirmed && context.mounted) {
+                        await ref.read(authControllerProvider.notifier).signOut();
+                        if (context.mounted) {
+                          Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+                        }
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    icon: const Icon(Icons.delete_forever_rounded, color: AppColors.error),
+                    label: const Text(
+                      'Delete Account & Erase All Data',
+                      style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/delete-account');
+                    },
+                  ),
+                ],
               ),
             ),
 

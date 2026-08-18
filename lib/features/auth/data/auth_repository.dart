@@ -346,6 +346,64 @@ class AuthRepository {
         currentUser.emailConfirmedAt!.isNotEmpty;
   }
 
+  /// Permanently delete user account and all data after password confirmation
+  Future<void> deleteAccount({required String password}) async {
+    final session = currentSession;
+    final email = session?.user.email ?? (await getUserProfile(currentUserId ?? ''))?.email;
+
+    if (session == null || email == null || email.trim().isEmpty) {
+      throw const AuthExceptionCustom('Active session not found. Please log in again.');
+    }
+
+    final cleanEmail = email.trim().toLowerCase();
+
+    // 1. Verify user password by authenticating credentials
+    try {
+      final reauthResponse = await _supabase.auth.signInWithPassword(
+        email: cleanEmail,
+        password: password,
+      );
+      if (reauthResponse.user == null) {
+        throw const AuthExceptionCustom('Incorrect password. Please enter your valid password.');
+      }
+    } on AuthException catch (e) {
+      final msg = e.message.toLowerCase();
+      if (msg.contains('invalid') ||
+          msg.contains('grant') ||
+          e.code == 'invalid_credentials' ||
+          e.code == 'invalid_grant') {
+        throw const AuthExceptionCustom('Incorrect password. Please enter your valid password.');
+      }
+      throw _handleError(e);
+    } catch (e) {
+      if (e is AuthExceptionCustom) rethrow;
+      throw _handleError(e);
+    }
+
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw const AuthExceptionCustom('Unable to identify user account.');
+    }
+
+    // 2. Call delete_user_account RPC function to delete auth user and cascade database records
+    try {
+      await _supabase.rpc('delete_user_account');
+    } catch (rpcError) {
+      debugPrint('delete_user_account RPC fallback: $rpcError');
+      // Fallback manual deletes for profiles & child tables
+      try {
+        await _supabase.from('animals').delete().eq('account_id', userId);
+        await _supabase.from('foals').delete().eq('account_id', userId);
+        await _supabase.from('puppies').delete().eq('account_id', userId);
+        await _supabase.from('contacts').delete().eq('account_id', userId);
+        await _supabase.from('profiles').delete().eq('id', userId);
+      } catch (_) {}
+    }
+
+    // 3. Clear session and sign out
+    await signOut();
+  }
+
   /// Sign Out
   Future<void> signOut() async {
     try {

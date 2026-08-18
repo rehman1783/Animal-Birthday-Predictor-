@@ -24,6 +24,7 @@ import '../../features/foal/presentation/screens/foal_module_screen.dart';
 import '../../features/foal/presentation/screens/congratulations_screen.dart';
 import '../../features/certificates/presentation/screens/certificate_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
+import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/contacts/presentation/screens/contacts_directory_screen.dart';
 import '../../features/puppy/domain/puppy.dart';
 import '../../features/puppy/presentation/screens/puppy_details_screen.dart';
@@ -73,6 +74,12 @@ abstract class AppRouter {
       case '/settings':
         return MaterialPageRoute(
           builder: (_) => const SettingsScreen(),
+          settings: settings,
+        );
+
+      case '/delete-account':
+        return MaterialPageRoute(
+          builder: (_) => const DeleteAccountScreen(),
           settings: settings,
         );
 
@@ -305,6 +312,7 @@ abstract class AppRouter {
       '/saved-animals': (context) => const SavedAnimalsScreen(),
       '/animal-details': (context) => const AnimalDetailsScreen(),
       '/settings': (context) => const SettingsScreen(),
+      '/delete-account': (context) => const DeleteAccountScreen(),
       '/contacts': (context) => const ContactsDirectoryScreen(),
       '/puppies': (context) => const FoalModuleScreen(initialCategory: 'puppy'),
       '/foals': (context) => const FoalModuleScreen(),

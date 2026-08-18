@@ -94,6 +94,51 @@ class ProfileScreen extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
+            // Danger Zone: Account Deletion
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                border: Border.all(color: AppColors.error.withValues(alpha: 0.5), width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Danger Zone',
+                          style: AppTypography.featureTitle.copyWith(
+                            color: AppColors.error,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(color: AppColors.inputBorder, height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.delete_forever_rounded, color: AppColors.error, size: 22),
+                    title: const Text('Delete Account', style: AppTypography.inputText),
+                    subtitle: const Text(
+                      'Permanently delete account and all records',
+                      style: AppTypography.finePrint,
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/delete-account');
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
             // Sign Out CTA
             GradientCtaButton(
               text: 'Sign Out & Terminate Session',

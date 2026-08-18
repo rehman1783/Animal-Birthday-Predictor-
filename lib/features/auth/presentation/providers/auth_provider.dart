@@ -141,6 +141,18 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
     return await _authRepository.checkIsPasswordResetVerified(email);
   }
 
+  Future<bool> deleteAccount({required String password}) async {
+    state = const AsyncValue.loading();
+    try {
+      await _authRepository.deleteAccount(password: password);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      return false;
+    }
+  }
+
   Future<void> signOut() async {
     state = const AsyncValue.loading();
     await _authRepository.signOut();
