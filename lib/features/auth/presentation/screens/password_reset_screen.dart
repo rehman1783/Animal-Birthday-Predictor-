@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -21,10 +22,37 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
   bool _isSent = false;
   String? _emailError;
 
+  static const int _initialCooldownSeconds = 60;
+  int _cooldownSeconds = 0;
+  Timer? _cooldownTimer;
+  bool _isCheckingVerification = false;
+
   @override
   void dispose() {
+    _cooldownTimer?.cancel();
     _emailController.dispose();
     super.dispose();
+  }
+
+  void _startCooldownTimer() {
+    setState(() {
+      _cooldownSeconds = _initialCooldownSeconds;
+    });
+
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_cooldownSeconds > 1) {
+        setState(() {
+          _cooldownSeconds--;
+        });
+      } else {
+        setState(() {
+          _cooldownSeconds = 0;
+        });
+        timer.cancel();
+      }
+    });
   }
 
   bool _validateEmail() {
@@ -61,6 +89,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
       setState(() {
         _isSent = true;
       });
+      _startCooldownTimer();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Password reset link sent! Please check your email inbox.'),
@@ -83,6 +112,83 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
         SnackBar(
           content: Text(errorMsg),
           backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleResendResetLink() async {
+    if (_cooldownSeconds > 0) return;
+
+    final targetEmail = _emailController.text.trim();
+    if (targetEmail.isEmpty) return;
+
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .resetPasswordForEmail(targetEmail);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    if (success) {
+      _startCooldownTimer();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password reset link resent! Please check your inbox.'),
+          backgroundColor: AppColors.surface,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } else {
+      final errorState = ref.read(authControllerProvider);
+      final errorMsg = errorState.error?.toString() ?? 'Failed to resend reset link.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleCheckVerified() async {
+    if (_isCheckingVerification) return;
+
+    setState(() {
+      _isCheckingVerification = true;
+    });
+
+    final targetEmail = _emailController.text.trim();
+    final isVerified = await ref
+        .read(authControllerProvider.notifier)
+        .checkIsPasswordResetVerified(targetEmail);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isCheckingVerification = false;
+    });
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    if (isVerified) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Reset link verified! Please enter your new password.'),
+          backgroundColor: AppColors.surface,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      Navigator.pushReplacementNamed(context, '/update-password');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Your password reset link has not been verified yet. Please check your email inbox and tap the link first.',
+          ),
+          backgroundColor: AppColors.error,
+          duration: Duration(seconds: 4),
         ),
       );
     }
@@ -139,7 +245,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                         onPressed: _handleSendResetLink,
                       ),
                     ] else ...[
-                      // Confirmation View (State-Swap UI)
+                      // Confirmation View (State-Swap UI with 2 Action Buttons)
                       Container(
                         padding: const EdgeInsets.all(20.0),
                         decoration: BoxDecoration(
@@ -177,55 +283,132 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                           ],
                         ),
                       ),
-                    ],
 
-                    const SizedBox(height: 24.0),
+                      const SizedBox(height: 24.0),
 
-                    // Info Note Box
-                    Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: AppColors.inputField,
-                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                        border: Border.all(
-                          color: AppColors.inputBorder,
-                          width: 1,
+                      // Info Note Box
+                      Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.inputField,
+                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                          border: Border.all(
+                            color: AppColors.inputBorder,
+                            width: 1,
+                          ),
+                        ),
+                        child: const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: AppColors.primaryGold,
+                              size: 20,
+                            ),
+                            SizedBox(width: 12.0),
+                            Expanded(
+                              child: Text(
+                                'Please open your email app (e.g. Gmail), tap the reset link sent by ABP, and then tap “Verify Link” below.',
+                                style: AppTypography.body,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: const Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: AppColors.primaryGold,
-                            size: 20,
-                          ),
-                          SizedBox(width: 12.0),
-                          Expanded(
-                            child: Text(
-                              "If you don't receive an email in a few minutes, please check your spam folder or ensure the address matches your account.",
-                              style: AppTypography.body,
-                            ),
-                          ),
-                        ],
+
+                      const SizedBox(height: 28.0),
+
+                      // Button 1 (Primary): "Verify Link"
+                      GradientCtaButton(
+                        text: 'Verify Link',
+                        icon: const Icon(
+                          Icons.verified_outlined,
+                          color: AppColors.background,
+                          size: 20,
+                        ),
+                        isLoading: _isCheckingVerification,
+                        onPressed: _isCheckingVerification ? null : _handleCheckVerified,
                       ),
-                    ),
+
+                      const SizedBox(height: 16.0),
+
+                      // Button 2 (Secondary Outlined): "Resend Reset Link" (with Cooldown)
+                      OutlinedButton(
+                        onPressed: (_cooldownSeconds > 0 || isLoading)
+                            ? null
+                            : _handleResendResetLink,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                          side: BorderSide(
+                            color: _cooldownSeconds > 0
+                                ? AppColors.inputBorder
+                                : AppColors.primaryGold,
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primaryGold,
+                                ),
+                              )
+                            : Text(
+                                _cooldownSeconds > 0
+                                    ? 'Resend in ${_cooldownSeconds}s'
+                                    : 'Resend Reset Link',
+                                style: AppTypography.body.copyWith(
+                                  color: _cooldownSeconds > 0
+                                      ? AppColors.textMuted
+                                      : AppColors.primaryGold,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    ],
 
                     const SizedBox(height: 32.0),
 
-                    // Back to Sign In link
+                    // Navigation Links: Back to Sign In or Change Email
                     Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacementNamed(context, '/signin');
-                        },
-                        child: Text(
-                          '← Back to Sign In',
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.primaryGold,
-                            fontWeight: FontWeight.bold,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacementNamed(context, '/signin');
+                            },
+                            child: Text(
+                              '← Back to Sign In',
+                              style: AppTypography.body.copyWith(
+                                color: AppColors.primaryGold,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                          if (_isSent) ...[
+                            const SizedBox(width: 20.0),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isSent = false;
+                                });
+                              },
+                              child: Text(
+                                'Change Email',
+                                style: AppTypography.body.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
 

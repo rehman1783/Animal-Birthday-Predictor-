@@ -137,6 +137,10 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
     return verified;
   }
 
+  Future<bool> checkIsPasswordResetVerified([String? email]) async {
+    return await _authRepository.checkIsPasswordResetVerified(email);
+  }
+
   Future<void> signOut() async {
     state = const AsyncValue.loading();
     await _authRepository.signOut();

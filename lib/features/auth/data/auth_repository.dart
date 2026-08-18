@@ -232,6 +232,32 @@ class AuthRepository {
     }
   }
 
+  /// Check if password reset link was verified / active recovery session exists
+  Future<bool> checkIsPasswordResetVerified([String? email]) async {
+    // 1. Check if an active session or currentUser exists
+    if (_supabase.auth.currentSession != null || _supabase.auth.currentUser != null) {
+      return true;
+    }
+
+    // 2. Try refreshing session
+    try {
+      final res = await _supabase.auth.refreshSession();
+      if (res.session != null || res.user != null) {
+        return true;
+      }
+    } catch (_) {}
+
+    // 3. Try fetching live user from backend
+    try {
+      final userRes = await _supabase.auth.getUser();
+      if (userRes.user != null) {
+        return true;
+      }
+    } catch (_) {}
+
+    return false;
+  }
+
   /// Update User Password (for Deep Link / Reset Flow)
   Future<void> updatePassword(String newPassword) async {
     try {

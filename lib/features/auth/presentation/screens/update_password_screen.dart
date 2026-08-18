@@ -74,11 +74,12 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Password updated successfully! Please sign in with your new password.'),
+          content: Text('Password updated successfully! Welcome to Animal Birthday Predictor.'),
           backgroundColor: AppColors.surface,
+          duration: Duration(seconds: 3),
         ),
       );
-      Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
     } else {
       final errorState = ref.read(authControllerProvider);
       final errorMsg = errorState.error?.toString() ?? 'Failed to update password.';
