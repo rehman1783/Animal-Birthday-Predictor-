@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_env.dart';
@@ -291,6 +293,33 @@ class AuthRepository {
     }
   }
 
+  /// Safely verify if credentials are valid without disrupting the active Supabase session
+  Future<bool> verifyCredentials({
+    required String email,
+    required String password,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    try {
+      final client = HttpClient();
+      final uri = Uri.parse('${AppEnv.supabaseUrl}/auth/v1/token?grant_type=password');
+      final request = await client.postUrl(uri);
+      request.headers.set('apikey', AppEnv.supabaseKey);
+      request.headers.set('Content-Type', 'application/json');
+      request.add(utf8.encode(jsonEncode({
+        'email': cleanEmail,
+        'password': password,
+      })));
+      final response = await request.close();
+      final statusCode = response.statusCode;
+      client.close();
+
+      return statusCode == 200;
+    } catch (e) {
+      debugPrint('verifyCredentials check notice: $e');
+      return false;
+    }
+  }
+
   /// Change Password with Current Password Verification (for in-app Profile)
   Future<void> changePassword({
     required String currentPassword,
@@ -305,27 +334,14 @@ class AuthRepository {
 
     final cleanEmail = email.trim().toLowerCase();
 
-    // 1. Verify Current Password by validating credentials
-    try {
-      final reauthResponse = await _supabase.auth.signInWithPassword(
-        email: cleanEmail,
-        password: currentPassword,
-      );
-      if (reauthResponse.user == null) {
-        throw const AuthExceptionCustom('Incorrect current password. Please try again.');
-      }
-    } on AuthException catch (e) {
-      final msg = e.message.toLowerCase();
-      if (msg.contains('invalid') ||
-          msg.contains('grant') ||
-          e.code == 'invalid_credentials' ||
-          e.code == 'invalid_grant') {
-        throw const AuthExceptionCustom('Incorrect current password. Please try again.');
-      }
-      throw _handleError(e);
-    } catch (e) {
-      if (e is AuthExceptionCustom) rethrow;
-      throw _handleError(e);
+    // 1. Verify Current Password safely without mutating local session state
+    final isValidCurrentPassword = await verifyCredentials(
+      email: cleanEmail,
+      password: currentPassword,
+    );
+
+    if (!isValidCurrentPassword) {
+      throw const AuthExceptionCustom('Incorrect current password. Please try again.');
     }
 
     // 2. Update to new password
@@ -434,31 +450,16 @@ class AuthRepository {
 
     final cleanEmail = email.trim().toLowerCase();
 
-    // 1. Verify user password by authenticating credentials
-    try {
-      final reauthResponse = await _supabase.auth.signInWithPassword(
-        email: cleanEmail,
-        password: password,
+    // 1. Verify user password safely without mutating local session state
+    final isPasswordValid = await verifyCredentials(
+      email: cleanEmail,
+      password: password,
+    );
+
+    if (!isPasswordValid) {
+      throw const AuthExceptionCustom(
+        'Incorrect password. Please enter your valid password.',
       );
-      if (reauthResponse.user == null) {
-        throw const AuthExceptionCustom(
-          'Incorrect password. Please enter your valid password.',
-        );
-      }
-    } on AuthException catch (e) {
-      final msg = e.message.toLowerCase();
-      if (msg.contains('invalid') ||
-          msg.contains('grant') ||
-          e.code == 'invalid_credentials' ||
-          e.code == 'invalid_grant') {
-        throw const AuthExceptionCustom(
-          'Incorrect password. Please enter your valid password.',
-        );
-      }
-      throw _handleError(e);
-    } catch (e) {
-      if (e is AuthExceptionCustom) rethrow;
-      throw _handleError(e);
     }
 
     final userId = _supabase.auth.currentUser?.id;

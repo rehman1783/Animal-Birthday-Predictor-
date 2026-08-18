@@ -196,9 +196,9 @@ void main() {
       expect(fakeRepo.lastCurrentPassword, 'CorrectOldPassword123');
       expect(fakeRepo.lastNewPassword, 'BrandNewSecret123');
 
-      // Returns to previous screen and shows success SnackBar
+      // Returns to previous screen and shows success feedback
       expect(find.text('Open Change Password'), findsOneWidget);
-      expect(find.text('Password changed successfully!'), findsOneWidget);
+      expect(find.text('Password Changed'), findsOneWidget);
     });
   });
 }

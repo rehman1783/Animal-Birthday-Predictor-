@@ -151,16 +151,24 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
     required String currentPassword,
     required String newPassword,
   }) async {
-    state = const AsyncValue.loading();
+    final currentProfile = state.value;
     try {
       await _authRepository.changePassword(
         currentPassword: currentPassword,
         newPassword: newPassword,
       );
-      state = const AsyncValue.data(null);
+      if (currentProfile != null) {
+        state = AsyncValue.data(currentProfile);
+      } else {
+        await _loadCurrentUser();
+      }
       return true;
     } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      if (currentProfile != null) {
+        state = AsyncValue.data(currentProfile);
+      } else {
+        state = AsyncValue.error(e, stack);
+      }
       return false;
     }
   }

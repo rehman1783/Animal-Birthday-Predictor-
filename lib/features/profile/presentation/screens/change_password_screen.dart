@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
+import '../../../auth/data/auth_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
@@ -27,6 +29,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   String? _currentPasswordError;
   String? _newPasswordError;
   String? _confirmPasswordError;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -79,49 +82,57 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   Future<void> _handleChangePassword() async {
     if (!_validateForm()) return;
 
+    setState(() {
+      _isLoading = true;
+      _currentPasswordError = null;
+      _newPasswordError = null;
+      _confirmPasswordError = null;
+    });
+
     final currentPassword = _currentPasswordController.text;
     final newPassword = _newPasswordController.text;
 
-    final success = await ref.read(authControllerProvider.notifier).changePassword(
-          currentPassword: currentPassword,
-          newPassword: newPassword,
-        );
+    try {
+      final repo = ref.read(authRepositoryProvider);
+      await repo.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
+      setState(() => _isLoading = false);
 
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password changed successfully!'),
-          backgroundColor: AppColors.surface,
-          duration: Duration(seconds: 3),
-        ),
+      AppFeedbackSnackbar.showSuccess(
+        context,
+        title: 'Password Changed',
+        message: 'Your password has been updated successfully!',
       );
       Navigator.pop(context);
-    } else {
-      final errorState = ref.read(authControllerProvider);
-      final errorMsg = errorState.error?.toString() ?? 'Failed to change password.';
-      
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      final errorMsg = e is AuthExceptionCustom
+          ? e.message
+          : e.toString().replaceAll('Exception: ', '').replaceAll('AuthException: ', '');
+
       setState(() {
-        if (errorMsg.toLowerCase().contains('current password')) {
+        if (errorMsg.toLowerCase().contains('current password') ||
+            errorMsg.toLowerCase().contains('incorrect')) {
           _currentPasswordError = errorMsg;
         }
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 4),
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Password Change Failed',
+        error: errorMsg,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
-    final isLoading = authState.isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -271,8 +282,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   // CTA Button: Change Password
                   GradientCtaButton(
                     text: 'Change Password ✦',
-                    isLoading: isLoading,
-                    onPressed: isLoading ? null : _handleChangePassword,
+                    isLoading: _isLoading,
+                    onPressed: _isLoading ? null : _handleChangePassword,
                   ),
 
                   const SizedBox(height: 32.0),
