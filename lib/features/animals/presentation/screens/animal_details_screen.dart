@@ -653,18 +653,21 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                               );
                             },
                             icon: const Icon(Icons.photo_library_outlined, color: AppColors.primaryGold, size: 18),
-                            label: Text(
-                              'MARKINGS',
-                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 13),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'MARKINGS',
+                                style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
                             ),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12.0),
+                        const SizedBox(width: 10.0),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
@@ -675,13 +678,16 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                               );
                             },
                             icon: const Icon(Icons.healing_outlined, color: AppColors.primaryGold, size: 18),
-                            label: Text(
-                              'HEALTH CARE',
-                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 13),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'HEALTH CARE',
+                                style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
                             ),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                             ),
                           ),

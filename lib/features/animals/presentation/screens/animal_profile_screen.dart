@@ -165,9 +165,12 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.maybePop(context),
         ),
-        title: Text(
-          '${_currentAnimal.name.toUpperCase()} PROFILE',
-          style: AppTypography.sectionLabel,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '${_currentAnimal.species.toUpperCase()} PROFILE',
+            style: AppTypography.sectionLabel,
+          ),
         ),
         centerTitle: true,
         actions: [
@@ -407,18 +410,26 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 6,
                             children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.brush_outlined, color: AppColors.primaryGold, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'PHYSICAL MARKINGS',
-                                    style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
-                                  ),
-                                ],
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.brush_outlined, color: AppColors.primaryGold, size: 16),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'PHYSICAL MARKINGS',
+                                      style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold, fontSize: 12.5),
+                                    ),
+                                  ],
+                                ),
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -671,18 +682,26 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 6,
                               children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.favorite, color: AppColors.primaryGold, size: 18),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'PREGNANCY & SCANS',
-                                      style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
-                                    ),
-                                  ],
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.favorite, color: AppColors.primaryGold, size: 16),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'PREGNANCY & SCANS',
+                                        style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold, fontSize: 12.5),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -813,18 +832,26 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 6,
                               children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.pets_outlined, color: AppColors.primaryGold, size: 18),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'BREEDING RECORD & PHOTO',
-                                      style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
-                                    ),
-                                  ],
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.pets_outlined, color: AppColors.primaryGold, size: 16),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'BREEDING RECORD & PHOTO',
+                                        style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold, fontSize: 12.5),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1188,14 +1215,17 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
               ],
             ),
             const SizedBox(height: 3),
-            Text(
-              confirmed
-                  ? 'CONFIRMED'
-                  : (dueDate != null ? '${dueDate.day}/${dueDate.month}' : 'PENDING'),
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                color: confirmed ? Colors.greenAccent : AppColors.textMuted,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                confirmed
+                    ? 'CONFIRMED'
+                    : (dueDate != null ? '${dueDate.day}/${dueDate.month}' : 'PENDING'),
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: confirmed ? Colors.greenAccent : AppColors.textMuted,
+                ),
               ),
             ),
           ],
@@ -1219,12 +1249,15 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
         children: [
           Icon(icon, size: 13, color: isGold ? AppColors.primaryGold : AppColors.textSecondary),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: isGold ? AppColors.primaryGold : AppColors.textPrimary,
-              fontSize: 11,
-              fontWeight: isGold ? FontWeight.bold : FontWeight.w500,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isGold ? AppColors.primaryGold : AppColors.textPrimary,
+                fontSize: 11,
+                fontWeight: isGold ? FontWeight.bold : FontWeight.w500,
+              ),
+              softWrap: true,
             ),
           ),
         ],
