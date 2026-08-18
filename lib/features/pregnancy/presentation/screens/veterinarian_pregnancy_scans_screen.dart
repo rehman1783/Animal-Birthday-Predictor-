@@ -5,7 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -46,6 +48,7 @@ class _VeterinarianPregnancyScansScreenState
   bool _isSaving = false;
   int? _savingScanNumber;
   bool _isLoading = true;
+  Object? _loadError;
 
   @override
   void initState() {
@@ -142,35 +145,43 @@ class _VeterinarianPregnancyScansScreenState
   }
 
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    final repo = ref.read(pregnancyRepositoryProvider);
-    PregnancyRecord? rec;
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+    try {
+      final repo = ref.read(pregnancyRepositoryProvider);
+      PregnancyRecord? rec;
 
-    if (widget.pregnancyRecordId != null &&
-        widget.pregnancyRecordId!.isNotEmpty) {
-      rec = await repo.getPregnancyRecordById(widget.pregnancyRecordId!);
-      if (rec != null) {
-        _selectedCarrierId = rec.carrierAnimalId;
+      if (widget.pregnancyRecordId != null &&
+          widget.pregnancyRecordId!.isNotEmpty) {
+        rec = await repo.getPregnancyRecordById(widget.pregnancyRecordId!);
+        if (rec != null) {
+          _selectedCarrierId = rec.carrierAnimalId;
+        }
+      } else if (_selectedCarrierId != null && _selectedCarrierId!.isNotEmpty) {
+        rec = await repo.getPregnancyRecordForCarrier(_selectedCarrierId!);
       }
-    } else if (_selectedCarrierId != null && _selectedCarrierId!.isNotEmpty) {
-      rec = await repo.getPregnancyRecordForCarrier(_selectedCarrierId!);
-    }
 
-    if (rec != null && mounted) {
-      final r = rec;
-      setState(() {
-        _record = r;
-        _scan1Confirmed = r.scan1Confirmed;
-        _scan2Confirmed = r.scan2Confirmed;
-        _scan3Confirmed = r.scan3Confirmed;
-        _scan1Image = r.scan1ImageUrl;
-        _scan2Image = r.scan2ImageUrl;
-        _scan3Image = r.scan3ImageUrl;
-        _vetNameController.text = r.vetName ?? '';
-        _vetNumberController.text = r.vetNumber ?? '';
-        _isLoading = false;
-      });
-    } else {
+      if (rec != null && mounted) {
+        final r = rec;
+        setState(() {
+          _record = r;
+          _scan1Confirmed = r.scan1Confirmed;
+          _scan2Confirmed = r.scan2Confirmed;
+          _scan3Confirmed = r.scan3Confirmed;
+          _scan1Image = r.scan1ImageUrl;
+          _scan2Image = r.scan2ImageUrl;
+          _scan3Image = r.scan3ImageUrl;
+          _vetNameController.text = r.vetName ?? '';
+          _vetNumberController.text = r.vetNumber ?? '';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadError = e);
+      }
+    } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -350,10 +361,13 @@ class _VeterinarianPregnancyScansScreenState
         ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.primaryGold),
-              )
-            : SingleChildScrollView(
+            ? const AppLoadingView(message: 'Loading pregnancy scans & records...')
+            : _loadError != null
+                ? AppErrorView(
+                    error: _loadError,
+                    onRetry: _loadData,
+                  )
+                : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
                 child: ResponsiveBody(
                   child: Column(
@@ -437,8 +451,18 @@ class _VeterinarianPregnancyScansScreenState
                             ),
                           );
                         },
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, _) => const SizedBox.shrink(),
+                        loading: () => const Padding(
+                          padding: EdgeInsets.only(bottom: 12.0),
+                          child: AppLoadingView(message: 'Loading registered mares...', isCompact: true),
+                        ),
+                        error: (err, _) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: AppErrorView(
+                            error: err,
+                            isCompact: true,
+                            onRetry: () => ref.invalidate(animalsListProvider('horse')),
+                          ),
+                        ),
                       ),
 
                       // 2. Scans Overview Progress Banner

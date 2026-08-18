@@ -89,11 +89,13 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
   }
 
   Future<void> _loadDamAnimal(String damId) async {
-    final repo = ref.read(animalRepositoryProvider);
-    final dam = await repo.getAnimalById(damId);
-    if (dam != null && mounted) {
-      setState(() => _selectedDam = dam);
-    }
+    try {
+      final repo = ref.read(animalRepositoryProvider);
+      final dam = await repo.getAnimalById(damId);
+      if (dam != null && mounted) {
+        setState(() => _selectedDam = dam);
+      }
+    } catch (_) {}
   }
 
   @override

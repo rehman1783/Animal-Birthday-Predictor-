@@ -170,4 +170,30 @@ void main() {
       expect(retryPressed, isTrue);
     });
   });
+
+  group('Pregnancy Module Screens Error and Loading Handling Tests', () {
+    testWidgets('AppErrorView in Pregnancy context shows TRY AGAIN button and triggers retry callback', (tester) async {
+      bool pregnancyRetried = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AppErrorView(
+              error: const SocketException('No Internet Connection'),
+              onRetry: () => pregnancyRetried = true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('No Internet Connection'), findsOneWidget);
+      expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
+      expect(find.text('TRY AGAIN'), findsOneWidget);
+
+      await tester.tap(find.text('TRY AGAIN'));
+      await tester.pump();
+      expect(pregnancyRetried, isTrue);
+    });
+  });
 }

@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -44,6 +46,7 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
   String? _scan3Image;
   bool _isSaving = false;
   bool _isLoaded = false;
+  Object? _loadError;
 
   @override
   void initState() {
@@ -52,29 +55,40 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
   }
 
   Future<void> _loadPregnancyData() async {
-    final repo = ref.read(pregnancyRepositoryProvider);
-    PregnancyRecord? rec;
-    if (widget.pregnancyRecordId != null && widget.pregnancyRecordId!.isNotEmpty) {
-      rec = await repo.getPregnancyRecordById(widget.pregnancyRecordId!);
-    }
-    rec ??= await repo.getPregnancyRecordForCarrier(widget.carrierAnimalId);
+    setState(() {
+      _isLoaded = false;
+      _loadError = null;
+    });
+    try {
+      final repo = ref.read(pregnancyRepositoryProvider);
+      PregnancyRecord? rec;
+      if (widget.pregnancyRecordId != null && widget.pregnancyRecordId!.isNotEmpty) {
+        rec = await repo.getPregnancyRecordById(widget.pregnancyRecordId!);
+      }
+      rec ??= await repo.getPregnancyRecordForCarrier(widget.carrierAnimalId);
 
-    if (rec != null && mounted) {
-      final r = rec;
-      setState(() {
-        _record = r;
-        _scan1Confirmed = r.scan1Confirmed;
-        _scan2Confirmed = r.scan2Confirmed;
-        _scan3Confirmed = r.scan3Confirmed;
-        _scan1Image = r.scan1ImageUrl;
-        _scan2Image = r.scan2ImageUrl;
-        _scan3Image = r.scan3ImageUrl;
-        _vetNameController.text = r.vetName ?? '';
-        _vetNumberController.text = r.vetNumber ?? '';
-        _isLoaded = true;
-      });
-    } else {
-      setState(() => _isLoaded = true);
+      if (rec != null && mounted) {
+        final r = rec;
+        setState(() {
+          _record = r;
+          _scan1Confirmed = r.scan1Confirmed;
+          _scan2Confirmed = r.scan2Confirmed;
+          _scan3Confirmed = r.scan3Confirmed;
+          _scan1Image = r.scan1ImageUrl;
+          _scan2Image = r.scan2ImageUrl;
+          _scan3Image = r.scan3ImageUrl;
+          _vetNameController.text = r.vetName ?? '';
+          _vetNumberController.text = r.vetNumber ?? '';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadError = e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoaded = true);
+      }
     }
   }
 
@@ -253,8 +267,13 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
         ),
       body: SafeArea(
         child: !_isLoaded
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGold))
-            : SingleChildScrollView(
+            ? const AppLoadingView(message: 'Loading pregnancy details...')
+            : _loadError != null
+                ? AppErrorView(
+                    error: _loadError,
+                    onRetry: _loadPregnancyData,
+                  )
+                : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
                 child: ResponsiveBody(
                   child: Column(
@@ -295,8 +314,18 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                           ],
                         ),
                       ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (err, stack) => const SizedBox.shrink(),
+                      loading: () => const Padding(
+                        padding: EdgeInsets.only(bottom: 16.0),
+                        child: AppLoadingView(message: 'Loading carrier mare info...', isCompact: true),
+                      ),
+                      error: (err, stack) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: AppErrorView(
+                          error: err,
+                          isCompact: true,
+                          onRetry: () => ref.invalidate(animalByIdProvider(widget.carrierAnimalId)),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16.0),
 

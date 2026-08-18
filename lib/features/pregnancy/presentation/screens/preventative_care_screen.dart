@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -72,6 +74,7 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
   PreventativeCareRecord? _damMareCare;
   bool _isSaving = false;
   bool _isLoaded = false;
+  Object? _loadError;
 
   @override
   void initState() {
@@ -80,41 +83,51 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
   }
 
   Future<void> _loadData() async {
-    final repo = ref.read(preventativeCareRepositoryProvider);
-    final rec = await repo.getPreventativeCare(widget.ownerType, widget.ownerId);
+    setState(() {
+      _isLoaded = false;
+      _loadError = null;
+    });
+    try {
+      final repo = ref.read(preventativeCareRepositoryProvider);
+      final rec = await repo.getPreventativeCare(widget.ownerType, widget.ownerId);
 
-    if (rec != null && mounted) {
-      _wormerDate = rec.wormerDate;
-      _wormerDone = rec.wormerDone;
-      _tetanusDate = rec.tetanusDate;
-      _tetanusDone = rec.tetanusDone;
-      _stranglesDate = rec.stranglesDate;
-      _stranglesDone = rec.stranglesDone;
-      _eqHerpesDate = rec.eqHerpesDate;
-      _eqHerpesDone = rec.eqHerpesDone;
-      _rotavirusDate = rec.rotavirusDate;
-      _rotavirusDone = rec.rotavirusDone;
-      _hendraDate = rec.hendraDate;
-      _hendraDone = rec.hendraDone;
-      _eqInfluenzaDate = rec.eqInfluenzaDate;
-      _eqInfluenzaDone = rec.eqInfluenzaDone;
-      _eeeWeeWnvDate = rec.eeeWeeWnvDate;
-      _eeeWeeWnvDone = rec.eeeWeeWnvDone;
-      _rabiesDate = rec.rabiesDate;
-      _rabiesDone = rec.rabiesDone;
-      _dentalDate = rec.dentalDate;
-      _dentalDone = rec.dentalDone;
-      _dentistNumberController.text = rec.dentistNumber ?? '';
-      _farrierDate = rec.farrierDate;
-      _farrierDone = rec.farrierDone;
-      _farrierNumberController.text = rec.farrierNumber ?? '';
+      if (rec != null && mounted) {
+        _wormerDate = rec.wormerDate;
+        _wormerDone = rec.wormerDone;
+        _tetanusDate = rec.tetanusDate;
+        _tetanusDone = rec.tetanusDone;
+        _stranglesDate = rec.stranglesDate;
+        _stranglesDone = rec.stranglesDone;
+        _eqHerpesDate = rec.eqHerpesDate;
+        _eqHerpesDone = rec.eqHerpesDone;
+        _rotavirusDate = rec.rotavirusDate;
+        _rotavirusDone = rec.rotavirusDone;
+        _hendraDate = rec.hendraDate;
+        _hendraDone = rec.hendraDone;
+        _eqInfluenzaDate = rec.eqInfluenzaDate;
+        _eqInfluenzaDone = rec.eqInfluenzaDone;
+        _eeeWeeWnvDate = rec.eeeWeeWnvDate;
+        _eeeWeeWnvDone = rec.eeeWeeWnvDone;
+        _rabiesDate = rec.rabiesDate;
+        _rabiesDone = rec.rabiesDone;
+        _dentalDate = rec.dentalDate;
+        _dentalDone = rec.dentalDone;
+        _dentistNumberController.text = rec.dentistNumber ?? '';
+        _farrierDate = rec.farrierDate;
+        _farrierDone = rec.farrierDone;
+        _farrierNumberController.text = rec.farrierNumber ?? '';
+      }
+
+      if (widget.damMareId != null && widget.damMareId!.isNotEmpty) {
+        _damMareCare = await repo.getPreventativeCare('animal', widget.damMareId!);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadError = e);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoaded = true);
     }
-
-    if (widget.damMareId != null && widget.damMareId!.isNotEmpty) {
-      _damMareCare = await repo.getPreventativeCare('animal', widget.damMareId!);
-    }
-
-    if (mounted) setState(() => _isLoaded = true);
   }
 
   @override
@@ -311,8 +324,13 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
         ),
       body: SafeArea(
         child: !_isLoaded
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGold))
-            : SingleChildScrollView(
+            ? const AppLoadingView(message: 'Loading preventative care data...')
+            : _loadError != null
+                ? AppErrorView(
+                    error: _loadError,
+                    onRetry: _loadData,
+                  )
+                : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
                 child: ResponsiveBody(
                   child: Column(

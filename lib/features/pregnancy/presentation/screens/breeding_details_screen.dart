@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -43,6 +45,8 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
   DateTime _transferDate = DateTime.now();
   String? _photoUrl;
   bool _isSaving = false;
+  bool _isLoading = false;
+  Object? _loadError;
 
   final List<({String label, String value})> _methods = const [
     (label: 'Natural', value: 'natural'),
@@ -60,40 +64,54 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
   }
 
   Future<void> _loadInitialMare(String id) async {
-    final animalRepo = ref.read(animalRepositoryProvider);
-    final pregRepo = ref.read(pregnancyRepositoryProvider);
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+    try {
+      final animalRepo = ref.read(animalRepositoryProvider);
+      final pregRepo = ref.read(pregnancyRepositoryProvider);
 
-    final animal = await animalRepo.getAnimalById(id);
-    if (animal != null && mounted) {
-      setState(() => _selectedMare = animal);
-    }
+      final animal = await animalRepo.getAnimalById(id);
+      if (animal != null && mounted) {
+        setState(() => _selectedMare = animal);
+      }
 
-    final existingBreeding = await pregRepo.getBreedingRecordByMare(id);
-    if (existingBreeding != null && mounted) {
-      setState(() {
-        if (existingBreeding.stallionName?.isNotEmpty == true) {
-          _stallionController.text = existingBreeding.stallionName!;
-        }
-        _selectedMethod = existingBreeding.method;
-        _isEmbryoTransfer = existingBreeding.isEmbryoTransfer;
-        if (existingBreeding.coverOrTransferDate != null) {
-          _coverDate = existingBreeding.coverOrTransferDate!;
-          _transferDate = existingBreeding.coverOrTransferDate!;
-        }
-        if (existingBreeding.damOfEmbryo?.isNotEmpty == true) {
-          _damOfEmbryoController.text = existingBreeding.damOfEmbryo!;
-        }
-        if (existingBreeding.stallionOfEmbryo?.isNotEmpty == true) {
-          _stallionOfEmbryoController.text = existingBreeding.stallionOfEmbryo!;
-        }
-        _photoUrl = existingBreeding.photoUrl;
-      });
+      final existingBreeding = await pregRepo.getBreedingRecordByMare(id);
+      if (existingBreeding != null && mounted) {
+        setState(() {
+          if (existingBreeding.stallionName?.isNotEmpty == true) {
+            _stallionController.text = existingBreeding.stallionName!;
+          }
+          _selectedMethod = existingBreeding.method;
+          _isEmbryoTransfer = existingBreeding.isEmbryoTransfer;
+          if (existingBreeding.coverOrTransferDate != null) {
+            _coverDate = existingBreeding.coverOrTransferDate!;
+            _transferDate = existingBreeding.coverOrTransferDate!;
+          }
+          if (existingBreeding.damOfEmbryo?.isNotEmpty == true) {
+            _damOfEmbryoController.text = existingBreeding.damOfEmbryo!;
+          }
+          if (existingBreeding.stallionOfEmbryo?.isNotEmpty == true) {
+            _stallionOfEmbryoController.text = existingBreeding.stallionOfEmbryo!;
+          }
+          _photoUrl = existingBreeding.photoUrl;
+        });
 
-      if (existingBreeding.recipientAnimalId != null && existingBreeding.recipientAnimalId!.isNotEmpty) {
-        final recipient = await animalRepo.getAnimalById(existingBreeding.recipientAnimalId!);
-        if (recipient != null && mounted) {
-          setState(() => _selectedRecipient = recipient);
+        if (existingBreeding.recipientAnimalId != null && existingBreeding.recipientAnimalId!.isNotEmpty) {
+          final recipient = await animalRepo.getAnimalById(existingBreeding.recipientAnimalId!);
+          if (recipient != null && mounted) {
+            setState(() => _selectedRecipient = recipient);
+          }
         }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadError = e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -288,7 +306,18 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
           ],
         ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading
+            ? const AppLoadingView(message: 'Loading breeding records...')
+            : _loadError != null
+                ? AppErrorView(
+                    error: _loadError,
+                    onRetry: () {
+                      if (widget.initialMareId != null) {
+                        _loadInitialMare(widget.initialMareId!);
+                      }
+                    },
+                  )
+                : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.horizontalPadding,
             vertical: 16.0,

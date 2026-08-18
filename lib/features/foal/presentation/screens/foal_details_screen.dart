@@ -90,15 +90,17 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
   }
 
   Future<void> _loadLinkedAnimals(FoalRecord f) async {
-    final repo = ref.read(animalRepositoryProvider);
-    if (f.mareAnimalId.isNotEmpty) {
-      final m = await repo.getAnimalById(f.mareAnimalId);
-      if (m != null && mounted) setState(() => _selectedMare = m);
-    }
-    if (f.recipientAnimalId != null && f.recipientAnimalId!.isNotEmpty) {
-      final r = await repo.getAnimalById(f.recipientAnimalId!);
-      if (r != null && mounted) setState(() => _selectedRecipient = r);
-    }
+    try {
+      final repo = ref.read(animalRepositoryProvider);
+      if (f.mareAnimalId.isNotEmpty) {
+        final m = await repo.getAnimalById(f.mareAnimalId);
+        if (m != null && mounted) setState(() => _selectedMare = m);
+      }
+      if (f.recipientAnimalId != null && f.recipientAnimalId!.isNotEmpty) {
+        final r = await repo.getAnimalById(f.recipientAnimalId!);
+        if (r != null && mounted) setState(() => _selectedRecipient = r);
+      }
+    } catch (_) {}
   }
 
   @override

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -201,8 +203,11 @@ class PregnancyModuleScreen extends ConsumerWidget {
                     }).toList(),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-                error: (e, _) => Text('Error loading horses: $e', style: const TextStyle(color: Colors.redAccent)),
+                loading: () => const AppLoadingView(message: 'Loading registered mares...'),
+                error: (e, _) => AppErrorView(
+                  error: e,
+                  onRetry: () => ref.invalidate(animalsListProvider('horse')),
+                ),
               ),
             ],
           ),

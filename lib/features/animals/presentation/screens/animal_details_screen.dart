@@ -5,8 +5,10 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/app_uuid.dart';
+import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -46,6 +48,8 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
   DateTime? _dateOfBirth;
   String? _photoUrl;
   bool _isSaving = false;
+  bool _isLoading = false;
+  Object? _loadError;
   Animal? _loadedAnimal;
   late String _currentSpecies;
   late String _selectedSex;
@@ -73,24 +77,38 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
   }
 
   Future<void> _loadAnimalById(String id) async {
-    final repo = ref.read(animalRepositoryProvider);
-    final a = await repo.getAnimalById(id);
-    if (a != null && mounted) {
-      setState(() {
-        _loadedAnimal = a;
-        _currentSpecies = Animal.normalizeSpecies(a.species);
-        _selectedSex = a.sex ?? (_currentSpecies == 'horse' ? 'mare' : 'female');
-        _nameController.text = a.name;
-        _breedController.text = a.breed ?? '';
-        _colourController.text = a.colour ?? '';
-        _brandController.text = a.brand ?? '';
-        _dnaController.text = a.dna ?? '';
-        _microchipController.text = a.microchipNo ?? '';
-        _ownerNameController.text = a.ownerClientName ?? '';
-        _ownerPhoneController.text = a.ownerClientPhone ?? '';
-        _dateOfBirth = a.dateOfBirth;
-        _photoUrl = a.photoUrl;
-      });
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+    try {
+      final repo = ref.read(animalRepositoryProvider);
+      final a = await repo.getAnimalById(id);
+      if (a != null && mounted) {
+        setState(() {
+          _loadedAnimal = a;
+          _currentSpecies = Animal.normalizeSpecies(a.species);
+          _selectedSex = a.sex ?? (_currentSpecies == 'horse' ? 'mare' : 'female');
+          _nameController.text = a.name;
+          _breedController.text = a.breed ?? '';
+          _colourController.text = a.colour ?? '';
+          _brandController.text = a.brand ?? '';
+          _dnaController.text = a.dna ?? '';
+          _microchipController.text = a.microchipNo ?? '';
+          _ownerNameController.text = a.ownerClientName ?? '';
+          _ownerPhoneController.text = a.ownerClientPhone ?? '';
+          _dateOfBirth = a.dateOfBirth;
+          _photoUrl = a.photoUrl;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadError = e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -339,7 +357,18 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
           ],
         ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading
+            ? const AppLoadingView(message: 'Loading animal details...')
+            : _loadError != null
+                ? AppErrorView(
+                    error: _loadError,
+                    onRetry: () {
+                      if (widget.animalId != null) {
+                        _loadAnimalById(widget.animalId!);
+                      }
+                    },
+                  )
+                : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.horizontalPadding,
             vertical: 16.0,

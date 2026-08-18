@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_image_picker.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -36,6 +38,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
   String? _ultrasoundImage;
   bool _isSaving = false;
   bool _isLoaded = false;
+  Object? _loadError;
 
   @override
   void initState() {
@@ -44,21 +47,32 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
   }
 
   Future<void> _loadData() async {
-    final repo = ref.read(pregnancyRepositoryProvider);
-    final info = await repo.getAdvancedPregnancyInfo(widget.pregnancyRecordId);
-    if (info != null && mounted) {
-      setState(() {
-        _caslickDate = info.caslickDate;
-        _caslickDone = info.caslickDone;
-        _fetalSexDate = info.fetalSexScanDate;
-        _fetalSexDone = info.fetalSexScanDone;
-        _ffsResultDate = info.ffsResultDate;
-        _ffsResult = info.ffsResult;
-        _ultrasoundImage = info.ultrasoundImageUrl;
-        _isLoaded = true;
-      });
-    } else {
-      setState(() => _isLoaded = true);
+    setState(() {
+      _isLoaded = false;
+      _loadError = null;
+    });
+    try {
+      final repo = ref.read(pregnancyRepositoryProvider);
+      final info = await repo.getAdvancedPregnancyInfo(widget.pregnancyRecordId);
+      if (info != null && mounted) {
+        setState(() {
+          _caslickDate = info.caslickDate;
+          _caslickDone = info.caslickDone;
+          _fetalSexDate = info.fetalSexScanDate;
+          _fetalSexDone = info.fetalSexScanDone;
+          _ffsResultDate = info.ffsResultDate;
+          _ffsResult = info.ffsResult;
+          _ultrasoundImage = info.ultrasoundImageUrl;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadError = e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoaded = true);
+      }
     }
   }
 
@@ -154,8 +168,13 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
       ),
       body: SafeArea(
         child: !_isLoaded
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGold))
-            : SingleChildScrollView(
+            ? const AppLoadingView(message: 'Loading advanced pregnancy info...')
+            : _loadError != null
+                ? AppErrorView(
+                    error: _loadError,
+                    onRetry: _loadData,
+                  )
+                : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
                 child: ResponsiveBody(
                   child: Column(
