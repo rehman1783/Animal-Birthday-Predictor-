@@ -72,7 +72,7 @@ void main() {
 
       // Fill in signup form
       final nameField = find.widgetWithText(TextField, '');
-      expect(nameField, findsNWidgets(3)); // Full name, Email, Password
+      expect(nameField, findsNWidgets(4)); // Full name, Email, Password, Confirm Password
 
       // Fill Full Name
       await tester.enterText(find.byType(TextField).at(0), 'John Doe');
@@ -80,6 +80,8 @@ void main() {
       await tester.enterText(find.byType(TextField).at(1), 'registered@example.com');
       // Fill Password
       await tester.enterText(find.byType(TextField).at(2), 'password123');
+      // Fill Confirm Password
+      await tester.enterText(find.byType(TextField).at(3), 'password123');
       await tester.pump();
 
       // Tap Create Account
@@ -99,6 +101,42 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Sign In Screen Target'), findsOneWidget);
       }
+    });
+
+    testWidgets('Shows error when confirm password does not match password', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(fakeRepo),
+          ],
+          child: const MaterialApp(
+            home: SignUpScreen(),
+          ),
+        ),
+      );
+
+      // Fill Full Name
+      await tester.enterText(find.byType(TextField).at(0), 'Alex Sterling');
+      // Fill Email
+      await tester.enterText(find.byType(TextField).at(1), 'alex@example.com');
+      // Fill Password
+      await tester.enterText(find.byType(TextField).at(2), 'password123');
+      // Fill Mismatched Confirm Password
+      await tester.enterText(find.byType(TextField).at(3), 'differentPassword');
+      await tester.pump();
+
+      // Tap Create Account
+      final createAccountBtn = find.text('Create Account');
+      await tester.ensureVisible(createAccountBtn);
+      await tester.tap(createAccountBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Passwords do not match'), findsOneWidget);
+      expect(fakeRepo.signUpCalls, 0);
     });
 
     testWidgets('Navigates to /email-verification when email is not registered and signup succeeds', (tester) async {
@@ -130,6 +168,8 @@ void main() {
       await tester.enterText(find.byType(TextField).at(1), 'newuser@example.com');
       // Fill Password
       await tester.enterText(find.byType(TextField).at(2), 'password123');
+      // Fill Confirm Password
+      await tester.enterText(find.byType(TextField).at(3), 'password123');
       await tester.pump();
 
       // Tap Create Account

@@ -20,18 +20,22 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   String? _fullNameError;
   String? _emailError;
   String? _passwordError;
+  String? _confirmPasswordError;
 
   @override
   void dispose() {
     _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -40,6 +44,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       _fullNameError = null;
       _emailError = null;
       _passwordError = null;
+      _confirmPasswordError = null;
     });
 
     bool isValid = true;
@@ -66,6 +71,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       isValid = false;
     } else if (password.length < 8) {
       _passwordError = 'Password must be at least 8 characters';
+      isValid = false;
+    }
+
+    final confirmPassword = _confirmPasswordController.text;
+    if (confirmPassword.isEmpty) {
+      _confirmPasswordError = 'Please confirm your password';
+      isValid = false;
+    } else if (confirmPassword != password) {
+      _confirmPasswordError = 'Passwords do not match';
       isValid = false;
     }
 
@@ -141,7 +155,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         left: true,
         right: true,
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           child: ResponsiveBody(
           child: Column(
             children: [
@@ -198,6 +212,31 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         onPressed: () {
                           setState(() {
                             _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+
+                    // Confirm Password
+                    CustomTextField(
+                      label: 'Confirm Password',
+                      hintText: 'Confirm your password',
+                      leadingIcon: Icons.lock_outline,
+                      obscureText: _obscureConfirmPassword,
+                      controller: _confirmPasswordController,
+                      errorText: _confirmPasswordError,
+                      trailingWidget: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: AppColors.textSecondary,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
                           });
                         },
                       ),
