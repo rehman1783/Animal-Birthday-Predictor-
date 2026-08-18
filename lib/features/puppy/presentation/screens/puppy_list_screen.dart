@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
@@ -173,8 +175,11 @@ class _PuppyListScreenState extends ConsumerState<PuppyListScreen> {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-          error: (e, _) => Center(child: Text('Error loading puppies: $e', style: const TextStyle(color: Colors.redAccent))),
+          loading: () => const AppLoadingView(message: 'Loading puppies...'),
+          error: (e, _) => AppErrorView(
+            error: e,
+            onRetry: () => ref.invalidate(puppiesListProvider(widget.damId)),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animal_birthday_predictor/core/constants/app_colors.dart';
 import 'package:animal_birthday_predictor/core/constants/app_spacing.dart';
 import 'package:animal_birthday_predictor/core/constants/app_typography.dart';
+import 'package:animal_birthday_predictor/core/widgets/app_error_view.dart';
+import 'package:animal_birthday_predictor/core/widgets/app_loading_view.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_thumbnail_avatar.dart';
 import 'package:animal_birthday_predictor/core/widgets/gradient_cta_button.dart';
 import 'package:animal_birthday_predictor/core/widgets/responsive_body.dart';
@@ -333,8 +335,11 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-      error: (e, _) => Center(child: Text('Error loading foals: $e', style: const TextStyle(color: Colors.redAccent))),
+      loading: () => const AppLoadingView(message: 'Loading foals...'),
+      error: (e, _) => AppErrorView(
+        error: e,
+        onRetry: () => ref.invalidate(foalsListProvider),
+      ),
     );
   }
 
@@ -615,8 +620,11 @@ class _PuppiesBirthListViewState extends ConsumerState<_PuppiesBirthListView> {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-      error: (e, _) => Center(child: Text('Error loading puppies: $e', style: const TextStyle(color: Colors.redAccent))),
+      loading: () => const AppLoadingView(message: 'Loading puppies...'),
+      error: (e, _) => AppErrorView(
+        error: e,
+        onRetry: () => ref.invalidate(puppiesListProvider(null)),
+      ),
     );
   }
 

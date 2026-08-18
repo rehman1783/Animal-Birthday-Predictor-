@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_env.dart';
+import '../../../core/utils/error_handler.dart';
 import '../domain/user_profile.dart';
 
 class AuthExceptionCustom implements Exception {
@@ -54,15 +55,9 @@ class AuthRepository {
   /// Helper to convert technical exceptions into clean, user-friendly error messages
   AuthExceptionCustom _handleError(dynamic e) {
     if (e is AuthExceptionCustom) return e;
-    final errStr = e.toString().toLowerCase();
-    if (errStr.contains('socketexception') ||
-        errStr.contains('failed host lookup') ||
-        errStr.contains('clientexception') ||
-        errStr.contains('connection refused') ||
-        errStr.contains('network') ||
-        errStr.contains('xmlhttprequest')) {
+    if (ErrorHandler.isNetworkError(e)) {
       return const AuthExceptionCustom(
-        'Network error. Please check your internet connection and try again.',
+        'Unable to connect to the server. Please check your internet connection and try again.',
       );
     }
     if (e is AuthException) {

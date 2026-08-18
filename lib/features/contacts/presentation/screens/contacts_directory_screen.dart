@@ -4,7 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../domain/contact.dart';
 import '../providers/contact_provider.dart';
@@ -389,8 +391,11 @@ class _ContactsRoleList extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-      error: (e, _) => Center(child: Text('Error loading contacts: $e', style: const TextStyle(color: Colors.redAccent))),
+      loading: () => const AppLoadingView(message: 'Loading contacts...'),
+      error: (e, _) => AppErrorView(
+        error: e,
+        onRetry: () => ref.invalidate(contactsListProvider(role)),
+      ),
     );
   }
 

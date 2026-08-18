@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_error_view.dart';
+import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -259,8 +261,15 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-          error: (e, _) => Center(child: Text('Error loading health care: $e', style: const TextStyle(color: Colors.redAccent))),
+          loading: () => const AppLoadingView(message: 'Loading health records...'),
+          error: (e, _) => AppErrorView(
+            error: e,
+            onRetry: () => ref.invalidate(dogPreventativeCareProvider((
+              ownerType: widget.ownerType,
+              ownerId: widget.ownerId,
+              dob: widget.dateOfBirth,
+            ))),
+          ),
         ),
       ),
     );
