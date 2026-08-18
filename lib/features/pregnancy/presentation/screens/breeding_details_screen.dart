@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
+import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -228,20 +229,64 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
     }
   }
 
+  bool get _hasUnsavedChanges {
+    return _selectedMare != null ||
+        _stallionController.text.trim().isNotEmpty ||
+        _damOfEmbryoController.text.trim().isNotEmpty ||
+        _stallionOfEmbryoController.text.trim().isNotEmpty ||
+        _photoUrl != null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (!_hasUnsavedChanges) {
+          Navigator.of(context).pop();
+          return;
+        }
+        final shouldSave = await showAppUnsavedChangesDialog(context);
+        if (shouldSave == true) {
+          await _handleSave();
+        } else if (shouldSave == false) {
+          if (mounted) Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.maybePop(context),
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          title: const Text('BREEDING DETAILS', style: AppTypography.sectionLabel),
+          centerTitle: true,
+          actions: [
+            TextButton.icon(
+              onPressed: _isSaving ? null : _handleSave,
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.primaryGold),
+                    )
+                  : const Icon(Icons.check_rounded, color: AppColors.primaryGold, size: 18),
+              label: const Text(
+                'SAVE',
+                style: TextStyle(
+                  color: AppColors.primaryGold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
         ),
-        title: const Text('BREEDING DETAILS', style: AppTypography.sectionLabel),
-        centerTitle: true,
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -611,6 +656,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

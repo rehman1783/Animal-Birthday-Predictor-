@@ -7,6 +7,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/app_uuid.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
+import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -267,34 +268,97 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
     }
   }
 
+  bool get _hasUnsavedChanges {
+    final p = widget.puppy;
+    if (p == null) {
+      return _nameController.text.trim().isNotEmpty ||
+          _collarController.text.trim().isNotEmpty ||
+          _colourController.text.trim().isNotEmpty ||
+          _selectedDam != null ||
+          _photoUrl != null;
+    }
+    return _nameController.text.trim() != (p.puppyName ?? '') ||
+        _collarController.text.trim() != (p.collarTagColour ?? '') ||
+        _colourController.text.trim() != (p.colour ?? '') ||
+        _birthOrderController.text.trim() != (p.birthOrder?.toString() ?? '') ||
+        _birthWeightController.text.trim() != (p.birthWeight ?? '') ||
+        _currentWeightController.text.trim() != (p.currentWeight ?? '') ||
+        _microchipController.text.trim() != (p.microchipNo ?? '') ||
+        _dnaController.text.trim() != (p.dna ?? '') ||
+        _sireNameController.text.trim() != (p.sireName ?? '') ||
+        _newOwnerNameController.text.trim() != (p.newOwnerName ?? '') ||
+        _newOwnerPhoneController.text.trim() != (p.newOwnerPhone ?? '') ||
+        _newOwnerAddressController.text.trim() != (p.newOwnerAddress ?? '') ||
+        _generalNotesController.text.trim() != (p.generalNotes ?? '') ||
+        _dateOfBirth != p.dateOfBirth ||
+        _dateGoingHome != p.dateGoingHome ||
+        _sex != p.sex ||
+        _status != p.status ||
+        _photoUrl != p.photoUrl;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.puppy != null;
     final puppyId = widget.puppy?.id ?? '';
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (!_hasUnsavedChanges) {
+          Navigator.of(context).pop();
+          return;
+        }
+        final shouldSave = await showAppUnsavedChangesDialog(context);
+        if (shouldSave == true) {
+          await _handleSave();
+        } else if (shouldSave == false) {
+          if (mounted) Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.maybePop(context),
-        ),
-        title: Text(
-          isEditing ? 'PUPPY: ${widget.puppy?.puppyName ?? "RECORD"}' : 'NEW PUPPY REGISTRATION',
-          style: AppTypography.sectionLabel,
-        ),
-        centerTitle: true,
-        actions: [
-          if (isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              tooltip: 'Delete Puppy Record',
-              onPressed: _confirmDeletePuppy,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          title: Text(
+            isEditing ? 'PUPPY: ${widget.puppy?.puppyName ?? "RECORD"}' : 'NEW PUPPY REGISTRATION',
+            style: AppTypography.sectionLabel,
+          ),
+          centerTitle: true,
+          actions: [
+            TextButton.icon(
+              onPressed: _isSaving ? null : _handleSave,
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.primaryGold),
+                    )
+                  : const Icon(Icons.check_rounded, color: AppColors.primaryGold, size: 18),
+              label: Text(
+                isEditing ? 'UPDATE' : 'SAVE',
+                style: const TextStyle(
+                  color: AppColors.primaryGold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
-        ],
-      ),
+            if (isEditing)
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                tooltip: 'Delete Puppy Record',
+                onPressed: _confirmDeletePuppy,
+              ),
+          ],
+        ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -800,6 +864,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

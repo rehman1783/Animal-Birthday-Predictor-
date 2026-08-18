@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
+import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -43,6 +44,7 @@ class _VeterinarianPregnancyScansScreenState
   String? _scan2Image;
   String? _scan3Image;
   bool _isSaving = false;
+  int? _savingScanNumber;
   bool _isLoading = true;
 
   @override
@@ -50,6 +52,93 @@ class _VeterinarianPregnancyScansScreenState
     super.initState();
     _selectedCarrierId = widget.carrierAnimalId;
     _loadData();
+  }
+
+  bool get _hasUnsavedChanges {
+    if (_record == null) return false;
+    final r = _record!;
+    return _scan1Confirmed != r.scan1Confirmed ||
+        _scan1Image != r.scan1ImageUrl ||
+        _scan2Confirmed != r.scan2Confirmed ||
+        _scan2Image != r.scan2ImageUrl ||
+        _scan3Confirmed != r.scan3Confirmed ||
+        _scan3Image != r.scan3ImageUrl ||
+        _vetNameController.text.trim() != (r.vetName ?? '') ||
+        _vetNumberController.text.trim() != (r.vetNumber ?? '');
+  }
+
+  Future<void> _handleSaveScan(int scanNumber) async {
+    if (_record == null &&
+        (_selectedCarrierId == null || _selectedCarrierId!.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select or register a mare carrier record.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _savingScanNumber = scanNumber);
+    try {
+      final repo = ref.read(pregnancyRepositoryProvider);
+      final current =
+          _record ??
+          PregnancyRecord(
+            id: '',
+            accountId: '',
+            carrierAnimalId: _selectedCarrierId ?? '',
+            breedingRecordId: '',
+            scan1DueDate: DateTime.now().add(const Duration(days: 2)),
+            scan2DueDate: DateTime.now().add(const Duration(days: 16)),
+            scan3DueDate: DateTime.now().add(const Duration(days: 31)),
+            foalingDueDate: DateTime.now().add(const Duration(days: 326)),
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+
+      PregnancyRecord updated;
+      if (scanNumber == 1) {
+        updated = current.copyWith(
+          scan1Confirmed: _scan1Confirmed,
+          scan1ImageUrl: _scan1Image,
+          updatedAt: DateTime.now(),
+        );
+      } else if (scanNumber == 2) {
+        updated = current.copyWith(
+          scan2Confirmed: _scan2Confirmed,
+          scan2ImageUrl: _scan2Image,
+          updatedAt: DateTime.now(),
+        );
+      } else {
+        updated = current.copyWith(
+          scan3Confirmed: _scan3Confirmed,
+          scan3ImageUrl: _scan3Image,
+          updatedAt: DateTime.now(),
+        );
+      }
+
+      final saved = await repo.savePregnancyRecord(updated);
+      if (_selectedCarrierId != null) {
+        ref.invalidate(pregnancyRecordForCarrierProvider(_selectedCarrierId!));
+      }
+      ref.invalidate(pregnancyRecordByIdProvider(saved.id));
+
+      if (mounted) {
+        setState(() => _record = saved);
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: 'Scan $scanNumber Saved',
+          message:
+              'Pregnancy scan $scanNumber confirmation and photo updated successfully!',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppFeedbackSnackbar.showError(context, title: 'Save Failed', error: e);
+      }
+    } finally {
+      if (mounted) setState(() => _savingScanNumber = null);
+    }
   }
 
   Future<void> _loadData() async {
@@ -196,25 +285,69 @@ class _VeterinarianPregnancyScansScreenState
     final horsesAsync = ref.watch(animalsListProvider('horse'));
     final completedScans = _getCompletedScansCount();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (!_hasUnsavedChanges) {
+          Navigator.of(context).pop();
+          return;
+        }
+        final shouldSave = await showAppUnsavedChangesDialog(context);
+        if (shouldSave == true) {
+          await _handleSave();
+          if (mounted) Navigator.of(context).pop();
+        } else if (shouldSave == false) {
+          if (mounted) Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textPrimary,
-            size: 20,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppColors.textPrimary,
+              size: 20,
+            ),
+            onPressed: () => Navigator.maybePop(context),
           ),
-          onPressed: () => Navigator.maybePop(context),
+          title: const Text(
+            'VET CONTACT & SCANS OVERVIEW',
+            style: AppTypography.sectionLabel,
+          ),
+          centerTitle: true,
+          actions: [
+            TextButton.icon(
+              onPressed: _isSaving ? null : _handleSave,
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: AppColors.primaryGold,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.check_rounded,
+                      color: AppColors.primaryGold,
+                      size: 18,
+                    ),
+              label: const Text(
+                'SAVE',
+                style: TextStyle(
+                  color: AppColors.primaryGold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
         ),
-        title: const Text(
-          'VET CONTACT & SCANS OVERVIEW',
-          style: AppTypography.sectionLabel,
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
         child: _isLoading
             ? const Center(
@@ -486,6 +619,8 @@ class _VeterinarianPregnancyScansScreenState
                             setState(() => _scan1Confirmed = val ?? false),
                         onImageSelected: (url) =>
                             setState(() => _scan1Image = url),
+                        onSaveScan: () => _handleSaveScan(1),
+                        isSavingScan: _savingScanNumber == 1,
                       ),
 
                       // Scan 2
@@ -500,6 +635,8 @@ class _VeterinarianPregnancyScansScreenState
                             setState(() => _scan2Confirmed = val ?? false),
                         onImageSelected: (url) =>
                             setState(() => _scan2Image = url),
+                        onSaveScan: () => _handleSaveScan(2),
+                        isSavingScan: _savingScanNumber == 2,
                       ),
 
                       // Scan 3
@@ -514,6 +651,8 @@ class _VeterinarianPregnancyScansScreenState
                             setState(() => _scan3Confirmed = val ?? false),
                         onImageSelected: (url) =>
                             setState(() => _scan3Image = url),
+                        onSaveScan: () => _handleSaveScan(3),
+                        isSavingScan: _savingScanNumber == 3,
                       ),
                       const SizedBox(height: 20.0),
 
@@ -530,6 +669,7 @@ class _VeterinarianPregnancyScansScreenState
                 ),
               ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
+import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -291,34 +292,98 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
     }
   }
 
+  bool get _hasUnsavedChanges {
+    final f = widget.foal;
+    if (f == null) {
+      return _nameController.text.trim().isNotEmpty ||
+          _stallionController.text.trim().isNotEmpty ||
+          _breedController.text.trim().isNotEmpty ||
+          _selectedMare != null ||
+          _photoUrl != null;
+    }
+    return _nameController.text.trim() != (f.foalName ?? '') ||
+        _stallionController.text.trim() != (f.stallion ?? '') ||
+        _breedController.text.trim() != (f.breed ?? '') ||
+        _iggController.text.trim() != (f.iggValue ?? '') ||
+        _microchipController.text.trim() != (f.foalMicrochipNo ?? '') ||
+        _dnaController.text.trim() != (f.dna ?? '') ||
+        _studBookController.text.trim() != (f.studBookAssociation ?? '') ||
+        _notesController.text.trim() != (f.notes ?? '') ||
+        _buyerNameController.text.trim() != (f.buyerName ?? '') ||
+        _buyerPhoneController.text.trim() != (f.buyerPhone ?? '') ||
+        _buyerAddressController.text.trim() != (f.buyerAddress ?? '') ||
+        _salePriceController.text.trim() != (f.salePrice ?? '') ||
+        _saleDate != f.saleDate ||
+        _dateOfBirth != f.dateOfBirth ||
+        _sex != f.sex ||
+        _gelded != f.gelded ||
+        _geldedDate != f.geldedDate ||
+        _status != f.status ||
+        _photoUrl != f.photoUrl;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.foal != null;
     final foalId = widget.foal?.id ?? '';
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (!_hasUnsavedChanges) {
+          Navigator.of(context).pop();
+          return;
+        }
+        final shouldSave = await showAppUnsavedChangesDialog(context);
+        if (shouldSave == true) {
+          await _handleSave();
+        } else if (shouldSave == false) {
+          if (mounted) Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.maybePop(context),
-        ),
-        title: Text(
-          isEditing ? 'FOAL: ${widget.foal?.foalName ?? "RECORD"}' : 'NEW FOAL REGISTRATION',
-          style: AppTypography.sectionLabel,
-        ),
-        centerTitle: true,
-        actions: [
-          if (isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              tooltip: 'Delete Foal Record',
-              onPressed: _confirmDeleteFoal,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          title: Text(
+            isEditing ? 'FOAL: ${widget.foal?.foalName ?? "RECORD"}' : 'NEW FOAL REGISTRATION',
+            style: AppTypography.sectionLabel,
+          ),
+          centerTitle: true,
+          actions: [
+            TextButton.icon(
+              onPressed: _isSaving ? null : _handleSave,
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.primaryGold),
+                    )
+                  : const Icon(Icons.check_rounded, color: AppColors.primaryGold, size: 18),
+              label: Text(
+                isEditing ? 'UPDATE' : 'SAVE',
+                style: const TextStyle(
+                  color: AppColors.primaryGold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
-        ],
-      ),
+            if (isEditing)
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                tooltip: 'Delete Foal Record',
+                onPressed: _confirmDeleteFoal,
+              ),
+          ],
+        ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -829,6 +894,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

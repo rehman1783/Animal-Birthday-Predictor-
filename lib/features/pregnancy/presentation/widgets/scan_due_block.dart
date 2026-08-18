@@ -12,6 +12,8 @@ class ScanDueBlock extends StatelessWidget {
   final ValueChanged<bool?> onToggleConfirmed;
   final ValueChanged<String?> onImageSelected;
   final String helperGuidance;
+  final VoidCallback? onSaveScan;
+  final bool isSavingScan;
 
   const ScanDueBlock({
     super.key,
@@ -22,6 +24,8 @@ class ScanDueBlock extends StatelessWidget {
     required this.onToggleConfirmed,
     required this.onImageSelected,
     required this.helperGuidance,
+    this.onSaveScan,
+    this.isSavingScan = false,
   });
 
   String _formatDate(DateTime? dt) {
@@ -165,6 +169,42 @@ class ScanDueBlock extends StatelessWidget {
             onImageSelected: onImageSelected,
             onImagePicked: onImageSelected,
           ),
+
+          if (onSaveScan != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: isSavingScan ? null : onSaveScan,
+                icon: isSavingScan
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.background,
+                        ),
+                      )
+                    : const Icon(Icons.save_outlined, size: 16),
+                label: Text(
+                  'SAVE SCAN $scanNumber',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12.5,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryGold,
+                  foregroundColor: AppColors.background,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
