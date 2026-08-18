@@ -31,10 +31,15 @@ class SettingsScreen extends ConsumerWidget {
           style: AppTypography.displayHeadline.copyWith(fontSize: 20),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-        child: ResponsiveBody(
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          padding: EdgeInsets.all(AppSpacing.horizontalPadding),
+          child: ResponsiveBody(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -189,8 +194,9 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _SettingsGroup extends StatelessWidget {

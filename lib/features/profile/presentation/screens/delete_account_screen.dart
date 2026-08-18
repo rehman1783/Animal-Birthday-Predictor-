@@ -155,9 +155,14 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
           style: AppTypography.displayHeadline.copyWith(fontSize: 20),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ResponsiveBody(
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: ResponsiveBody(
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.horizontalPadding,
@@ -366,8 +371,9 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _DeletionImpactItem extends StatelessWidget {

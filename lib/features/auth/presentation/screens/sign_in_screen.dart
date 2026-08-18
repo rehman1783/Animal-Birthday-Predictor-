@@ -128,89 +128,94 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ResponsiveBody(
-          child: Column(
-            children: [
-              // Header Banner
-              const AuthHeaderBanner(
-                imagePath: 'assets/images/auth_header_welcome_back.png',
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.horizontalPadding,
-                  vertical: 24.0,
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ResponsiveBody(
+            child: Column(
+              children: [
+                // Header Banner
+                const AuthHeaderBanner(
+                  imagePath: 'assets/images/auth_header_welcome_back.png',
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Email Address
-                    CustomTextField(
-                      label: 'Email Address',
-                      hintText: 'alex.sterling@example.com',
-                      keyboardType: TextInputType.emailAddress,
-                      leadingIcon: Icons.email_outlined,
-                      controller: _emailController,
-                      errorText: _emailError,
-                    ),
-                    const SizedBox(height: 16.0),
 
-                    // Password with Inline "Forgot" link
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomTextField(
-                          label: '',
-                          hintText: '••••••••',
-                          leadingIcon: Icons.lock_outline,
-                          obscureText: _obscurePassword,
-                          controller: _passwordController,
-                          errorText: _passwordError,
-                          trailingWidget: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              color: AppColors.textSecondary,
-                              size: 20,
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.horizontalPadding,
+                    vertical: 24.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Email Address
+                      CustomTextField(
+                        label: 'Email Address',
+                        hintText: 'alex.sterling@example.com',
+                        keyboardType: TextInputType.emailAddress,
+                        leadingIcon: Icons.email_outlined,
+                        controller: _emailController,
+                        errorText: _emailError,
+                      ),
+                      const SizedBox(height: 16.0),
+
+                      // Password with Inline "Forgot" link
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomTextField(
+                            label: '',
+                            hintText: '••••••••',
+                            leadingIcon: Icons.lock_outline,
+                            obscureText: _obscurePassword,
+                            controller: _passwordController,
+                            errorText: _passwordError,
+                            trailingWidget: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: AppColors.textSecondary,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
                           ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Password',
-                              style: AppTypography.inputLabel,
-                            ),
-                            Flexible(
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/reset-password',
-                                  );
-                                },
-                                child: Text(
-                                  'Forgot Password?',
-                                  style: AppTypography.inputLabel.copyWith(
-                                    color: AppColors.primaryGold,
-                                    fontWeight: FontWeight.w600,
+                          const SizedBox(height: 8.0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Password',
+                                style: AppTypography.inputLabel,
+                              ),
+                              Flexible(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/reset-password',
+                                    );
+                                  },
+                                  child: Text(
+                                    'Forgot Password?',
+                                    style: AppTypography.inputLabel.copyWith(
+                                      color: AppColors.primaryGold,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.end,
                                   ),
-                                  textAlign: TextAlign.end,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
                       ],
                     ),
 
@@ -300,11 +305,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32.0),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -100,120 +100,126 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ResponsiveBody(
-          child: Column(
-            children: [
-              // Header Banner
-              const AuthHeaderBanner(
-                imagePath: 'assets/images/auth_header_lost_your_way.png',
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.horizontalPadding,
-                  vertical: 24.0,
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ResponsiveBody(
+            child: Column(
+              children: [
+                // Header Banner
+                const AuthHeaderBanner(
+                  imagePath: 'assets/images/auth_header_lost_your_way.png',
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Reset Your Password',
-                    style: AppTypography.displayHeadlineWhite,
-                  ),
-                  const SizedBox(height: 8.0),
-                  const Text(
-                    'Please enter a new secure password for your account.',
-                    style: AppTypography.body,
-                  ),
-                  const SizedBox(height: 24.0),
 
-                  // New Password Field
-                  CustomTextField(
-                    label: 'New Password',
-                    hintText: 'Enter new password (min 8 chars)',
-                    leadingIcon: Icons.lock_outline,
-                    obscureText: _obscureNewPassword,
-                    controller: _newPasswordController,
-                    errorText: _newPasswordError,
-                    trailingWidget: IconButton(
-                      icon: Icon(
-                        _obscureNewPassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: AppColors.textSecondary,
-                        size: 20,
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.horizontalPadding,
+                    vertical: 24.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Reset Your Password',
+                        style: AppTypography.displayHeadlineWhite,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureNewPassword = !_obscureNewPassword;
-                        });
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 16.0),
-
-                  // Confirm Password Field
-                  CustomTextField(
-                    label: 'Confirm New Password',
-                    hintText: 'Re-enter new password',
-                    leadingIcon: Icons.lock_reset_outlined,
-                    obscureText: _obscureConfirmPassword,
-                    controller: _confirmPasswordController,
-                    errorText: _confirmPasswordError,
-                    trailingWidget: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: AppColors.textSecondary,
-                        size: 20,
+                      const SizedBox(height: 8.0),
+                      const Text(
+                        'Please enter a new secure password for your account.',
+                        style: AppTypography.body,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                  ),
+                      const SizedBox(height: 24.0),
 
-                  const SizedBox(height: 28.0),
-
-                  // CTA Button: Update Password
-                  GradientCtaButton(
-                    text: 'Update Password ✦',
-                    isLoading: isLoading,
-                    onPressed: _handleUpdatePassword,
-                  ),
-
-                  const SizedBox(height: 32.0),
-
-                  // Back to Sign In Link
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacementNamed(context, '/signin');
-                      },
-                      child: Text(
-                        '← Back to Sign In',
-                        style: AppTypography.body.copyWith(
-                          color: AppColors.primaryGold,
-                          fontWeight: FontWeight.bold,
+                      // New Password Field
+                      CustomTextField(
+                        label: 'New Password',
+                        hintText: 'Enter new password (min 8 chars)',
+                        leadingIcon: Icons.lock_outline,
+                        obscureText: _obscureNewPassword,
+                        controller: _newPasswordController,
+                        errorText: _newPasswordError,
+                        trailingWidget: IconButton(
+                          icon: Icon(
+                            _obscureNewPassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: AppColors.textSecondary,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureNewPassword = !_obscureNewPassword;
+                            });
+                          },
                         ),
                       ),
-                    ),
-                  ),
 
-                  const SizedBox(height: 32.0),
-                ],
-              ),
+                      const SizedBox(height: 16.0),
+
+                      // Confirm Password Field
+                      CustomTextField(
+                        label: 'Confirm New Password',
+                        hintText: 'Re-enter new password',
+                        leadingIcon: Icons.lock_reset_outlined,
+                        obscureText: _obscureConfirmPassword,
+                        controller: _confirmPasswordController,
+                        errorText: _confirmPasswordError,
+                        trailingWidget: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: AppColors.textSecondary,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                            });
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 28.0),
+
+                      // CTA Button: Update Password
+                      GradientCtaButton(
+                        text: 'Update Password ✦',
+                        isLoading: isLoading,
+                        onPressed: _handleUpdatePassword,
+                      ),
+
+                      const SizedBox(height: 32.0),
+
+                      // Back to Sign In Link
+                      Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacementNamed(context, '/signin');
+                          },
+                          child: Text(
+                            '← Back to Sign In',
+                            style: AppTypography.body.copyWith(
+                              color: AppColors.primaryGold,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32.0),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

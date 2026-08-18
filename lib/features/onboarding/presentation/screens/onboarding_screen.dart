@@ -15,9 +15,14 @@ class OnboardingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ResponsiveBody(
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: ResponsiveBody(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -136,6 +141,7 @@ class OnboardingScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

@@ -158,9 +158,14 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ResponsiveBody(
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: ResponsiveBody(
           child: Column(
             children: [
               // Auth Banner Header
@@ -349,7 +354,8 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 

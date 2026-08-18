@@ -201,9 +201,14 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ResponsiveBody(
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: ResponsiveBody(
           child: Column(
             children: [
               // Header Banner
@@ -443,6 +448,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

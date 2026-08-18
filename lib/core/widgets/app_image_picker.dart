@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_typography.dart';
+import '../services/permission_service.dart';
 
 class AppImagePicker extends StatelessWidget {
   final String? currentImagePath;
@@ -80,6 +81,8 @@ class AppImagePicker extends StatelessWidget {
                   title: Text('Take Photo (Camera)', style: AppTypography.bodyMedium),
                   onTap: () async {
                     Navigator.pop(ctx);
+                    final hasPermission = await PermissionService.requestCameraPermission(context);
+                    if (!hasPermission) return;
                     try {
                       final picked = await picker.pickImage(
                         source: ImageSource.camera,
@@ -98,6 +101,8 @@ class AppImagePicker extends StatelessWidget {
                   title: Text('Choose from Gallery', style: AppTypography.bodyMedium),
                   onTap: () async {
                     Navigator.pop(ctx);
+                    final hasPermission = await PermissionService.requestPhotosPermission(context);
+                    if (!hasPermission) return;
                     try {
                       final picked = await picker.pickImage(
                         source: ImageSource.gallery,

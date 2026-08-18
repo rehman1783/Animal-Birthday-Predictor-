@@ -102,7 +102,11 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(backgroundColor: AppColors.background, title: const Text('CERTIFICATE')),
-        body: const Center(child: Text('No record selected for certificate view', style: TextStyle(color: Colors.white))),
+        body: const SafeArea(
+          child: Center(
+            child: Text('No record selected for certificate view', style: TextStyle(color: Colors.white)),
+          ),
+        ),
       );
     }
 

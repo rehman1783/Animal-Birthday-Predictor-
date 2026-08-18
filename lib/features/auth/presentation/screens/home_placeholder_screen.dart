@@ -41,66 +41,84 @@ class HomePlaceholderScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primaryGold,
-                  width: 2,
-                ),
-              ),
-              child: const Icon(
-                Icons.check_circle_outline,
-                color: AppColors.primaryGold,
-                size: 48,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              profile?.fullName.isNotEmpty == true
-                  ? 'Welcome, ${profile!.fullName}!'
-                  : 'Welcome to ABP!',
-              style: AppTypography.displayHeadline,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            if (profile?.email.isNotEmpty == true)
-              Text(
-                profile!.email,
-                style: AppTypography.body.copyWith(color: AppColors.primaryGold),
-                textAlign: TextAlign.center,
-              ),
-            const SizedBox(height: 16),
-            const Text(
-              'Authenticated via Supabase Auth.\nSession active & saved.',
-              style: AppTypography.body,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 36),
-            GradientCtaButton(
-              text: 'Sign Out & Return to Sign In',
-              onPressed: () async {
-                final confirmed = await AppLogoutDialog.show(context);
-                if (confirmed && context.mounted) {
-                  await ref.read(authControllerProvider.notifier).signOut();
-                  if (context.mounted) {
-                    Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
-                  }
-                }
-              },
-            ),
-          ],
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.horizontalPadding),
+          child: _HomePlaceholderContent(),
         ),
       ),
+    );
+  }
+}
+
+class _HomePlaceholderContent extends ConsumerWidget {
+  const _HomePlaceholderContent();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
+    final profile = authState.value;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.primaryGold,
+              width: 2,
+            ),
+          ),
+          child: const Icon(
+            Icons.check_circle_outline,
+            color: AppColors.primaryGold,
+            size: 48,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          profile?.fullName.isNotEmpty == true
+              ? 'Welcome, ${profile!.fullName}!'
+              : 'Welcome to ABP!',
+          style: AppTypography.displayHeadline,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        if (profile?.email.isNotEmpty == true)
+          Text(
+            profile!.email,
+            style: AppTypography.body.copyWith(color: AppColors.primaryGold),
+            textAlign: TextAlign.center,
+          ),
+        const SizedBox(height: 16),
+        const Text(
+          'Authenticated via Supabase Auth.\nSession active & saved.',
+          style: AppTypography.body,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 36),
+        GradientCtaButton(
+          text: 'Sign Out & Return to Sign In',
+          onPressed: () async {
+            final confirmed = await AppLogoutDialog.show(context);
+            if (confirmed && context.mounted) {
+              await ref.read(authControllerProvider.notifier).signOut();
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+              }
+            }
+          },
+        ),
+      ],
     );
   }
 }

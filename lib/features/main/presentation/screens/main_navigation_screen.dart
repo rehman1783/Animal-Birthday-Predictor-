@@ -44,9 +44,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: IndexedStack(
-          index: _currentIndex,
-          children: screens,
+        body: SafeArea(
+          left: true,
+          right: true,
+          child: IndexedStack(
+            index: _currentIndex,
+            children: screens,
+          ),
         ),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
