@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/responsive_body.dart';
+import '../../../auth/data/auth_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class DeleteAccountScreen extends ConsumerStatefulWidget {
@@ -91,29 +93,30 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       _passwordError = null;
     });
 
-    final success = await ref
-        .read(authControllerProvider.notifier)
-        .deleteAccount(password: _passwordController.text);
+    final password = _passwordController.text;
 
-    if (!mounted) return;
+    try {
+      final repo = ref.read(authRepositoryProvider);
+      await repo.deleteAccount(password: password);
 
-    setState(() {
-      _isDeleting = false;
-    });
+      if (!mounted) return;
 
-    if (success) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Your account and all associated data have been permanently deleted.'),
-          backgroundColor: AppColors.surface,
-          duration: Duration(seconds: 4),
-        ),
+      AppFeedbackSnackbar.showSuccess(
+        context,
+        title: 'Account Deleted',
+        message: 'Your account and all associated data have been permanently deleted.',
+        duration: const Duration(seconds: 4),
       );
+
+      // Reset local auth session state cleanly
+      await ref.read(authControllerProvider.notifier).signOut();
+      if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
-    } else {
-      final errorState = ref.read(authControllerProvider);
-      final errorMsg = errorState.error?.toString() ?? 'Failed to delete account.';
+    } catch (e) {
+      if (!mounted) return;
+      final errorMsg = e is AuthExceptionCustom
+          ? e.message
+          : e.toString().replaceAll('Exception: ', '').replaceAll('AuthExceptionCustom: ', '');
 
       setState(() {
         if (errorMsg.toLowerCase().contains('incorrect password') ||
@@ -124,18 +127,18 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
         }
       });
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            errorMsg.toLowerCase().contains('incorrect password') ||
-                    errorMsg.toLowerCase().contains('invalid')
-                ? 'Incorrect password. Please enter your valid password.'
-                : errorMsg,
-          ),
-          backgroundColor: AppColors.error,
-        ),
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Deletion Failed',
+        error: errorMsg.toLowerCase().contains('incorrect password') ||
+                errorMsg.toLowerCase().contains('invalid')
+            ? 'Incorrect password. Please enter your valid password.'
+            : errorMsg,
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isDeleting = false);
+      }
     }
   }
 
