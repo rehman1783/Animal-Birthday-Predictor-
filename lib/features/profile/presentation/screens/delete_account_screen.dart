@@ -320,15 +320,19 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                         )
                       : const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.delete_forever_rounded, color: Colors.white, size: 22),
                             SizedBox(width: 8),
-                            Text(
-                              'Permanently Delete Account',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            Flexible(
+                              child: Text(
+                                'Permanently Delete Account',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ],

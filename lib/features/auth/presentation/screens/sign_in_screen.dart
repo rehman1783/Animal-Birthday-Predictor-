@@ -64,7 +64,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Future<void> _handleSignIn() async {
     if (!_validateForm()) return;
 
-    final success = await ref.read(authControllerProvider.notifier).signIn(
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -80,9 +82,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
       setState(() {
         if (errorMsg.contains('Incorrect email or password')) {
-          _emailError = 'Incorrect email or password. Please check your credentials.';
+          _emailError =
+              'Incorrect email or password. Please check your credentials.';
         } else if (errorMsg.contains('This account does not exist')) {
-          _emailError = 'This account does not exist. Please create an account first.';
+          _emailError =
+              'This account does not exist. Please create an account first.';
         } else if (errorMsg.contains('Incorrect password')) {
           _passwordError = 'Incorrect password. Please try again.';
         } else if (errorMsg.contains('verify your email')) {
@@ -90,7 +94,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Please verify your email address before signing in.'),
+              content: const Text(
+                'Please verify your email address before signing in.',
+              ),
               backgroundColor: AppColors.error,
               action: SnackBarAction(
                 label: 'Verify Now',
@@ -108,10 +114,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         } else {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMsg),
-              backgroundColor: AppColors.error,
-            ),
+            SnackBar(content: Text(errorMsg), backgroundColor: AppColors.error),
           );
         }
       });
@@ -158,8 +161,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                       
-                        const SizedBox(height: 8.0),
                         CustomTextField(
                           label: '',
                           hintText: '••••••••',
@@ -182,31 +183,38 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             },
                           ),
                         ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12.0),
- Row(
+                        const SizedBox(height: 8.0),
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
                               'Password',
                               style: AppTypography.inputLabel,
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(context, '/reset-password');
-                              },
-                              child: Text(
-                                'Forgot Password?',
-                                style: AppTypography.inputLabel.copyWith(
-                                  color: AppColors.primaryGold,
-                                  fontWeight: FontWeight.w600,
+                            Flexible(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/reset-password',
+                                  );
+                                },
+                                child: Text(
+                                  'Forgot Password?',
+                                  style: AppTypography.inputLabel.copyWith(
+                                    color: AppColors.primaryGold,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  textAlign: TextAlign.end,
                                 ),
                               ),
                             ),
                           ],
                         ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 08.0),
                     // Keep me signed in Toggle
                     Row(
                       children: [
@@ -267,26 +275,31 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ),
                         ],
                       ),
-                    ),          
+                    ),
                     const SizedBox(height: 20.0),
 
                     // Small trust line: Encrypted & Secure Session
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.lock_rounded,
-                          color: AppColors.textMuted,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Encrypted & Secure Session',
-                          style: AppTypography.finePrint.copyWith(fontSize: 12),
-                        ),
-                      ],
+                    Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 6.0,
+                        children: [
+                          const Icon(
+                            Icons.lock_rounded,
+                            color: AppColors.textMuted,
+                            size: 14,
+                          ),
+                          Text(
+                            'Encrypted & Secure Session',
+                            style: AppTypography.finePrint.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-
                     const SizedBox(height: 32.0),
                   ],
                 ),

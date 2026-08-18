@@ -343,10 +343,12 @@ class _ContactsRoleList extends ConsumerWidget {
                                 child: OutlinedButton.icon(
                                   onPressed: () => onCall(c.phone!),
                                   icon: const Icon(Icons.phone, color: AppColors.primaryGold, size: 16),
-                                  label: Text(
-                                    c.phone!,
-                                    style: const TextStyle(color: AppColors.primaryGold, fontSize: 12),
-                                    overflow: TextOverflow.ellipsis,
+                                  label: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      c.phone!,
+                                      style: const TextStyle(color: AppColors.primaryGold, fontSize: 12),
+                                    ),
                                   ),
                                   style: OutlinedButton.styleFrom(
                                     side: const BorderSide(color: AppColors.primaryGold),
@@ -362,10 +364,12 @@ class _ContactsRoleList extends ConsumerWidget {
                                 child: OutlinedButton.icon(
                                   onPressed: () => onEmail(c.email!),
                                   icon: const Icon(Icons.email_outlined, color: AppColors.textSecondary, size: 16),
-                                  label: Text(
-                                    c.email!,
-                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                                    overflow: TextOverflow.ellipsis,
+                                  label: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      c.email!,
+                                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                    ),
                                   ),
                                   style: OutlinedButton.styleFrom(
                                     side: const BorderSide(color: AppColors.surface),

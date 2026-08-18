@@ -47,20 +47,20 @@ class ScanDueBlock extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row: Scan Name & Due Date Badge
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Header: Scan Name & Due Date Badge
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              Expanded(
-                child: Text(
-                  '${scanNumber == 1 ? "1st" : scanNumber == 2 ? "2nd" : "3rd"} Pregnancy Scan',
-                  style: AppTypography.displayHeadline.copyWith(fontSize: 15),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                '${scanNumber == 1 ? "1st" : scanNumber == 2 ? "2nd" : "3rd"} Pregnancy Scan',
+                style: AppTypography.displayHeadline.copyWith(fontSize: 15),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                constraints: const BoxConstraints(maxWidth: 220),
                 decoration: BoxDecoration(
                   color: AppColors.inputField,
                   borderRadius: BorderRadius.circular(6),
@@ -71,12 +71,15 @@ class ScanDueBlock extends StatelessWidget {
                   children: [
                     const Icon(Icons.event, size: 12, color: AppColors.primaryGold),
                     const SizedBox(width: 4),
-                    Text(
-                      'Due: ${_formatDate(dueDate)}',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.primaryGold,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11.5,
+                    Flexible(
+                      child: Text(
+                        'Due: ${_formatDate(dueDate)}',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.primaryGold,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11.5,
+                        ),
+                        softWrap: true,
                       ),
                     ),
                   ],
@@ -95,47 +98,56 @@ class ScanDueBlock extends StatelessWidget {
 
           // Pregnancy Confirmed Checkbox
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: AppColors.inputField,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Checkbox(
-                  value: isConfirmed,
-                  onChanged: onToggleConfirmed,
-                  activeColor: AppColors.primaryGold,
-                  checkColor: AppColors.background,
-                  side: const BorderSide(color: AppColors.primaryGold),
-                ),
-                Expanded(
-                  child: Text(
-                    'Pregnancy Confirmed at Scan $scanNumber',
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: isConfirmed ? AppColors.primaryGold : AppColors.textPrimary,
-                      fontWeight: isConfirmed ? FontWeight.bold : FontWeight.normal,
+                Row(
+                  children: [
+                    Checkbox(
+                      value: isConfirmed,
+                      onChanged: onToggleConfirmed,
+                      activeColor: AppColors.primaryGold,
+                      checkColor: AppColors.background,
+                      side: const BorderSide(color: AppColors.primaryGold),
                     ),
-                  ),
+                    Expanded(
+                      child: Text(
+                        'Pregnancy Confirmed at Scan $scanNumber',
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: isConfirmed ? AppColors.primaryGold : AppColors.textPrimary,
+                          fontWeight: isConfirmed ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 if (hasImg)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGold.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: AppColors.primaryGold, width: 0.8),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.image, size: 11, color: AppColors.primaryGold),
-                        SizedBox(width: 3),
-                        Text(
-                          'PHOTO ATTACHED',
-                          style: TextStyle(color: AppColors.primaryGold, fontSize: 9.5, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12, bottom: 4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGold.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.primaryGold, width: 0.8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.image, size: 11, color: AppColors.primaryGold),
+                          SizedBox(width: 3),
+                          Text(
+                            'PHOTO ATTACHED',
+                            style: TextStyle(color: AppColors.primaryGold, fontSize: 9.5, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
               ],

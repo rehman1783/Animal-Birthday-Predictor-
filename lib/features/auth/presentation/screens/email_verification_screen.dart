@@ -209,7 +209,7 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
                                 color: AppColors.primaryGold,
                                 fontWeight: FontWeight.bold,
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
                             ),
                           ),
                         ],
@@ -306,35 +306,39 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
                     const SizedBox(height: 32.0),
 
                     // Navigation Links: Back to Sign In or Sign Up
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacementNamed(context, '/signin');
-                          },
-                          child: Text(
-                            '← Back to Sign In',
-                            style: AppTypography.body.copyWith(
-                              color: AppColors.primaryGold,
-                              fontWeight: FontWeight.bold,
+                    Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 24.0,
+                        runSpacing: 12.0,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacementNamed(context, '/signin');
+                            },
+                            child: Text(
+                              '← Back to Sign In',
+                              style: AppTypography.body.copyWith(
+                                color: AppColors.primaryGold,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 24.0),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacementNamed(context, '/signup');
-                          },
-                          child: Text(
-                            'Back to Sign Up',
-                            style: AppTypography.body.copyWith(
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w600,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacementNamed(context, '/signup');
+                            },
+                            child: Text(
+                              'Back to Sign Up',
+                              style: AppTypography.body.copyWith(
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
 
                     const SizedBox(height: 32.0),

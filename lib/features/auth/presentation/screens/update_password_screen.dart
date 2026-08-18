@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/auth_header_banner.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../providers/auth_provider.dart';
 
 class UpdatePasswordScreen extends ConsumerStatefulWidget {
@@ -100,20 +101,22 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header Banner
-            const AuthHeaderBanner(
-              imagePath: 'assets/images/auth_header_lost_your_way.png',
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.horizontalPadding,
-                vertical: 24.0,
+        physics: const BouncingScrollPhysics(),
+        child: ResponsiveBody(
+          child: Column(
+            children: [
+              // Header Banner
+              const AuthHeaderBanner(
+                imagePath: 'assets/images/auth_header_lost_your_way.png',
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.horizontalPadding,
+                  vertical: 24.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Reset Your Password',
@@ -210,6 +213,7 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

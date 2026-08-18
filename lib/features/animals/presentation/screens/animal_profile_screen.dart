@@ -1172,14 +1172,17 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                 ),
                 const SizedBox(width: 3),
                 Flexible(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: confirmed ? Colors.greenAccent : AppColors.textPrimary,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: confirmed ? Colors.greenAccent : AppColors.textPrimary,
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

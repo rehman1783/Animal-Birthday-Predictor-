@@ -251,7 +251,7 @@ class _PuppyListCard extends StatelessWidget {
                           fontSize: 16,
                           color: AppColors.primaryGold,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
                       ),
                     ),
                   ],

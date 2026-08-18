@@ -259,6 +259,7 @@ class _VeterinarianPregnancyScansScreenState
                                 ),
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<String>(
+                                  isExpanded: true,
                                   initialValue:
                                       horsesList.any(
                                         (h) => h.id == _selectedCarrierId,
@@ -322,18 +323,17 @@ class _VeterinarianPregnancyScansScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 4,
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    'PREGNANCY SCANS PROGRESS',
-                                    style: AppTypography.displayHeadline
-                                        .copyWith(fontSize: 14),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                Text(
+                                  'PREGNANCY SCANS PROGRESS',
+                                  style: AppTypography.displayHeadline
+                                      .copyWith(fontSize: 14),
                                 ),
-                                const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,

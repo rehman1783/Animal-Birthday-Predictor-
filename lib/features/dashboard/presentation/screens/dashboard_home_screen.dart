@@ -62,7 +62,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           Text(
                             userName,
                             style: AppTypography.displayHeadline.copyWith(fontSize: 22),
-                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
+                            maxLines: 2,
                           ),
                         ],
                       ),
@@ -431,16 +432,16 @@ class _SpeciesModuleCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: AppTypography.displayHeadline.copyWith(fontSize: 15),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      Text(
+                        title,
+                        style: AppTypography.displayHeadline.copyWith(fontSize: 15),
                       ),
-                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(

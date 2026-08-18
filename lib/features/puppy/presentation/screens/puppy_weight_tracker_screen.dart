@@ -17,10 +17,12 @@ class PuppyWeightTrackerScreen extends ConsumerStatefulWidget {
   const PuppyWeightTrackerScreen({super.key, required this.puppy});
 
   @override
-  ConsumerState<PuppyWeightTrackerScreen> createState() => _PuppyWeightTrackerScreenState();
+  ConsumerState<PuppyWeightTrackerScreen> createState() =>
+      _PuppyWeightTrackerScreenState();
 }
 
-class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScreen> {
+class _PuppyWeightTrackerScreenState
+    extends ConsumerState<PuppyWeightTrackerScreen> {
   Future<void> _showAddWeightDialog() async {
     final weightController = TextEditingController();
     final notesController = TextEditingController();
@@ -55,7 +57,10 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text('RECORD PUPPY WEIGHT', style: AppTypography.sectionLabel, overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        'RECORD PUPPY WEIGHT',
+                        style: AppTypography.sectionLabel,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, color: AppColors.textMuted),
@@ -63,112 +68,135 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                     ),
                   ],
                 ),
-              const Divider(color: AppColors.inputField),
-              const SizedBox(height: 12),
+                const Divider(color: AppColors.inputField),
+                const SizedBox(height: 12),
 
-              CustomTextField(
-                label: 'Weight (e.g. 450g or 1.2kg) *',
-                hintText: 'e.g. 850g',
-                controller: weightController,
-                keyboardType: TextInputType.text,
-              ),
-              const SizedBox(height: 14),
+                CustomTextField(
+                  label: 'Weight (e.g. 450g or 1.2kg) *',
+                  hintText: 'e.g. 850g',
+                  controller: weightController,
+                  keyboardType: TextInputType.text,
+                ),
+                const SizedBox(height: 14),
 
-              // Date & Calculated Age in Days
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: entryDate,
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime.now().add(const Duration(days: 1)),
-                        );
-                        if (picked != null) {
-                          setModalState(() {
-                            entryDate = picked;
-                            if (dob != null) {
-                              calculatedDays = entryDate.difference(dob).inDays;
-                              if (calculatedDays < 0) calculatedDays = 0;
-                            }
-                          });
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.inputField,
-                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                          border: Border.all(color: AppColors.surface),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${entryDate.day}/${entryDate.month}/${entryDate.year}',
-                              style: const TextStyle(color: AppColors.textPrimary),
+                // Date & Calculated Age in Days
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: entryDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 1),
                             ),
-                            const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.primaryGold),
-                          ],
+                          );
+                          if (picked != null) {
+                            setModalState(() {
+                              entryDate = picked;
+                              if (dob != null) {
+                                calculatedDays = entryDate
+                                    .difference(dob)
+                                    .inDays;
+                                if (calculatedDays < 0) calculatedDays = 0;
+                              }
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.inputField,
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.cardRadius,
+                            ),
+                            border: Border.all(color: AppColors.surface),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${entryDate.day}/${entryDate.month}/${entryDate.year}',
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.calendar_today_outlined,
+                                size: 16,
+                                color: AppColors.primaryGold,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.inputField,
-                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.inputField,
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.cardRadius,
+                        ),
+                      ),
+                      child: Text(
+                        'Age: $calculatedDays days',
+                        style: const TextStyle(
+                          color: AppColors.primaryGold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                    child: Text(
-                      'Age: $calculatedDays days',
-                      style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
+                  ],
+                ),
+                const SizedBox(height: 14),
 
-              CustomTextField(
-                label: 'Notes (Optional)',
-                hintText: 'e.g. Vigorous nursing, daily gain normal...',
-                controller: notesController,
-              ),
-              const SizedBox(height: 20),
+                CustomTextField(
+                  label: 'Notes (Optional)',
+                  hintText: 'e.g. Vigorous nursing, daily gain normal...',
+                  controller: notesController,
+                ),
+                const SizedBox(height: 20),
 
-              GradientCtaButton(
-                text: 'SAVE WEIGHT RECORD',
-                onPressed: () async {
-                  final text = weightController.text.trim();
-                  if (text.isEmpty) return;
+                GradientCtaButton(
+                  text: 'SAVE WEIGHT RECORD',
+                  onPressed: () async {
+                    final text = weightController.text.trim();
+                    if (text.isEmpty) return;
 
-                  final repo = ref.read(puppyRepositoryProvider);
-                  final weight = PuppyWeight(
-                    id: AppUuid.generate(),
-                    puppyId: widget.puppy.id,
-                    accountId: widget.puppy.accountId,
-                    weightDate: entryDate,
-                    ageInDays: calculatedDays,
-                    weight: text,
-                    notes: notesController.text.trim(),
-                    createdAt: DateTime.now(),
-                  );
+                    final repo = ref.read(puppyRepositoryProvider);
+                    final weight = PuppyWeight(
+                      id: AppUuid.generate(),
+                      puppyId: widget.puppy.id,
+                      accountId: widget.puppy.accountId,
+                      weightDate: entryDate,
+                      ageInDays: calculatedDays,
+                      weight: text,
+                      notes: notesController.text.trim(),
+                      createdAt: DateTime.now(),
+                    );
 
-                  await repo.savePuppyWeight(weight);
-                  ref.invalidate(puppyWeightsProvider(widget.puppy.id));
-                  if (ctx.mounted) Navigator.pop(ctx);
-                },
-              ),
-            ],
+                    await repo.savePuppyWeight(weight);
+                    ref.invalidate(puppyWeightsProvider(widget.puppy.id));
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Future<void> _deleteWeight(PuppyWeight weight) async {
     final repo = ref.read(puppyRepositoryProvider);
@@ -186,7 +214,11 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
           onPressed: () => Navigator.maybePop(context),
         ),
         title: Text(
@@ -206,52 +238,110 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                  border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
+                  border: Border.all(
+                    color: AppColors.primaryGold.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Row(
                   children: [
                     Expanded(
                       child: Column(
                         children: [
-                          const Text('BIRTH WEIGHT', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'BIRTH WEIGHT',
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              widget.puppy.birthWeight?.isNotEmpty == true ? widget.puppy.birthWeight! : 'Not Set',
-                              style: const TextStyle(color: AppColors.primaryGold, fontSize: 16, fontWeight: FontWeight.bold),
+                              widget.puppy.birthWeight?.isNotEmpty == true
+                                  ? widget.puppy.birthWeight!
+                                  : 'Not Set',
+                              style: const TextStyle(
+                                color: AppColors.primaryGold,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Container(width: 1, height: 32, color: AppColors.inputField),
+                    Container(
+                      width: 1,
+                      height: 32,
+                      color: AppColors.inputField,
+                    ),
                     Expanded(
                       child: Column(
                         children: [
-                          const Text('COLLAR / TAG', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'COLLAR / TAG',
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              widget.puppy.collarTagColour?.isNotEmpty == true ? widget.puppy.collarTagColour! : 'None',
-                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
+                              widget.puppy.collarTagColour?.isNotEmpty == true
+                                  ? widget.puppy.collarTagColour!
+                                  : 'None',
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Container(width: 1, height: 32, color: AppColors.inputField),
+                    Container(
+                      width: 1,
+                      height: 32,
+                      color: AppColors.inputField,
+                    ),
                     Expanded(
                       child: Column(
                         children: [
-                          const Text('BIRTH ORDER', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'BIRTH ORDER',
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              widget.puppy.birthOrder != null ? '#${widget.puppy.birthOrder}' : 'N/A',
-                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
+                              widget.puppy.birthOrder != null
+                                  ? '#${widget.puppy.birthOrder}'
+                                  : 'N/A',
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -270,16 +360,24 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.monitor_weight_outlined, size: 54, color: AppColors.textMuted),
+                            const Icon(
+                              Icons.monitor_weight_outlined,
+                              size: 54,
+                              color: AppColors.textMuted,
+                            ),
                             const SizedBox(height: 16),
                             Text(
                               'No Ongoing Weights Logged',
-                              style: AppTypography.displayHeadline.copyWith(fontSize: 18),
+                              style: AppTypography.displayHeadline.copyWith(
+                                fontSize: 18,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               'Tap "+ Log Weight" below to record daily and weekly growth.',
-                              style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -287,9 +385,13 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                     }
 
                     return ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       itemCount: weights.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 10),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final w = weights[index];
                         final dt = w.weightDate;
@@ -297,7 +399,9 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.cardRadius,
+                            ),
                             border: Border.all(color: AppColors.surface),
                           ),
                           child: Row(
@@ -308,9 +412,15 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                                 decoration: BoxDecoration(
                                   color: AppColors.inputField,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.primaryGold),
+                                  border: Border.all(
+                                    color: AppColors.primaryGold,
+                                  ),
                                 ),
-                                child: const Icon(Icons.scale, color: AppColors.primaryGold, size: 20),
+                                child: const Icon(
+                                  Icons.scale,
+                                  color: AppColors.primaryGold,
+                                  size: 20,
+                                ),
                               ),
                               const SizedBox(width: 14),
                               Expanded(
@@ -330,14 +440,21 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                                         if (w.ageInDays != null) ...[
                                           const SizedBox(width: 8),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: AppColors.inputField,
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                             ),
                                             child: Text(
                                               'Day ${w.ageInDays}',
-                                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                                              style: const TextStyle(
+                                                color: AppColors.textSecondary,
+                                                fontSize: 11,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -346,13 +463,20 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                                     const SizedBox(height: 2),
                                     Text(
                                       'Recorded: ${dt.day}/${dt.month}/${dt.year}${w.notes?.isNotEmpty == true ? " • ${w.notes}" : ""}',
-                                      style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted, fontSize: 12),
+                                      style: AppTypography.bodySmall.copyWith(
+                                        color: AppColors.textMuted,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.redAccent,
+                                  size: 18,
+                                ),
                                 onPressed: () => _deleteWeight(w),
                               ),
                             ],
@@ -361,8 +485,17 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
                       },
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGold)),
-                  error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.redAccent))),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primaryGold,
+                    ),
+                  ),
+                  error: (e, _) => Center(
+                    child: Text(
+                      'Error: $e',
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -373,7 +506,10 @@ class _PuppyWeightTrackerScreenState extends ConsumerState<PuppyWeightTrackerScr
         backgroundColor: AppColors.primaryGold,
         foregroundColor: AppColors.background,
         icon: const Icon(Icons.add, color: AppColors.background),
-        label: const Text('Log Weight', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text(
+          'Log Weight',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         onPressed: _showAddWeightDialog,
       ),
     );

@@ -420,23 +420,29 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                                             color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textSecondary,
                                           ),
                                           const SizedBox(height: 5),
-                                          Text(
-                                            hOpt.$2,
-                                            style: TextStyle(
-                                              fontSize: 13.5,
-                                              fontWeight: FontWeight.bold,
-                                              color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textPrimary,
-                                              letterSpacing: 0.5,
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              hOpt.$2,
+                                              style: TextStyle(
+                                                fontSize: 13.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textPrimary,
+                                                letterSpacing: 0.5,
+                                              ),
                                             ),
                                           ),
                                           const SizedBox(height: 2),
-                                          Text(
-                                            hOpt.$3,
-                                            style: TextStyle(
-                                              fontSize: 10.5,
-                                              color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textMuted,
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              hOpt.$3,
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textMuted,
+                                              ),
+                                              textAlign: TextAlign.center,
                                             ),
-                                            textAlign: TextAlign.center,
                                           ),
                                         ],
                                       ),
@@ -562,12 +568,15 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                _formatDate(_dateOfBirth),
-                                style: TextStyle(
-                                  color: _dateOfBirth != null ? AppColors.textPrimary : AppColors.textMuted,
+                              Flexible(
+                                child: Text(
+                                  _formatDate(_dateOfBirth),
+                                  style: TextStyle(
+                                    color: _dateOfBirth != null ? AppColors.textPrimary : AppColors.textMuted,
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primaryGold),
                             ],
                           ),

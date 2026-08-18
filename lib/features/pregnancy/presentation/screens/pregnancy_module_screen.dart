@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 
@@ -26,9 +27,10 @@ class PregnancyModuleScreen extends ConsumerWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          child: ResponsiveBody(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               // Header CTA
               Container(
                 padding: const EdgeInsets.all(16),
@@ -120,20 +122,20 @@ class PregnancyModuleScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 4,
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    horse.name,
-                                    style: AppTypography.displayHeadline.copyWith(
-                                      fontSize: 16,
-                                      color: AppColors.primaryGold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
+                                Text(
+                                  horse.name,
+                                  style: AppTypography.displayHeadline.copyWith(
+                                    fontSize: 16,
+                                    color: AppColors.primaryGold,
                                   ),
+                                  softWrap: true,
                                 ),
-                                const SizedBox(width: 8),
                                 Text(
                                   horse.breed ?? 'Equine',
                                   style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
@@ -206,6 +208,7 @@ class PregnancyModuleScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

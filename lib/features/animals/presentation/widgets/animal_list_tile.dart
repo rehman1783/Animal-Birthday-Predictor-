@@ -69,11 +69,13 @@ class AnimalListTile extends StatelessWidget {
                       fontSize: 16,
                       color: AppColors.textPrimary,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
                   ),
                   const SizedBox(height: 4),
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -98,34 +100,23 @@ class AnimalListTile extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      if (animal.breed?.isNotEmpty == true) ...[
-                        Flexible(
-                          child: Text(
-                            animal.breed!,
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                      if (animal.breed?.isNotEmpty == true)
+                        Text(
+                          animal.breed!,
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                         ),
-                        const SizedBox(width: 6),
-                      ],
                       if (animal.microchipNo?.isNotEmpty == true)
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.inputField,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'Chip: ${animal.microchipNo}',
-                              style: AppTypography.bodySmall.copyWith(
-                                fontSize: 10,
-                                color: AppColors.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.inputField,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Chip: ${animal.microchipNo}',
+                            style: AppTypography.bodySmall.copyWith(
+                              fontSize: 10,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ),

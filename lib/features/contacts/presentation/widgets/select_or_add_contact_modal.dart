@@ -156,7 +156,6 @@ class _SelectOrAddContactModalState extends ConsumerState<SelectOrAddContactModa
                       child: Text(
                         _isCreatingNew ? 'ADD NEW CONTACT' : widget.title.toUpperCase(),
                         style: AppTypography.sectionLabel,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     IconButton(

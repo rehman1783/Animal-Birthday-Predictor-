@@ -202,7 +202,13 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
                         children: [
                           const Icon(Icons.pets_rounded, color: AppColors.primaryGold, size: 20),
                           const SizedBox(width: 8),
-                          Text('Register Newborn Foal', style: AppTypography.displayHeadline.copyWith(fontSize: 17)),
+                          Expanded(
+                            child: Text(
+                              'Register Newborn Foal',
+                              style: AppTypography.displayHeadline.copyWith(fontSize: 17),
+                              softWrap: true,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -327,7 +333,7 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
                           fontSize: 16,
                           color: AppColors.primaryGold,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
                       ),
                     ),
                   ],
@@ -387,10 +393,13 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
                     if (res != null) ref.invalidate(foalsListProvider);
                   },
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text('Edit Details'),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Edit Details'),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -404,11 +413,14 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
                     );
                   },
                   icon: const Icon(Icons.card_membership, size: 16),
-                  label: const Text('Certificate'),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Certificate'),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGold,
                     foregroundColor: AppColors.background,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
@@ -608,7 +620,7 @@ class _PuppiesBirthListViewState extends ConsumerState<_PuppiesBirthListView> {
                           fontSize: 16,
                           color: AppColors.primaryGold,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
                       ),
                     ),
                   ],
@@ -676,10 +688,13 @@ class _PuppiesBirthListViewState extends ConsumerState<_PuppiesBirthListView> {
                     if (res != null) ref.invalidate(puppiesListProvider(null));
                   },
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text('Edit Details'),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Edit Details'),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -693,11 +708,14 @@ class _PuppiesBirthListViewState extends ConsumerState<_PuppiesBirthListView> {
                     );
                   },
                   icon: const Icon(Icons.card_membership, size: 16),
-                  label: const Text('Certificate'),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Certificate'),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGold,
                     foregroundColor: AppColors.background,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),

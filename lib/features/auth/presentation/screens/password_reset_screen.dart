@@ -376,8 +376,11 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
 
                     // Navigation Links: Back to Sign In or Change Email
                     Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 20.0,
+                        runSpacing: 10.0,
                         children: [
                           GestureDetector(
                             onTap: () {
@@ -391,8 +394,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                               ),
                             ),
                           ),
-                          if (_isSent) ...[
-                            const SizedBox(width: 20.0),
+                          if (_isSent)
                             GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -407,7 +409,6 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                                 ),
                               ),
                             ),
-                          ],
                         ],
                       ),
                     ),
@@ -415,20 +416,23 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                     const SizedBox(height: 20.0),
 
                     // Trust Line
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.shield_outlined,
-                          color: AppColors.textMuted,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Secure Recovery Protocol',
-                          style: AppTypography.finePrint.copyWith(fontSize: 12),
-                        ),
-                      ],
+                    Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 6.0,
+                        children: [
+                          const Icon(
+                            Icons.shield_outlined,
+                            color: AppColors.textMuted,
+                            size: 14,
+                          ),
+                          Text(
+                            'Secure Recovery Protocol',
+                            style: AppTypography.finePrint.copyWith(fontSize: 12),
+                          ),
+                        ],
+                      ),
                     ),
 
                     const SizedBox(height: 32.0),

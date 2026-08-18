@@ -209,18 +209,19 @@ class AppImagePicker extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              label,
-              style: AppTypography.inputLabel,
-            ),
-            if (isRequired)
-              const Text(
-                ' *',
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-              ),
-          ],
+        Text.rich(
+          TextSpan(
+            text: label,
+            style: AppTypography.inputLabel,
+            children: [
+              if (isRequired)
+                const TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                ),
+            ],
+          ),
+          softWrap: true,
         ),
         const SizedBox(height: 6.0),
         GestureDetector(

@@ -117,15 +117,23 @@ class ContactNumberBlock extends ConsumerWidget {
             children: [
               Icon(icon, color: AppColors.primaryGold, size: 20),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: AppTypography.displayHeadline.copyWith(fontSize: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.displayHeadline.copyWith(fontSize: 16),
+                  softWrap: true,
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 4),
               TextButton.icon(
                 onPressed: () => _pickFromContacts(context, ref),
                 icon: const Icon(Icons.contacts_outlined, size: 16, color: AppColors.primaryGold),
                 label: const Text('Directory', style: TextStyle(color: AppColors.primaryGold, fontSize: 12)),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
             ],
           ),
@@ -156,12 +164,15 @@ class ContactNumberBlock extends ConsumerWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => _handleSaveAndAddToDirectory(context, ref),
                   icon: const Icon(Icons.save_outlined, size: 16),
-                  label: const Text('Save Details'),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Save Details'),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.inputField,
                     foregroundColor: AppColors.primaryGold,
                     side: const BorderSide(color: AppColors.primaryGold),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -169,16 +180,19 @@ class ContactNumberBlock extends ConsumerWidget {
                 ),
               ),
               if (hasNumber) ...[
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _makeCall(context),
                     icon: const Icon(Icons.call, size: 16),
-                    label: const Text('Call Now'),
+                    label: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('Call Now'),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryGold,
                       foregroundColor: AppColors.background,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

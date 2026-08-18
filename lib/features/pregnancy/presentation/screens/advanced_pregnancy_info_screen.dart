@@ -222,8 +222,11 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
                             children: [
                               const Text('Result Date', style: AppTypography.inputLabel),
                               GestureDetector(
@@ -349,17 +352,16 @@ class _ProcedureCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: AppTypography.displayHeadline.copyWith(fontSize: 15),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                title,
+                style: AppTypography.displayHeadline.copyWith(fontSize: 15),
               ),
-              const SizedBox(width: 8),
               GestureDetector(
                 onTap: onPickDate,
                 child: Container(

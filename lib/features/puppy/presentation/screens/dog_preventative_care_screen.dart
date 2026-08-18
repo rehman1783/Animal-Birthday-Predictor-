@@ -114,7 +114,7 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text('HEALTH RECORD DETAILS', style: AppTypography.sectionLabel, overflow: TextOverflow.ellipsis),
+                    child: Text('HEALTH RECORD DETAILS', style: AppTypography.sectionLabel),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, color: AppColors.textMuted),
@@ -313,7 +313,7 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
                           if (item.notes?.isNotEmpty == true) item.notes!,
                         ].join(' • '),
                         style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted, fontSize: 11),
-                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
                       ),
                   ],
                 ),
@@ -352,17 +352,20 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: Text(
-                                item.dateGiven != null ? _formatDate(item.dateGiven) : 'Not Given',
-                                style: TextStyle(
-                                  color: item.dateGiven != null ? AppColors.textPrimary : AppColors.textMuted,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  item.dateGiven != null ? _formatDate(item.dateGiven) : 'Not Given',
+                                  style: TextStyle(
+                                    color: item.dateGiven != null ? AppColors.textPrimary : AppColors.textMuted,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            const SizedBox(width: 4),
                             const Icon(Icons.event_available, size: 13, color: AppColors.primaryGold),
                           ],
                         ),
@@ -402,21 +405,24 @@ class _DogPreventativeCareScreenState extends ConsumerState<DogPreventativeCareS
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: Text(
-                                item.dateDue != null ? _formatDate(item.dateDue) : 'Set Due Date',
-                                style: TextStyle(
-                                  color: isOverdue
-                                      ? Colors.amberAccent
-                                      : item.dateDue != null
-                                          ? AppColors.textPrimary
-                                          : AppColors.textMuted,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  item.dateDue != null ? _formatDate(item.dateDue) : 'Set Due Date',
+                                  style: TextStyle(
+                                    color: isOverdue
+                                        ? Colors.amberAccent
+                                        : item.dateDue != null
+                                            ? AppColors.textPrimary
+                                            : AppColors.textMuted,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            const SizedBox(width: 4),
                             const Icon(Icons.calendar_today_outlined, size: 13, color: AppColors.primaryGold),
                           ],
                         ),
