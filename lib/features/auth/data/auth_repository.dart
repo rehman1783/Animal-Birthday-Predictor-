@@ -86,9 +86,7 @@ class AuthRepository {
             .maybeSingle();
         return res != null;
       } catch (_) {
-        // If unauthenticated query to profiles is blocked by RLS and RPC is missing,
-        // fallback to true so Supabase Auth API can perform the authoritative check
-        return true;
+        return false;
       }
     }
   }
@@ -99,8 +97,20 @@ class AuthRepository {
     required String password,
     required String fullName,
   }) async {
+    final cleanEmail = email.trim().toLowerCase();
+
+    // 1. Proactive check: Check if email is already registered via RPC
     try {
-      final cleanEmail = email.trim().toLowerCase();
+      final alreadyExists = await checkEmailExists(cleanEmail);
+      if (alreadyExists) {
+        throw const AuthExceptionCustom('This email is already registered. Please log in.');
+      }
+    } catch (e) {
+      if (e is AuthExceptionCustom) rethrow;
+      // If checkEmailExists encounters an unhandled issue, proceed to Supabase Auth signUp
+    }
+
+    try {
       final response = await _supabase.auth.signUp(
         email: cleanEmail,
         password: password,
@@ -111,6 +121,13 @@ class AuthRepository {
       final user = response.user;
       if (user == null) {
         throw const AuthExceptionCustom('Failed to create account. Please try again.');
+      }
+
+      // 2. Supabase Auth duplicate detection check:
+      // When email confirmations are enabled in Supabase, duplicate signUps return a user object
+      // with an empty identities list ([]) rather than throwing an exception.
+      if (user.identities != null && user.identities!.isEmpty) {
+        throw const AuthExceptionCustom('This email is already registered. Please log in.');
       }
 
       final profile = UserProfile(
@@ -130,8 +147,11 @@ class AuthRepository {
       return profile;
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
-      if (msg.contains('already registered') || e.code == 'user_already_exists') {
-        throw const AuthExceptionCustom('An account with this email already exists.');
+      if (msg.contains('already registered') ||
+          msg.contains('already exists') ||
+          msg.contains('already in use') ||
+          e.code == 'user_already_exists') {
+        throw const AuthExceptionCustom('This email is already registered. Please log in.');
       }
       throw _handleError(e);
     } catch (e) {

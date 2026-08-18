@@ -95,12 +95,34 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     } else {
       final errorState = ref.read(authControllerProvider);
       final errorMsg = errorState.error?.toString() ?? 'An error occurred during sign up.';
-      
+      final isAlreadyRegistered = errorMsg.toLowerCase().contains('already registered') ||
+          errorMsg.toLowerCase().contains('already exists') ||
+          errorMsg.toLowerCase().contains('already in use');
+
+      setState(() {
+        if (isAlreadyRegistered) {
+          _emailError = 'This email is already registered. Please log in.';
+        }
+      });
+
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMsg),
+          content: Text(
+            isAlreadyRegistered
+                ? 'This email is already registered. Please log in.'
+                : errorMsg,
+          ),
           backgroundColor: AppColors.error,
+          action: isAlreadyRegistered
+              ? SnackBarAction(
+                  label: 'Sign In',
+                  textColor: AppColors.primaryGold,
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/signin');
+                  },
+                )
+              : null,
         ),
       );
     }
