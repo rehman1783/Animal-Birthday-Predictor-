@@ -277,20 +277,36 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
       return _nameController.text.trim().isNotEmpty ||
           _breedController.text.trim().isNotEmpty ||
           _colourController.text.trim().isNotEmpty ||
+          _brandController.text.trim().isNotEmpty ||
+          _dnaController.text.trim().isNotEmpty ||
           _microchipController.text.trim().isNotEmpty ||
+          _ownerNameController.text.trim().isNotEmpty ||
+          _ownerPhoneController.text.trim().isNotEmpty ||
+          _dateOfBirth != null ||
           _photoUrl != null;
     }
-    return _nameController.text.trim() != a.name ||
-        _breedController.text.trim() != (a.breed ?? '') ||
-        _colourController.text.trim() != (a.colour ?? '') ||
-        _brandController.text.trim() != (a.brand ?? '') ||
-        _dnaController.text.trim() != (a.dna ?? '') ||
-        _microchipController.text.trim() != (a.microchipNo ?? '') ||
-        _ownerNameController.text.trim() != (a.ownerClientName ?? '') ||
-        _ownerPhoneController.text.trim() != (a.ownerClientPhone ?? '') ||
-        _dateOfBirth != a.dateOfBirth ||
+
+    final initialSex = a.sex?.trim().toLowerCase() ?? (_currentSpecies == 'horse' ? 'mare' : 'female');
+    final currentSex = _selectedSex.trim().toLowerCase();
+    final isDobChanged = (_dateOfBirth == null && a.dateOfBirth != null) ||
+        (_dateOfBirth != null && a.dateOfBirth == null) ||
+        (_dateOfBirth != null &&
+            a.dateOfBirth != null &&
+            (_dateOfBirth!.year != a.dateOfBirth!.year ||
+                _dateOfBirth!.month != a.dateOfBirth!.month ||
+                _dateOfBirth!.day != a.dateOfBirth!.day));
+
+    return _nameController.text.trim() != a.name.trim() ||
+        _breedController.text.trim() != (a.breed?.trim() ?? '') ||
+        _colourController.text.trim() != (a.colour?.trim() ?? '') ||
+        _brandController.text.trim() != (a.brand?.trim() ?? '') ||
+        _dnaController.text.trim() != (a.dna?.trim() ?? '') ||
+        _microchipController.text.trim() != (a.microchipNo?.trim() ?? '') ||
+        _ownerNameController.text.trim() != (a.ownerClientName?.trim() ?? '') ||
+        _ownerPhoneController.text.trim() != (a.ownerClientPhone?.trim() ?? '') ||
+        isDobChanged ||
         _photoUrl != a.photoUrl ||
-        _selectedSex != (a.sex ?? (_currentSpecies == 'horse' ? 'mare' : 'female'));
+        currentSex != initialSex;
   }
 
   @override

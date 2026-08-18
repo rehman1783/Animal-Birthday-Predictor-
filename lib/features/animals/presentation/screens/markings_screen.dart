@@ -34,6 +34,7 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
   String? _leftSideImage;
   String? _rightSideImage;
   String? _headViewImage;
+  Markings? _initialMarkings;
   bool _isSaving = false;
   bool _isLoaded = false;
 
@@ -48,6 +49,7 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
     final markings = await repo.getMarkings(widget.ownerType, widget.ownerId);
     if (markings != null && mounted) {
       setState(() {
+        _initialMarkings = markings;
         _existingId = markings.id;
         _leftSideImage = markings.leftSideImageUrl;
         _rightSideImage = markings.rightSideImageUrl;
@@ -56,7 +58,10 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
         _isLoaded = true;
       });
     } else {
-      setState(() => _isLoaded = true);
+      setState(() {
+        _initialMarkings = null;
+        _isLoaded = true;
+      });
     }
   }
 
@@ -86,6 +91,7 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
       ref.invalidate(markingsForOwnerProvider((ownerType: widget.ownerType, ownerId: widget.ownerId)));
 
       if (mounted) {
+        setState(() => _initialMarkings = saved);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Markings details saved successfully!')),
         );
@@ -103,10 +109,17 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
   }
 
   bool get _hasUnsavedChanges {
-    return _leftSideImage != null ||
-        _rightSideImage != null ||
-        _headViewImage != null ||
-        _headNotesController.text.trim().isNotEmpty;
+    final m = _initialMarkings;
+    if (m == null) {
+      return _leftSideImage != null ||
+          _rightSideImage != null ||
+          _headViewImage != null ||
+          _headNotesController.text.trim().isNotEmpty;
+    }
+    return _leftSideImage != m.leftSideImageUrl ||
+        _rightSideImage != m.rightSideImageUrl ||
+        _headViewImage != m.headViewImageUrl ||
+        _headNotesController.text.trim() != (m.headViewNotes ?? '');
   }
 
   @override

@@ -236,5 +236,43 @@ void main() {
       // Verified popped back to root
       expect(find.text('Open Animal Details'), findsOneWidget);
     });
+
+    testWidgets('unmodified screen pops immediately without showing unsaved changes dialog', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (ctx) => ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    ctx,
+                    MaterialPageRoute(
+                      builder: (_) => const ProviderScope(
+                        child: AnimalDetailsScreen(species: 'horse'),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Open Clean Screen'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Open screen
+      await tester.tap(find.text('Open Clean Screen'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ANIMAL DETAILS'), findsOneWidget);
+
+      // Tap back button directly without changing any text/field
+      await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+      await tester.pumpAndSettle();
+
+      // Verify NO dialog appeared and screen popped immediately
+      expect(find.text('Unsaved Changes'), findsNothing);
+      expect(find.text('Open Clean Screen'), findsOneWidget);
+    });
   });
 }

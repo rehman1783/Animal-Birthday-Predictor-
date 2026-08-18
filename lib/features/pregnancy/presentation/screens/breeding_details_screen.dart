@@ -34,6 +34,9 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
 
   Animal? _selectedMare;
   Animal? _selectedRecipient;
+  Animal? _initialMare;
+  Animal? _initialRecipient;
+  BreedingRecord? _initialBreedingRecord;
 
   final _stallionController = TextEditingController();
   final _damOfEmbryoController = TextEditingController();
@@ -74,12 +77,16 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
 
       final animal = await animalRepo.getAnimalById(id);
       if (animal != null && mounted) {
-        setState(() => _selectedMare = animal);
+        setState(() {
+          _selectedMare = animal;
+          _initialMare = animal;
+        });
       }
 
       final existingBreeding = await pregRepo.getBreedingRecordByMare(id);
       if (existingBreeding != null && mounted) {
         setState(() {
+          _initialBreedingRecord = existingBreeding;
           if (existingBreeding.stallionName?.isNotEmpty == true) {
             _stallionController.text = existingBreeding.stallionName!;
           }
@@ -101,7 +108,10 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
         if (existingBreeding.recipientAnimalId != null && existingBreeding.recipientAnimalId!.isNotEmpty) {
           final recipient = await animalRepo.getAnimalById(existingBreeding.recipientAnimalId!);
           if (recipient != null && mounted) {
-            setState(() => _selectedRecipient = recipient);
+            setState(() {
+              _selectedRecipient = recipient;
+              _initialRecipient = recipient;
+            });
           }
         }
       }
@@ -248,11 +258,24 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
   }
 
   bool get _hasUnsavedChanges {
-    return _selectedMare != null ||
-        _stallionController.text.trim().isNotEmpty ||
-        _damOfEmbryoController.text.trim().isNotEmpty ||
-        _stallionOfEmbryoController.text.trim().isNotEmpty ||
-        _photoUrl != null;
+    if (_initialBreedingRecord == null && _initialMare == null) {
+      return _selectedMare != null ||
+          _stallionController.text.trim().isNotEmpty ||
+          _selectedRecipient != null ||
+          _damOfEmbryoController.text.trim().isNotEmpty ||
+          _stallionOfEmbryoController.text.trim().isNotEmpty ||
+          _photoUrl != null;
+    }
+    final b = _initialBreedingRecord;
+    return _selectedMare?.id != _initialMare?.id ||
+        _selectedRecipient?.id != _initialRecipient?.id ||
+        _stallionController.text.trim() != (b?.stallionName ?? '') ||
+        _selectedMethod != (b?.method ?? 'natural') ||
+        _isEmbryoTransfer != (b?.isEmbryoTransfer ?? false) ||
+        _coverDate != (b?.coverOrTransferDate ?? _coverDate) ||
+        _damOfEmbryoController.text.trim() != (b?.damOfEmbryo ?? '') ||
+        _stallionOfEmbryoController.text.trim() != (b?.stallionOfEmbryo ?? '') ||
+        _photoUrl != b?.photoUrl;
   }
 
   @override

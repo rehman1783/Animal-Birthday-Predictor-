@@ -303,24 +303,55 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
           _selectedMare != null ||
           _photoUrl != null;
     }
-    return _nameController.text.trim() != (f.foalName ?? '') ||
-        _stallionController.text.trim() != (f.stallion ?? '') ||
-        _breedController.text.trim() != (f.breed ?? '') ||
-        _iggController.text.trim() != (f.iggValue ?? '') ||
-        _microchipController.text.trim() != (f.foalMicrochipNo ?? '') ||
-        _dnaController.text.trim() != (f.dna ?? '') ||
-        _studBookController.text.trim() != (f.studBookAssociation ?? '') ||
-        _notesController.text.trim() != (f.notes ?? '') ||
-        _buyerNameController.text.trim() != (f.buyerName ?? '') ||
-        _buyerPhoneController.text.trim() != (f.buyerPhone ?? '') ||
-        _buyerAddressController.text.trim() != (f.buyerAddress ?? '') ||
-        _salePriceController.text.trim() != (f.salePrice ?? '') ||
-        _saleDate != f.saleDate ||
-        _dateOfBirth != f.dateOfBirth ||
-        _sex != f.sex ||
-        _gelded != f.gelded ||
-        _geldedDate != f.geldedDate ||
-        _status != f.status ||
+
+    final isDobChanged = (_dateOfBirth == null && f.dateOfBirth != null) ||
+        (_dateOfBirth != null && f.dateOfBirth == null) ||
+        (_dateOfBirth != null &&
+            f.dateOfBirth != null &&
+            (_dateOfBirth!.year != f.dateOfBirth!.year ||
+                _dateOfBirth!.month != f.dateOfBirth!.month ||
+                _dateOfBirth!.day != f.dateOfBirth!.day));
+
+    final isSaleDateChanged = (_saleDate == null && f.saleDate != null) ||
+        (_saleDate != null && f.saleDate == null) ||
+        (_saleDate != null &&
+            f.saleDate != null &&
+            (_saleDate!.year != f.saleDate!.year ||
+                _saleDate!.month != f.saleDate!.month ||
+                _saleDate!.day != f.saleDate!.day));
+
+    final isGeldedDateChanged = (_geldedDate == null && f.geldedDate != null) ||
+        (_geldedDate != null && f.geldedDate == null) ||
+        (_geldedDate != null &&
+            f.geldedDate != null &&
+            (_geldedDate!.year != f.geldedDate!.year ||
+                _geldedDate!.month != f.geldedDate!.month ||
+                _geldedDate!.day != f.geldedDate!.day));
+
+    final initialSex = (f.sex ?? 'filly').trim().toLowerCase();
+    final currentSex = _sex.trim().toLowerCase();
+    final initialStatus = (f.status ?? 'keep').trim().toLowerCase();
+    final currentStatus = _status.trim().toLowerCase();
+    final initialGelded = f.gelded ?? false;
+
+    return _nameController.text.trim() != (f.foalName?.trim() ?? '') ||
+        _stallionController.text.trim() != (f.stallion?.trim() ?? '') ||
+        _breedController.text.trim() != (f.breed?.trim() ?? '') ||
+        _iggController.text.trim() != (f.iggValue?.trim() ?? '') ||
+        _microchipController.text.trim() != (f.foalMicrochipNo?.trim() ?? '') ||
+        _dnaController.text.trim() != (f.dna?.trim() ?? '') ||
+        _studBookController.text.trim() != (f.studBookAssociation?.trim() ?? '') ||
+        _notesController.text.trim() != (f.notes?.trim() ?? '') ||
+        _buyerNameController.text.trim() != (f.buyerName?.trim() ?? '') ||
+        _buyerPhoneController.text.trim() != (f.buyerPhone?.trim() ?? '') ||
+        _buyerAddressController.text.trim() != (f.buyerAddress?.trim() ?? '') ||
+        _salePriceController.text.trim() != (f.salePrice?.trim() ?? '') ||
+        isSaleDateChanged ||
+        isDobChanged ||
+        currentSex != initialSex ||
+        _gelded != initialGelded ||
+        isGeldedDateChanged ||
+        currentStatus != initialStatus ||
         _photoUrl != f.photoUrl;
   }
 

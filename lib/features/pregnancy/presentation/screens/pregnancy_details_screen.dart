@@ -184,16 +184,25 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
   }
 
   bool get _hasUnsavedChanges {
-    if (_record == null) return false;
+    if (_record == null) {
+      return _scan1Confirmed ||
+          _scan2Confirmed ||
+          _scan3Confirmed ||
+          _scan1Image != null ||
+          _scan2Image != null ||
+          _scan3Image != null ||
+          _vetNameController.text.trim().isNotEmpty ||
+          _vetNumberController.text.trim().isNotEmpty;
+    }
     final r = _record!;
     return _scan1Confirmed != r.scan1Confirmed ||
-        _scan1Image != r.scan1ImageUrl ||
+        (_scan1Image ?? '') != (r.scan1ImageUrl ?? '') ||
         _scan2Confirmed != r.scan2Confirmed ||
-        _scan2Image != r.scan2ImageUrl ||
+        (_scan2Image ?? '') != (r.scan2ImageUrl ?? '') ||
         _scan3Confirmed != r.scan3Confirmed ||
-        _scan3Image != r.scan3ImageUrl ||
-        _vetNameController.text.trim() != (r.vetName ?? '') ||
-        _vetNumberController.text.trim() != (r.vetNumber ?? '');
+        (_scan3Image ?? '') != (r.scan3ImageUrl ?? '') ||
+        _vetNameController.text.trim() != (r.vetName?.trim() ?? '') ||
+        _vetNumberController.text.trim() != (r.vetNumber?.trim() ?? '');
   }
 
   @override

@@ -72,6 +72,7 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
   bool _farrierDone = false;
 
   PreventativeCareRecord? _damMareCare;
+  PreventativeCareRecord? _initialRecord;
   bool _isSaving = false;
   bool _isLoaded = false;
   Object? _loadError;
@@ -92,6 +93,7 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
       final rec = await repo.getPreventativeCare(widget.ownerType, widget.ownerId);
 
       if (rec != null && mounted) {
+        _initialRecord = rec;
         _wormerDate = rec.wormerDate;
         _wormerDone = rec.wormerDone;
         _tetanusDate = rec.tetanusDate;
@@ -116,6 +118,8 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
         _farrierDate = rec.farrierDate;
         _farrierDone = rec.farrierDone;
         _farrierNumberController.text = rec.farrierNumber ?? '';
+      } else {
+        _initialRecord = null;
       }
 
       if (widget.damMareId != null && widget.damMareId!.isNotEmpty) {
@@ -232,10 +236,11 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
         updatedAt: DateTime.now(),
       );
 
-      await repo.savePreventativeCare(record);
+      final saved = await repo.savePreventativeCare(record);
       ref.invalidate(preventativeCareForOwnerProvider((ownerType: widget.ownerType, ownerId: widget.ownerId)));
 
       if (mounted) {
+        setState(() => _initialRecord = saved);
         AppFeedbackSnackbar.showSuccess(
           context,
           title: 'Care Details Saved',
@@ -257,14 +262,57 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
   }
 
   bool get _hasUnsavedChanges {
-    return _wormerDate != null ||
-        _wormerDone ||
-        _tetanusDate != null ||
-        _tetanusDone ||
-        _stranglesDate != null ||
-        _stranglesDone ||
-        _dentistNumberController.text.trim().isNotEmpty ||
-        _farrierNumberController.text.trim().isNotEmpty;
+    final init = _initialRecord;
+    if (init == null) {
+      return _wormerDate != null ||
+          _wormerDone ||
+          _tetanusDate != null ||
+          _tetanusDone ||
+          _stranglesDate != null ||
+          _stranglesDone ||
+          _eqHerpesDate != null ||
+          _eqHerpesDone ||
+          _rotavirusDate != null ||
+          _rotavirusDone ||
+          _hendraDate != null ||
+          _hendraDone ||
+          _eqInfluenzaDate != null ||
+          _eqInfluenzaDone ||
+          _eeeWeeWnvDate != null ||
+          _eeeWeeWnvDone ||
+          _rabiesDate != null ||
+          _rabiesDone ||
+          _dentalDate != null ||
+          _dentalDone ||
+          _dentistNumberController.text.trim().isNotEmpty ||
+          _farrierDate != null ||
+          _farrierDone ||
+          _farrierNumberController.text.trim().isNotEmpty;
+    }
+    return _wormerDate != init.wormerDate ||
+        _wormerDone != init.wormerDone ||
+        _tetanusDate != init.tetanusDate ||
+        _tetanusDone != init.tetanusDone ||
+        _stranglesDate != init.stranglesDate ||
+        _stranglesDone != init.stranglesDone ||
+        _eqHerpesDate != init.eqHerpesDate ||
+        _eqHerpesDone != init.eqHerpesDone ||
+        _rotavirusDate != init.rotavirusDate ||
+        _rotavirusDone != init.rotavirusDone ||
+        _hendraDate != init.hendraDate ||
+        _hendraDone != init.hendraDone ||
+        _eqInfluenzaDate != init.eqInfluenzaDate ||
+        _eqInfluenzaDone != init.eqInfluenzaDone ||
+        _eeeWeeWnvDate != init.eeeWeeWnvDate ||
+        _eeeWeeWnvDone != init.eeeWeeWnvDone ||
+        _rabiesDate != init.rabiesDate ||
+        _rabiesDone != init.rabiesDone ||
+        _dentalDate != init.dentalDate ||
+        _dentalDone != init.dentalDone ||
+        _dentistNumberController.text.trim() != (init.dentistNumber ?? '') ||
+        _farrierDate != init.farrierDate ||
+        _farrierDone != init.farrierDone ||
+        _farrierNumberController.text.trim() != (init.farrierNumber ?? '');
   }
 
   @override

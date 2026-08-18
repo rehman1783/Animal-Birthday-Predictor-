@@ -279,23 +279,45 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
           _selectedDam != null ||
           _photoUrl != null;
     }
-    return _nameController.text.trim() != (p.puppyName ?? '') ||
-        _collarController.text.trim() != (p.collarTagColour ?? '') ||
-        _colourController.text.trim() != (p.colour ?? '') ||
+
+    final isDobChanged = (_dateOfBirth == null && p.dateOfBirth != null) ||
+        (_dateOfBirth != null && p.dateOfBirth == null) ||
+        (_dateOfBirth != null &&
+            p.dateOfBirth != null &&
+            (_dateOfBirth!.year != p.dateOfBirth!.year ||
+                _dateOfBirth!.month != p.dateOfBirth!.month ||
+                _dateOfBirth!.day != p.dateOfBirth!.day));
+
+    final isGoingHomeChanged = (_dateGoingHome == null && p.dateGoingHome != null) ||
+        (_dateGoingHome != null && p.dateGoingHome == null) ||
+        (_dateGoingHome != null &&
+            p.dateGoingHome != null &&
+            (_dateGoingHome!.year != p.dateGoingHome!.year ||
+                _dateGoingHome!.month != p.dateGoingHome!.month ||
+                _dateGoingHome!.day != p.dateGoingHome!.day));
+
+    final initialSex = (p.sex ?? 'male').trim().toLowerCase();
+    final currentSex = _sex.trim().toLowerCase();
+    final initialStatus = (p.status ?? 'available').trim().toLowerCase();
+    final currentStatus = _status.trim().toLowerCase();
+
+    return _nameController.text.trim() != (p.puppyName?.trim() ?? '') ||
+        _collarController.text.trim() != (p.collarTagColour?.trim() ?? '') ||
+        _colourController.text.trim() != (p.colour?.trim() ?? '') ||
         _birthOrderController.text.trim() != (p.birthOrder?.toString() ?? '') ||
-        _birthWeightController.text.trim() != (p.birthWeight ?? '') ||
-        _currentWeightController.text.trim() != (p.currentWeight ?? '') ||
-        _microchipController.text.trim() != (p.microchipNo ?? '') ||
-        _dnaController.text.trim() != (p.dna ?? '') ||
-        _sireNameController.text.trim() != (p.sireName ?? '') ||
-        _newOwnerNameController.text.trim() != (p.newOwnerName ?? '') ||
-        _newOwnerPhoneController.text.trim() != (p.newOwnerPhone ?? '') ||
-        _newOwnerAddressController.text.trim() != (p.newOwnerAddress ?? '') ||
-        _generalNotesController.text.trim() != (p.generalNotes ?? '') ||
-        _dateOfBirth != p.dateOfBirth ||
-        _dateGoingHome != p.dateGoingHome ||
-        _sex != p.sex ||
-        _status != p.status ||
+        _birthWeightController.text.trim() != (p.birthWeight?.trim() ?? '') ||
+        _currentWeightController.text.trim() != (p.currentWeight?.trim() ?? '') ||
+        _microchipController.text.trim() != (p.microchipNo?.trim() ?? '') ||
+        _dnaController.text.trim() != (p.dna?.trim() ?? '') ||
+        _sireNameController.text.trim() != (p.sireName?.trim() ?? '') ||
+        _newOwnerNameController.text.trim() != (p.newOwnerName?.trim() ?? '') ||
+        _newOwnerPhoneController.text.trim() != (p.newOwnerPhone?.trim() ?? '') ||
+        _newOwnerAddressController.text.trim() != (p.newOwnerAddress?.trim() ?? '') ||
+        _generalNotesController.text.trim() != (p.generalNotes?.trim() ?? '') ||
+        isDobChanged ||
+        isGoingHomeChanged ||
+        currentSex != initialSex ||
+        currentStatus != initialStatus ||
         _photoUrl != p.photoUrl;
   }
 
