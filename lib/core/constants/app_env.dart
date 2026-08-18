@@ -7,9 +7,9 @@ abstract class AppEnv {
 
   static const String authRedirectScheme = 'io.supabase.animalbirthdaypredictor';
   static const String emailVerificationRedirectUrl =
-      'https://rehman1783.github.io/Animal-Birthday-Predictor-/';
+      'io.supabase.animalbirthdaypredictor://login-callback';
   static const String passwordResetRedirectUrl =
-      'https://rehman1783.github.io/Animal-Birthday-Predictor-/';
+      'io.supabase.animalbirthdaypredictor://reset-callback';
 
   static String get supabaseUrl {
     const defineUrl = String.fromEnvironment('SUPABASE_URL');

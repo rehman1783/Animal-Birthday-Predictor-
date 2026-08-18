@@ -34,7 +34,9 @@ class OnboardingNotifier extends StateNotifier<bool> {
   }
 }
 
-final onboardingProvider = StateNotifierProvider<OnboardingNotifier, bool>((ref) {
+final onboardingProvider = StateNotifierProvider<OnboardingNotifier, bool>((
+  ref,
+) {
   return OnboardingNotifier();
 });
 
@@ -51,7 +53,14 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
     if (session != null) {
       state = const AsyncValue.loading();
       final profile = await _authRepository.getUserProfile(session.user.id);
-      state = AsyncValue.data(profile ?? UserProfile(id: session.user.id, email: session.user.email ?? '', fullName: ''));
+      state = AsyncValue.data(
+        profile ??
+            UserProfile(
+              id: session.user.id,
+              email: session.user.email ?? '',
+              fullName: '',
+            ),
+      );
     }
   }
 
@@ -75,10 +84,7 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
     }
   }
 
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     state = const AsyncValue.loading();
     try {
       final profile = await _authRepository.signIn(
@@ -160,7 +166,8 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
   }
 }
 
-final authControllerProvider = StateNotifierProvider<AuthController, AsyncValue<UserProfile?>>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return AuthController(repository);
-});
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AsyncValue<UserProfile?>>((ref) {
+      final repository = ref.watch(authRepositoryProvider);
+      return AuthController(repository);
+    });

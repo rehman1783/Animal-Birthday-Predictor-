@@ -59,12 +59,16 @@ class AuthRepository {
         errStr.contains('connection refused') ||
         errStr.contains('network') ||
         errStr.contains('xmlhttprequest')) {
-      return const AuthExceptionCustom('Network error. Please check your internet connection and try again.');
+      return const AuthExceptionCustom(
+        'Network error. Please check your internet connection and try again.',
+      );
     }
     if (e is AuthException) {
       return AuthExceptionCustom(e.message);
     }
-    return const AuthExceptionCustom('An unexpected error occurred. Please try again.');
+    return const AuthExceptionCustom(
+      'An unexpected error occurred. Please try again.',
+    );
   }
 
   /// Check whether an email exists in the system (via RPC or profiles table)
@@ -103,7 +107,9 @@ class AuthRepository {
     try {
       final alreadyExists = await checkEmailExists(cleanEmail);
       if (alreadyExists) {
-        throw const AuthExceptionCustom('This email is already registered. Please log in.');
+        throw const AuthExceptionCustom(
+          'This email is already registered. Please log in.',
+        );
       }
     } catch (e) {
       if (e is AuthExceptionCustom) rethrow;
@@ -120,14 +126,18 @@ class AuthRepository {
 
       final user = response.user;
       if (user == null) {
-        throw const AuthExceptionCustom('Failed to create account. Please try again.');
+        throw const AuthExceptionCustom(
+          'Failed to create account. Please try again.',
+        );
       }
 
       // 2. Supabase Auth duplicate detection check:
       // When email confirmations are enabled in Supabase, duplicate signUps return a user object
       // with an empty identities list ([]) rather than throwing an exception.
       if (user.identities != null && user.identities!.isEmpty) {
-        throw const AuthExceptionCustom('This email is already registered. Please log in.');
+        throw const AuthExceptionCustom(
+          'This email is already registered. Please log in.',
+        );
       }
 
       final profile = UserProfile(
@@ -151,7 +161,9 @@ class AuthRepository {
           msg.contains('already exists') ||
           msg.contains('already in use') ||
           e.code == 'user_already_exists') {
-        throw const AuthExceptionCustom('This email is already registered. Please log in.');
+        throw const AuthExceptionCustom(
+          'This email is already registered. Please log in.',
+        );
       }
       throw _handleError(e);
     } catch (e) {
@@ -179,13 +191,17 @@ class AuthRepository {
 
       // Fetch profile
       final profile = await getUserProfile(user.id);
-      return profile ?? UserProfile(id: user.id, email: cleanEmail, fullName: '');
+      return profile ??
+          UserProfile(id: user.id, email: cleanEmail, fullName: '');
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
 
       // Detect unverified account
-      if (msg.contains('email not confirmed') || e.code == 'email_not_confirmed') {
-        throw const AuthExceptionCustom('Please verify your email address before signing in.');
+      if (msg.contains('email not confirmed') ||
+          e.code == 'email_not_confirmed') {
+        throw const AuthExceptionCustom(
+          'Please verify your email address before signing in.',
+        );
       }
 
       // Handle invalid credentials
@@ -195,9 +211,13 @@ class AuthRepository {
           e.code == 'invalid_grant') {
         final exists = await checkEmailExists(cleanEmail);
         if (!exists) {
-          throw const AuthExceptionCustom('Incorrect email or password. If you do not have an account, please sign up.');
+          throw const AuthExceptionCustom(
+            'Incorrect email or password. If you do not have an account, please sign up.',
+          );
         } else {
-          throw const AuthExceptionCustom('Incorrect password. Please try again.');
+          throw const AuthExceptionCustom(
+            'Incorrect password. Please try again.',
+          );
         }
       }
       throw _handleError(e);
@@ -223,7 +243,8 @@ class AuthRepository {
       );
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
-      if (msg.contains('user not found') || msg.contains('unable to find user')) {
+      if (msg.contains('user not found') ||
+          msg.contains('unable to find user')) {
         throw const AuthExceptionCustom('This email is not registered.');
       }
       throw _handleError(e);
@@ -235,7 +256,8 @@ class AuthRepository {
   /// Check if password reset link was verified / active recovery session exists
   Future<bool> checkIsPasswordResetVerified([String? email]) async {
     // 1. Check if an active session or currentUser exists
-    if (_supabase.auth.currentSession != null || _supabase.auth.currentUser != null) {
+    if (_supabase.auth.currentSession != null ||
+        _supabase.auth.currentUser != null) {
       return true;
     }
 
@@ -261,9 +283,7 @@ class AuthRepository {
   /// Update User Password (for Deep Link / Reset Flow)
   Future<void> updatePassword(String newPassword) async {
     try {
-      await _supabase.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
+      await _supabase.auth.updateUser(UserAttributes(password: newPassword));
     } on AuthException catch (e) {
       throw _handleError(e);
     } catch (e) {
@@ -325,7 +345,9 @@ class AuthRepository {
     try {
       final res = await _supabase.auth.refreshSession();
       final user = res.user ?? _supabase.auth.currentUser;
-      if (user != null && user.emailConfirmedAt != null && user.emailConfirmedAt!.isNotEmpty) {
+      if (user != null &&
+          user.emailConfirmedAt != null &&
+          user.emailConfirmedAt!.isNotEmpty) {
         return true;
       }
     } catch (_) {}
@@ -334,7 +356,9 @@ class AuthRepository {
     try {
       final freshUserRes = await _supabase.auth.getUser();
       final freshUser = freshUserRes.user;
-      if (freshUser != null && freshUser.emailConfirmedAt != null && freshUser.emailConfirmedAt!.isNotEmpty) {
+      if (freshUser != null &&
+          freshUser.emailConfirmedAt != null &&
+          freshUser.emailConfirmedAt!.isNotEmpty) {
         return true;
       }
     } catch (_) {}
@@ -349,10 +373,14 @@ class AuthRepository {
   /// Permanently delete user account and all data after password confirmation
   Future<void> deleteAccount({required String password}) async {
     final session = currentSession;
-    final email = session?.user.email ?? (await getUserProfile(currentUserId ?? ''))?.email;
+    final email =
+        session?.user.email ??
+        (await getUserProfile(currentUserId ?? ''))?.email;
 
     if (session == null || email == null || email.trim().isEmpty) {
-      throw const AuthExceptionCustom('Active session not found. Please log in again.');
+      throw const AuthExceptionCustom(
+        'Active session not found. Please log in again.',
+      );
     }
 
     final cleanEmail = email.trim().toLowerCase();
@@ -364,7 +392,9 @@ class AuthRepository {
         password: password,
       );
       if (reauthResponse.user == null) {
-        throw const AuthExceptionCustom('Incorrect password. Please enter your valid password.');
+        throw const AuthExceptionCustom(
+          'Incorrect password. Please enter your valid password.',
+        );
       }
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
@@ -372,7 +402,9 @@ class AuthRepository {
           msg.contains('grant') ||
           e.code == 'invalid_credentials' ||
           e.code == 'invalid_grant') {
-        throw const AuthExceptionCustom('Incorrect password. Please enter your valid password.');
+        throw const AuthExceptionCustom(
+          'Incorrect password. Please enter your valid password.',
+        );
       }
       throw _handleError(e);
     } catch (e) {
