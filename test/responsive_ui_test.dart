@@ -10,6 +10,7 @@ import 'package:animal_birthday_predictor/features/auth/presentation/screens/sig
 import 'package:animal_birthday_predictor/features/auth/presentation/screens/password_reset_screen.dart';
 import 'package:animal_birthday_predictor/features/auth/presentation/screens/update_password_screen.dart';
 import 'package:animal_birthday_predictor/features/auth/presentation/screens/email_verification_screen.dart';
+import 'package:animal_birthday_predictor/features/profile/presentation/screens/change_password_screen.dart';
 
 import 'package:animal_birthday_predictor/features/dashboard/presentation/screens/dashboard_home_screen.dart';
 import 'package:animal_birthday_predictor/features/main/presentation/screens/main_navigation_screen.dart';
@@ -602,6 +603,24 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
+      });
+
+      // 24. ChangePasswordScreen
+      testWidgets('ChangePasswordScreen renders without overflow on $sizeName', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: getOverrides(),
+            child: const MaterialApp(home: ChangePasswordScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Change Password'), findsWidgets);
       });
     }
   });

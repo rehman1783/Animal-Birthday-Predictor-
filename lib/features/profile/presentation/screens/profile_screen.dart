@@ -103,7 +103,7 @@ class ProfileScreen extends ConsumerWidget {
                     label: 'Password & Security',
                     value: '••••••••',
                     onTap: () {
-                      Navigator.pushNamed(context, '/update-password');
+                      Navigator.pushNamed(context, '/change-password');
                     },
                   ),
                 ],

@@ -147,6 +147,24 @@ class AuthController extends StateNotifier<AsyncValue<UserProfile?>> {
     return await _authRepository.checkIsPasswordResetVerified(email);
   }
 
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await _authRepository.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      return false;
+    }
+  }
+
   Future<bool> deleteAccount({required String password}) async {
     state = const AsyncValue.loading();
     try {

@@ -291,6 +291,55 @@ class AuthRepository {
     }
   }
 
+  /// Change Password with Current Password Verification (for in-app Profile)
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final session = currentSession;
+    final email = session?.user.email ?? (await getUserProfile(currentUserId ?? ''))?.email;
+
+    if (session == null || email == null || email.trim().isEmpty) {
+      throw const AuthExceptionCustom('Active session not found. Please log in again.');
+    }
+
+    final cleanEmail = email.trim().toLowerCase();
+
+    // 1. Verify Current Password by validating credentials
+    try {
+      final reauthResponse = await _supabase.auth.signInWithPassword(
+        email: cleanEmail,
+        password: currentPassword,
+      );
+      if (reauthResponse.user == null) {
+        throw const AuthExceptionCustom('Incorrect current password. Please try again.');
+      }
+    } on AuthException catch (e) {
+      final msg = e.message.toLowerCase();
+      if (msg.contains('invalid') ||
+          msg.contains('grant') ||
+          e.code == 'invalid_credentials' ||
+          e.code == 'invalid_grant') {
+        throw const AuthExceptionCustom('Incorrect current password. Please try again.');
+      }
+      throw _handleError(e);
+    } catch (e) {
+      if (e is AuthExceptionCustom) rethrow;
+      throw _handleError(e);
+    }
+
+    // 2. Update to new password
+    try {
+      await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+    } on AuthException catch (e) {
+      throw _handleError(e);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Fetch User Profile from `profiles` table
   Future<UserProfile?> getUserProfile(String userId) async {
     try {

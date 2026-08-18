@@ -25,6 +25,7 @@ import '../../features/foal/presentation/screens/congratulations_screen.dart';
 import '../../features/certificates/presentation/screens/certificate_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/delete_account_screen.dart';
+import '../../features/profile/presentation/screens/change_password_screen.dart';
 import '../../features/contacts/presentation/screens/contacts_directory_screen.dart';
 import '../../features/puppy/domain/puppy.dart';
 import '../../features/puppy/presentation/screens/puppy_details_screen.dart';
@@ -62,6 +63,12 @@ abstract class AppRouter {
       case '/update-password':
         return MaterialPageRoute(
           builder: (_) => const UpdatePasswordScreen(),
+          settings: settings,
+        );
+
+      case '/change-password':
+        return MaterialPageRoute(
+          builder: (_) => const ChangePasswordScreen(),
           settings: settings,
         );
 
@@ -350,6 +357,7 @@ abstract class AppRouter {
       '/signin': (context) => const SignInScreen(),
       '/reset-password': (context) => const PasswordResetScreen(),
       '/update-password': (context) => const UpdatePasswordScreen(),
+      '/change-password': (context) => const ChangePasswordScreen(),
       '/home': (context) => const MainNavigationScreen(),
       '/dashboard': (context) => const MainNavigationScreen(initialIndex: 0),
       '/species-select': (context) => const SpeciesSelectionScreen(),
