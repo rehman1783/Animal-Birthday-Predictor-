@@ -98,10 +98,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           icon: Icons.pets,
                           accentColor: AppColors.primaryGold,
                           onTap: () {
-                            if (onNavigateTab != null) {
-                              onNavigateTab!(1);
-                            }
                             ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'horse');
+                            onNavigateTab?.call(1);
                           },
                         ),
                         loading: () => const _StatCard(title: 'Saved Horses', count: '...', icon: Icons.pets, accentColor: AppColors.primaryGold),
@@ -117,10 +115,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           icon: Icons.child_care,
                           accentColor: AppColors.primaryGold,
                           onTap: () {
-                            if (onNavigateTab != null) {
-                              onNavigateTab!(3);
-                            }
                             ref.read(mainNavigationProvider.notifier).setTab(3, category: 'foals');
+                            onNavigateTab?.call(3);
                           },
                         ),
                         loading: () => const _StatCard(title: 'Foal Records', count: '...', icon: Icons.child_care, accentColor: AppColors.primaryGold),
@@ -141,10 +137,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           icon: Icons.bedroom_baby_outlined,
                           accentColor: AppColors.primaryGold,
                           onTap: () {
-                            if (onNavigateTab != null) {
-                              onNavigateTab!(3);
-                            }
                             ref.read(mainNavigationProvider.notifier).setTab(3, category: 'puppies');
+                            onNavigateTab?.call(3);
                           },
                         ),
                         loading: () => const _StatCard(title: 'Puppy Registry', count: '...', icon: Icons.bedroom_baby_outlined, accentColor: AppColors.primaryGold),
@@ -184,8 +178,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           ref.invalidate(animalsListProvider('horse'));
                           ref.invalidate(animalsListProvider('dog'));
                           if (newAnimal != null && context.mounted) {
-                            if (onNavigateTab != null) onNavigateTab!(1);
                             ref.read(mainNavigationProvider.notifier).setTab(1);
+                            onNavigateTab?.call(1);
                           }
                         },
                       ),
@@ -213,10 +207,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           final newFoal = await Navigator.pushNamed(context, '/foal-details');
                           ref.invalidate(foalsListProvider);
                           if (newFoal != null) {
-                            if (onNavigateTab != null) {
-                              onNavigateTab!(3);
-                            }
                             ref.read(mainNavigationProvider.notifier).setTab(3, category: 'foals');
+                            onNavigateTab?.call(3);
                           }
                         },
                         icon: const Icon(Icons.child_care, color: AppColors.primaryGold, size: 16),
@@ -241,10 +233,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                           final newPuppy = await Navigator.pushNamed(context, '/puppy-details');
                           ref.invalidate(puppiesListProvider(null));
                           if (newPuppy != null) {
-                            if (onNavigateTab != null) {
-                              onNavigateTab!(3);
-                            }
                             ref.read(mainNavigationProvider.notifier).setTab(3, category: 'puppies');
+                            onNavigateTab?.call(3);
                           }
                         },
                         icon: const Icon(Icons.bedroom_baby_outlined, color: AppColors.primaryGold, size: 16),
@@ -271,8 +261,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          if (onNavigateTab != null) onNavigateTab!(1);
                           ref.read(mainNavigationProvider.notifier).setTab(1);
+                          onNavigateTab?.call(1);
                         },
                         icon: const Icon(Icons.list_alt, color: AppColors.primaryGold, size: 16),
                         label: const FittedBox(
@@ -322,20 +312,20 @@ class DashboardHomeScreen extends ConsumerWidget {
                   icon: Icons.pets_rounded,
                   isAvailable: true,
                   onTap: () {
-                    if (onNavigateTab != null) onNavigateTab!(1);
                     ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'horse');
+                    onNavigateTab?.call(1);
                   },
                 ),
                 const SizedBox(height: 10.0),
 
                 _SpeciesModuleCard(
                   title: 'Dog / Canine Module',
-                  subtitle: 'Puppy litters, collar tags, weight logs & dual-date health protocols.',
-                  icon: Icons.bedroom_baby_outlined,
+                  subtitle: 'Dog profiles, litters, collar tags & preventative care.',
+                  icon: Icons.pets,
                   isAvailable: true,
                   onTap: () {
-                    if (onNavigateTab != null) onNavigateTab!(3);
-                    ref.read(mainNavigationProvider.notifier).setTab(3, category: 'puppies');
+                    ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'dog');
+                    onNavigateTab?.call(1);
                   },
                 ),
                 const SizedBox(height: 10.0),

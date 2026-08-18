@@ -54,6 +54,9 @@ void main() {
       // Verify BottomNavigationBar is still present and Birth Log screen is active
       expect(find.byType(BottomNavigationBar), findsOneWidget);
       expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
+      // Verify that Puppies section is active
+      expect(find.text('Register Newborn Puppy'), findsOneWidget);
+      expect(find.text('+ REGISTER NEW PUPPY'), findsOneWidget);
     });
 
     testWidgets('Navigating to /saved-animals route opens MainNavigationScreen with BottomNavigationBar', (tester) async {
@@ -70,6 +73,23 @@ void main() {
 
       expect(find.byType(BottomNavigationBar), findsOneWidget);
       expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
+    });
+
+    testWidgets('Tapping Dog / Canine Module on Dashboard switches to Animals tab on Dogs filter while keeping BottomNavigationBar', (tester) async {
+      await tester.pumpWidget(createTestApp());
+      await tester.pumpAndSettle();
+
+      final dogModuleCard = find.text('Dog / Canine Module');
+      expect(dogModuleCard, findsOneWidget);
+      await tester.ensureVisible(dogModuleCard);
+      await tester.pumpAndSettle();
+
+      await tester.tap(dogModuleCard);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomNavigationBar), findsOneWidget);
+      expect(find.text('SAVED ANIMALS REGISTRY'), findsOneWidget);
+      expect(find.text('DOGS'), findsOneWidget);
     });
 
     testWidgets('Navigating to /pregnancy route opens MainNavigationScreen with BottomNavigationBar', (tester) async {

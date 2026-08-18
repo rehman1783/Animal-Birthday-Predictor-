@@ -34,13 +34,15 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
 
   int _categoryToIndex(String? category) {
     if (category == null) return 0;
-    final cat = category.toLowerCase();
-    if (cat.contains('puppy') || cat.contains('dog')) {
+    final cat = category.toLowerCase().trim();
+    if (cat.contains('pupp') || cat.contains('dog') || cat.contains('canine')) {
       return 1;
-    } else if (cat.contains('kitten') || cat.contains('cat')) {
+    } else if (cat.contains('kit') || cat.contains('cat') || cat.contains('feline')) {
       return 2;
     } else if (cat.contains('other')) {
       return 3;
+    } else if (cat.contains('foal') || cat.contains('horse') || cat.contains('equine')) {
+      return 0;
     }
     return 0;
   }
@@ -119,6 +121,18 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
 
   @override
   Widget build(BuildContext context) {
+    final navState = ref.watch(mainNavigationProvider);
+    if (navState.selectedIndex == 3 && navState.initialCategory != null) {
+      final targetIdx = _categoryToIndex(navState.initialCategory);
+      if (targetIdx != _tabController.index) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && targetIdx != _tabController.index) {
+            _tabController.animateTo(targetIdx);
+          }
+        });
+      }
+    }
+
     ref.listen(mainNavigationProvider, (previous, next) {
       if (next.selectedIndex == 3 && next.initialCategory != null) {
         final targetIdx = _categoryToIndex(next.initialCategory);

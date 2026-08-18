@@ -25,14 +25,25 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
   late TabController _tabController;
   final List<String> _speciesTabs = const ['horse', 'dog', 'cat', 'other'];
 
+  int _speciesToIndex(String? species) {
+    if (species == null) return 0;
+    final s = species.toLowerCase().trim();
+    if (s.contains('dog') || s.contains('canine') || s.contains('pupp')) {
+      return 1;
+    } else if (s.contains('cat') || s.contains('feline') || s.contains('kit')) {
+      return 2;
+    } else if (s.contains('other')) {
+      return 3;
+    } else if (s.contains('horse') || s.contains('equine') || s.contains('foal') || s.contains('mare') || s.contains('stallion')) {
+      return 0;
+    }
+    return 0;
+  }
+
   @override
   void initState() {
     super.initState();
-    int initialIndex = 0;
-    if (widget.initialSpecies != null) {
-      final idx = _speciesTabs.indexOf(widget.initialSpecies!.toLowerCase());
-      if (idx != -1) initialIndex = idx;
-    }
+    int initialIndex = _speciesToIndex(widget.initialSpecies);
     _tabController = TabController(
       length: _speciesTabs.length,
       vsync: this,
@@ -44,8 +55,8 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
   void didUpdateWidget(covariant SavedAnimalsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialSpecies != null && widget.initialSpecies != oldWidget.initialSpecies) {
-      final idx = _speciesTabs.indexOf(widget.initialSpecies!.toLowerCase());
-      if (idx != -1 && idx != _tabController.index) {
+      final idx = _speciesToIndex(widget.initialSpecies);
+      if (idx != _tabController.index) {
         _tabController.animateTo(idx);
       }
     }
@@ -65,10 +76,22 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
 
   @override
   Widget build(BuildContext context) {
+    final navState = ref.watch(mainNavigationProvider);
+    if (navState.selectedIndex == 1 && navState.initialSpeciesTab != null) {
+      final targetIdx = _speciesToIndex(navState.initialSpeciesTab);
+      if (targetIdx != _tabController.index) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && targetIdx != _tabController.index) {
+            _tabController.animateTo(targetIdx);
+          }
+        });
+      }
+    }
+
     ref.listen(mainNavigationProvider, (previous, next) {
       if (next.selectedIndex == 1 && next.initialSpeciesTab != null) {
-        final idx = _speciesTabs.indexOf(next.initialSpeciesTab!.toLowerCase());
-        if (idx != -1 && idx != _tabController.index) {
+        final idx = _speciesToIndex(next.initialSpeciesTab);
+        if (idx != _tabController.index) {
           _tabController.animateTo(idx);
         }
       }
