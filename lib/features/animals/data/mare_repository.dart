@@ -106,13 +106,27 @@ class MareRepository {
   }
 
   Future<Markings> saveMarkings(Markings markings) async {
-    final validId = AppUuid.isValid(markings.id) ? markings.id : AppUuid.generate();
+    final c = client;
+    String validId = markings.id;
+
+    if (!AppUuid.isValid(validId)) {
+      final existing = await getMarkings(markings.ownerType, markings.ownerId);
+      if (existing != null && AppUuid.isValid(existing.id)) {
+        validId = existing.id;
+      } else {
+        validId = AppUuid.generate();
+      }
+    }
+
     final toSave = markings.copyWith(id: validId);
 
-    final c = client;
-    if (c != null) {
+    final clientInstance = client;
+    if (clientInstance != null) {
       try {
-        final data = await c.from('markings').upsert(toSave.toJson()).select();
+        final data = await clientInstance
+            .from('markings')
+            .upsert(toSave.toJson(), onConflict: 'owner_type,owner_id')
+            .select();
         if (data is List && data.isNotEmpty) {
           return Markings.fromJson(data.first as Map<String, dynamic>);
         }

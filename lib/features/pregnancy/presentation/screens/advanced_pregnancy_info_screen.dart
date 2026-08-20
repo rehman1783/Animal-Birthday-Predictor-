@@ -36,6 +36,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
   DateTime? _ffsResultDate;
   String? _ffsResult; // 'filly', 'colt'
 
+  String? _infoId;
   String? _ultrasoundImage;
   bool _isSaving = false;
   bool _isLoaded = false;
@@ -57,6 +58,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
       final info = await repo.getAdvancedPregnancyInfo(widget.pregnancyRecordId);
       if (info != null && mounted) {
         setState(() {
+          _infoId = info.id;
           _caslickDate = info.caslickDate;
           _caslickDone = info.caslickDone;
           _fetalSexDate = info.fetalSexScanDate;
@@ -120,7 +122,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
     try {
       final repo = ref.read(pregnancyRepositoryProvider);
       final info = AdvancedPregnancyInfo(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _infoId ?? '',
         pregnancyRecordId: widget.pregnancyRecordId,
         caslickDate: _caslickDate,
         caslickDone: _caslickDone,

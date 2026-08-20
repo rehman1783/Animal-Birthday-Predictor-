@@ -205,7 +205,7 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
     try {
       final repo = ref.read(preventativeCareRepositoryProvider);
       final record = PreventativeCareRecord(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _initialRecord?.id ?? '',
         ownerType: widget.ownerType,
         ownerId: widget.ownerId,
         wormerDate: _wormerDate,

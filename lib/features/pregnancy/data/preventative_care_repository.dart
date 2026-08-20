@@ -50,13 +50,26 @@ class PreventativeCareRepository {
   }
 
   Future<PreventativeCareRecord> savePreventativeCare(PreventativeCareRecord record) async {
-    final validId = AppUuid.isValid(record.id) ? record.id : AppUuid.generate();
+    final c = client;
+    String validId = record.id;
+
+    if (!AppUuid.isValid(validId)) {
+      final existing = await getPreventativeCare(record.ownerType, record.ownerId);
+      if (existing != null && AppUuid.isValid(existing.id)) {
+        validId = existing.id;
+      } else {
+        validId = AppUuid.generate();
+      }
+    }
+
     final toSave = record.copyWith(id: validId);
 
-    final c = client;
     if (c != null) {
       try {
-        final data = await c.from('preventative_care').upsert(toSave.toJson()).select();
+        final data = await c
+            .from('preventative_care')
+            .upsert(toSave.toJson(), onConflict: 'owner_type,owner_id')
+            .select();
         if (data is List && data.isNotEmpty) {
           return PreventativeCareRecord.fromJson(data.first as Map<String, dynamic>);
         }

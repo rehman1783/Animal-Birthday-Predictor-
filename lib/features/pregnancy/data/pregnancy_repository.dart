@@ -318,13 +318,26 @@ class PregnancyRepository {
   }
 
   Future<AdvancedPregnancyInfo> saveAdvancedPregnancyInfo(AdvancedPregnancyInfo info) async {
-    final validId = AppUuid.isValid(info.id) ? info.id : AppUuid.generate();
+    final c = client;
+    String validId = info.id;
+
+    if (!AppUuid.isValid(validId)) {
+      final existing = await getAdvancedPregnancyInfo(info.pregnancyRecordId);
+      if (existing != null && AppUuid.isValid(existing.id)) {
+        validId = existing.id;
+      } else {
+        validId = AppUuid.generate();
+      }
+    }
+
     final toSave = info.copyWith(id: validId);
 
-    final c = client;
     if (c != null) {
       try {
-        final data = await c.from('advanced_pregnancy_info').upsert(toSave.toJson()).select();
+        final data = await c
+            .from('advanced_pregnancy_info')
+            .upsert(toSave.toJson(), onConflict: 'pregnancy_record_id')
+            .select();
         if (data is List && data.isNotEmpty) {
           return AdvancedPregnancyInfo.fromJson(data.first as Map<String, dynamic>);
         }
