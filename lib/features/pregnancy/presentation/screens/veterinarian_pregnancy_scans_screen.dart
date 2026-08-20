@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/utils/app_phone_launcher.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_loading_view.dart';
@@ -205,28 +206,7 @@ class _VeterinarianPregnancyScansScreenState
   }
 
   Future<void> _callVet() async {
-    final phone = _vetNumberController.text.trim();
-    if (phone.isEmpty) {
-      AppFeedbackSnackbar.showError(
-        context,
-        title: 'Number Required',
-        error: 'Please enter a veterinarian contact number first.',
-      );
-      return;
-    }
-    final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
-    final uri = Uri(scheme: 'tel', path: cleanPhone);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      if (mounted) {
-        AppFeedbackSnackbar.showError(
-          context,
-          title: 'Dial Failed',
-          error: 'Could not dial $phone',
-        );
-      }
-    }
+    await AppPhoneLauncher.makePhoneCall(context, _vetNumberController.text);
   }
 
   Future<void> _handleSave() async {

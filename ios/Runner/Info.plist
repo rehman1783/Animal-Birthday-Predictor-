@@ -54,6 +54,15 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Animal Birthday Predictor needs permission to save generated foal certificates.</string>
 
+	<!-- URL Launcher Schemes -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>mailto</string>
+		<string>https</string>
+		<string>http</string>
+	</array>
+
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

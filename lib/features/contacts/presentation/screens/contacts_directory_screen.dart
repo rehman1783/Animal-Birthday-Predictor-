@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/utils/app_phone_launcher.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_loading_view.dart';
@@ -37,30 +38,11 @@ class _ContactsDirectoryScreenState extends ConsumerState<ContactsDirectoryScree
   }
 
   Future<void> _launchCall(String phone) async {
-    final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
-    final uri = Uri.parse('tel:$cleanPhone');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else if (mounted) {
-      AppFeedbackSnackbar.showError(
-        context,
-        title: 'Call Unavailable',
-        error: 'Cannot initiate phone call to $phone',
-      );
-    }
+    await AppPhoneLauncher.makePhoneCall(context, phone);
   }
 
   Future<void> _launchEmail(String email) async {
-    final uri = Uri.parse('mailto:$email');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else if (mounted) {
-      AppFeedbackSnackbar.showError(
-        context,
-        title: 'Email Client Unavailable',
-        error: 'Cannot launch email client for $email',
-      );
-    }
+    await AppPhoneLauncher.sendEmail(context, email);
   }
 
   Future<void> _confirmDeleteContact(Contact contact) async {

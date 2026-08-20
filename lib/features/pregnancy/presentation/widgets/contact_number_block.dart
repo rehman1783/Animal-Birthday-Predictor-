@@ -11,6 +11,8 @@ import '../../../contacts/presentation/providers/contact_provider.dart';
 import '../../../contacts/presentation/widgets/select_or_add_contact_modal.dart';
 import '../../../contacts/domain/contact.dart';
 
+import '../../../../core/utils/app_phone_launcher.dart';
+
 class ContactNumberBlock extends ConsumerWidget {
   final String title;
   final String hintText;
@@ -34,30 +36,7 @@ class ContactNumberBlock extends ConsumerWidget {
   });
 
   Future<void> _makeCall(BuildContext context) async {
-    final number = controller.text.trim();
-    if (number.isEmpty) return;
-    final uri = Uri.parse('tel:${number.replaceAll(RegExp(r'[^0-9+]'), '')}');
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        if (context.mounted) {
-          AppFeedbackSnackbar.showError(
-            context,
-            title: 'Call Unavailable',
-            error: 'Cannot launch dialer for $number',
-          );
-        }
-      }
-    } catch (_) {
-      if (context.mounted) {
-        AppFeedbackSnackbar.showInfo(
-          context,
-          title: 'Dialing',
-          message: 'Calling $number...',
-        );
-      }
-    }
+    await AppPhoneLauncher.makePhoneCall(context, controller.text);
   }
 
   Future<void> _pickFromContacts(BuildContext context, WidgetRef ref) async {

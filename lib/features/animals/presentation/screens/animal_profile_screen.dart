@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/utils/app_phone_launcher.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -88,19 +89,7 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
   }
 
   Future<void> _callNumber(String phoneNumber) async {
-    final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
-    final uri = Uri(scheme: 'tel', path: cleanPhone);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      if (mounted) {
-        AppFeedbackSnackbar.showError(
-          context,
-          title: 'Dial Failed',
-          error: 'Could not dial $phoneNumber',
-        );
-      }
-    }
+    await AppPhoneLauncher.makePhoneCall(context, phoneNumber);
   }
 
   Future<void> _confirmDelete() async {
