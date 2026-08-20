@@ -382,15 +382,24 @@ class _SelectOrAddContactModalState extends ConsumerState<SelectOrAddContactModa
               hintText: 'e.g. Dr. Sarah Jenkins',
               controller: _nameController,
               prefixIcon: Icons.person_outline,
-              validator: (v) => v == null || v.trim().isEmpty ? 'Name is required' : null,
+              validator: (v) => v == null || v.trim().isEmpty ? 'Contact name is required' : null,
             ),
             const SizedBox(height: 14),
             CustomTextField(
-              label: 'Phone Number (Optional)',
+              label: 'Contact Number *',
               hintText: 'e.g. +1 (555) 019-2834',
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               prefixIcon: Icons.phone_outlined,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) {
+                  return 'Contact number is required';
+                }
+                if (v.trim().length < 5) {
+                  return 'Please enter a valid phone number';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 14),
             CustomTextField(
