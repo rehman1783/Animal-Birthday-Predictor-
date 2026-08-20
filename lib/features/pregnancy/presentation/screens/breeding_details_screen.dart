@@ -230,6 +230,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
 
       ref.invalidate(breedingRecordByMareProvider(_selectedMare!.id));
       ref.invalidate(pregnancyRecordForCarrierProvider(carrierAnimalId));
+      ref.invalidate(pregnancyRecordForCarrierProvider(_selectedMare!.id));
 
       if (mounted) {
         AppFeedbackSnackbar.showSuccess(

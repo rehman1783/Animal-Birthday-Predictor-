@@ -116,6 +116,7 @@ class PregnancyRepository {
 
     if (c != null && user != null) {
       try {
+        // 1. Check direct carrier match
         final data = await c
             .from('pregnancy_records')
             .select()
@@ -126,6 +127,22 @@ class PregnancyRepository {
         if (data is List && data.isNotEmpty) {
           return PregnancyRecord.fromJson(data.first as Map<String, dynamic>);
         }
+
+        // 2. Check if this mare has a breeding record linked to an active pregnancy
+        final breeding = await getBreedingRecordByMare(carrierAnimalId);
+        if (breeding != null && AppUuid.isValid(breeding.id)) {
+          final pregByBreeding = await c
+              .from('pregnancy_records')
+              .select()
+              .eq('account_id', user.id)
+              .eq('breeding_record_id', breeding.id)
+              .order('created_at', ascending: false)
+              .limit(1);
+          if (pregByBreeding is List && pregByBreeding.isNotEmpty) {
+            return PregnancyRecord.fromJson(pregByBreeding.first as Map<String, dynamic>);
+          }
+        }
+
         return null;
       } catch (e) {
         debugPrint('Supabase getPregnancyRecordForCarrier error: $e');
@@ -136,7 +153,12 @@ class PregnancyRepository {
     try {
       return _mockPregnancies.firstWhere((p) => p.carrierAnimalId == carrierAnimalId);
     } catch (_) {
-      return null;
+      try {
+        final b = _mockBreeding.firstWhere((b) => b.mareAnimalId == carrierAnimalId || b.recipientAnimalId == carrierAnimalId);
+        return _mockPregnancies.firstWhere((p) => p.breedingRecordId == b.id);
+      } catch (_) {
+        return null;
+      }
     }
   }
 
