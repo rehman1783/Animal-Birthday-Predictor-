@@ -84,7 +84,14 @@ class PuppyRepository {
       try {
         final data = await c.from('puppies').upsert(toSave.toJson()).select();
         if (data is List && data.isNotEmpty) {
-          return Puppy.fromJson(data.first as Map<String, dynamic>);
+          final saved = Puppy.fromJson(data.first as Map<String, dynamic>);
+          final idx = _mockPuppies.indexWhere((p) => p.id == saved.id);
+          if (idx >= 0) {
+            _mockPuppies[idx] = saved;
+          } else {
+            _mockPuppies.insert(0, saved);
+          }
+          return saved;
         }
       } catch (e) {
         debugPrint('Supabase savePuppy error: $e');

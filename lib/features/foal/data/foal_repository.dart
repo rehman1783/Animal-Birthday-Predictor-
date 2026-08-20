@@ -111,7 +111,14 @@ class FoalRepository {
       try {
         final data = await c.from('foals').upsert(primaryPayload).select();
         if (data is List && data.isNotEmpty) {
-          return FoalRecord.fromJson(data.first as Map<String, dynamic>);
+          final saved = FoalRecord.fromJson(data.first as Map<String, dynamic>);
+          final idx = _mockFoals.indexWhere((f) => f.id == saved.id);
+          if (idx >= 0) {
+            _mockFoals[idx] = saved;
+          } else {
+            _mockFoals.insert(0, saved);
+          }
+          return saved;
         }
       } catch (e) {
         debugPrint('Supabase saveFoal error: $e');

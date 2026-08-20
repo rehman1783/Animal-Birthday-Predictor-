@@ -9,21 +9,25 @@ final puppyRepositoryProvider = Provider<PuppyRepository>((ref) {
 });
 
 final puppiesListProvider = FutureProvider.autoDispose.family<List<Puppy>, String?>((ref, damId) async {
+  ref.keepAlive();
   final repo = ref.watch(puppyRepositoryProvider);
   return repo.getPuppies(damId: damId);
 });
 
 final puppyByIdProvider = FutureProvider.autoDispose.family<Puppy?, String>((ref, id) async {
+  ref.keepAlive();
   final repo = ref.watch(puppyRepositoryProvider);
   return repo.getPuppyById(id);
 });
 
 final puppyWeightsProvider = FutureProvider.autoDispose.family<List<PuppyWeight>, String>((ref, puppyId) async {
+  ref.keepAlive();
   final repo = ref.watch(puppyRepositoryProvider);
   return repo.getPuppyWeights(puppyId);
 });
 
 final dogPreventativeCareProvider = FutureProvider.autoDispose.family<List<DogPreventativeCareItem>, ({String ownerType, String ownerId, DateTime? dob})>((ref, arg) async {
+  ref.keepAlive();
   final repo = ref.watch(puppyRepositoryProvider);
   return repo.initializeDefaultDogSchedule(
     ownerType: arg.ownerType,

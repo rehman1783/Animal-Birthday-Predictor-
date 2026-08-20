@@ -106,18 +106,15 @@ class MareRepository {
   }
 
   Future<Markings> saveMarkings(Markings markings) async {
-    final c = client;
     String validId = markings.id;
-
     if (!AppUuid.isValid(validId)) {
-      final existing = await getMarkings(markings.ownerType, markings.ownerId);
-      if (existing != null && AppUuid.isValid(existing.id)) {
-        validId = existing.id;
+      final memExisting = _mockMarkings.where((m) => m.ownerType == markings.ownerType && m.ownerId == markings.ownerId).firstOrNull;
+      if (memExisting != null && AppUuid.isValid(memExisting.id)) {
+        validId = memExisting.id;
       } else {
         validId = AppUuid.generate();
       }
     }
-
     final toSave = markings.copyWith(id: validId);
 
     final clientInstance = client;
@@ -128,7 +125,14 @@ class MareRepository {
             .upsert(toSave.toJson(), onConflict: 'owner_type,owner_id')
             .select();
         if (data is List && data.isNotEmpty) {
-          return Markings.fromJson(data.first as Map<String, dynamic>);
+          final saved = Markings.fromJson(data.first as Map<String, dynamic>);
+          final idx = _mockMarkings.indexWhere((m) => m.ownerType == saved.ownerType && m.ownerId == saved.ownerId);
+          if (idx >= 0) {
+            _mockMarkings[idx] = saved;
+          } else {
+            _mockMarkings.add(saved);
+          }
+          return saved;
         }
       } catch (e) {
         debugPrint('Supabase saveMarkings error: $e');

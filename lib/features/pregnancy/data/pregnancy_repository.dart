@@ -342,16 +342,14 @@ class PregnancyRepository {
   Future<AdvancedPregnancyInfo> saveAdvancedPregnancyInfo(AdvancedPregnancyInfo info) async {
     final c = client;
     String validId = info.id;
-
     if (!AppUuid.isValid(validId)) {
-      final existing = await getAdvancedPregnancyInfo(info.pregnancyRecordId);
-      if (existing != null && AppUuid.isValid(existing.id)) {
-        validId = existing.id;
+      final memExisting = _mockAdvanced.where((a) => a.pregnancyRecordId == info.pregnancyRecordId).firstOrNull;
+      if (memExisting != null && AppUuid.isValid(memExisting.id)) {
+        validId = memExisting.id;
       } else {
         validId = AppUuid.generate();
       }
     }
-
     final toSave = info.copyWith(id: validId);
 
     if (c != null) {
@@ -361,7 +359,14 @@ class PregnancyRepository {
             .upsert(toSave.toJson(), onConflict: 'pregnancy_record_id')
             .select();
         if (data is List && data.isNotEmpty) {
-          return AdvancedPregnancyInfo.fromJson(data.first as Map<String, dynamic>);
+          final saved = AdvancedPregnancyInfo.fromJson(data.first as Map<String, dynamic>);
+          final idx = _mockAdvanced.indexWhere((a) => a.id == saved.id || a.pregnancyRecordId == saved.pregnancyRecordId);
+          if (idx >= 0) {
+            _mockAdvanced[idx] = saved;
+          } else {
+            _mockAdvanced.insert(0, saved);
+          }
+          return saved;
         }
       } catch (e) {
         debugPrint('Supabase saveAdvancedPregnancyInfo error: $e');

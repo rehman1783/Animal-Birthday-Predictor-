@@ -89,7 +89,14 @@ class AnimalRepository {
       try {
         final data = await c.from('animals').upsert(toSave.toJson()).select();
         if (data is List && data.isNotEmpty) {
-          return Animal.fromJson(data.first as Map<String, dynamic>);
+          final saved = Animal.fromJson(data.first as Map<String, dynamic>);
+          final idx = _mockAnimals.indexWhere((a) => a.id == saved.id);
+          if (idx >= 0) {
+            _mockAnimals[idx] = saved;
+          } else {
+            _mockAnimals.insert(0, saved);
+          }
+          return saved;
         }
       } catch (e) {
         debugPrint('Supabase saveAnimal error: $e');
@@ -119,6 +126,7 @@ class AnimalRepository {
         rethrow;
       }
     }
+
     _mockAnimals.removeWhere((a) => a.id == id);
   }
 }

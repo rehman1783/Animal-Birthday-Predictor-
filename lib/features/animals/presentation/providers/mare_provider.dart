@@ -9,11 +9,13 @@ final mareRepositoryProvider = Provider<MareRepository>((ref) {
 });
 
 final maresListProvider = FutureProvider.autoDispose<List<Animal>>((ref) async {
+  ref.keepAlive();
   final repo = ref.watch(mareRepositoryProvider);
   return repo.getMares();
 });
 
 final markingsForOwnerProvider = FutureProvider.autoDispose.family<Markings?, ({String ownerType, String ownerId})>((ref, arg) async {
+  ref.keepAlive();
   final repo = ref.watch(mareRepositoryProvider);
   return repo.getMarkings(arg.ownerType, arg.ownerId);
 });

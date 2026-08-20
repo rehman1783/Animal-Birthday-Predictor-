@@ -52,16 +52,14 @@ class PreventativeCareRepository {
   Future<PreventativeCareRecord> savePreventativeCare(PreventativeCareRecord record) async {
     final c = client;
     String validId = record.id;
-
     if (!AppUuid.isValid(validId)) {
-      final existing = await getPreventativeCare(record.ownerType, record.ownerId);
-      if (existing != null && AppUuid.isValid(existing.id)) {
-        validId = existing.id;
+      final memExisting = _mockRecords.where((r) => r.ownerType == record.ownerType && r.ownerId == record.ownerId).firstOrNull;
+      if (memExisting != null && AppUuid.isValid(memExisting.id)) {
+        validId = memExisting.id;
       } else {
         validId = AppUuid.generate();
       }
     }
-
     final toSave = record.copyWith(id: validId);
 
     if (c != null) {
@@ -71,7 +69,14 @@ class PreventativeCareRepository {
             .upsert(toSave.toJson(), onConflict: 'owner_type,owner_id')
             .select();
         if (data is List && data.isNotEmpty) {
-          return PreventativeCareRecord.fromJson(data.first as Map<String, dynamic>);
+          final saved = PreventativeCareRecord.fromJson(data.first as Map<String, dynamic>);
+          final idx = _mockRecords.indexWhere((r) => r.ownerType == saved.ownerType && r.ownerId == saved.ownerId);
+          if (idx >= 0) {
+            _mockRecords[idx] = saved;
+          } else {
+            _mockRecords.insert(0, saved);
+          }
+          return saved;
         }
       } catch (e) {
         debugPrint('Supabase savePreventativeCare error: $e');
