@@ -8,14 +8,20 @@ import '../../../../core/widgets/responsive_body.dart';
 
 class CongratulationsScreen extends StatelessWidget {
   final String species;
+  final String? damMareId;
+  final String? stallionName;
 
   const CongratulationsScreen({
     super.key,
     this.species = 'Equine',
+    this.damMareId,
+    this.stallionName,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isCanine = species.toLowerCase().trim() == 'canine';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -76,7 +82,9 @@ class CongratulationsScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.spaceS),
 
                 Text(
-                  'Your $species gestation period is complete. Create a new foal record to begin tracking growth and preventative care.',
+                  isCanine
+                      ? 'Your Canine whelping period is complete. Create a new puppy record to begin tracking growth and vaccinations.'
+                      : 'Your $species gestation period is complete. Create a new foal record to begin tracking growth, markings, and preventative care protocols.',
                   style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
                   textAlign: TextAlign.center,
                 ),
@@ -84,9 +92,20 @@ class CongratulationsScreen extends StatelessWidget {
                 const SizedBox(height: 36),
 
                 GradientCtaButton(
-                  text: 'REGISTER NEW FOAL RECORD',
+                  text: isCanine ? 'REGISTER NEW PUPPY RECORD' : 'REGISTER NEW FOAL RECORD',
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/foal-details');
+                    if (isCanine) {
+                      Navigator.pushReplacementNamed(context, '/puppy-details');
+                    } else {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/foal-details',
+                        arguments: {
+                          'damMareId': damMareId,
+                          'stallion': stallionName,
+                        },
+                      );
+                    }
                   },
                 ),
 

@@ -299,28 +299,64 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
                           border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.6)),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.favorite_rounded, color: AppColors.primaryGold, size: 26),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    carrier != null ? carrier.name : 'Carrying Mare',
-                                    style: AppTypography.displayHeadline.copyWith(fontSize: 18),
+                            Row(
+                              children: [
+                                const Icon(Icons.favorite_rounded, color: AppColors.primaryGold, size: 26),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        carrier != null ? carrier.name : 'Carrying Mare',
+                                        style: AppTypography.displayHeadline.copyWith(fontSize: 18),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Foaling Due: ${_formatDate(_record?.foalingDueDate)}',
+                                        style: AppTypography.bodySmall.copyWith(
+                                          color: AppColors.primaryGold,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Foaling Due: ${_formatDate(_record?.foalingDueDate)}',
-                                    style: AppTypography.bodySmall.copyWith(
-                                      color: AppColors.primaryGold,
-                                      fontWeight: FontWeight.bold,
+                                ),
+                                // Status chip
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: (_scan3Confirmed || _scan2Confirmed || _scan1Confirmed)
+                                        ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                                        : const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: (_scan3Confirmed || _scan2Confirmed || _scan1Confirmed)
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFFF59E0B),
                                     ),
                                   ),
-                                ],
-                              ),
+                                  child: Text(
+                                    _scan3Confirmed
+                                        ? 'CONFIRMED (45D)'
+                                        : _scan2Confirmed
+                                            ? 'CONFIRMED (30D)'
+                                            : _scan1Confirmed
+                                                ? 'CONFIRMED (14D)'
+                                                : 'PENDING SCAN',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: (_scan3Confirmed || _scan2Confirmed || _scan1Confirmed)
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFFF59E0B),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -472,7 +508,38 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24.0),
+                    const SizedBox(height: 12.0),
+
+                    // Celebrate Foal Arrival CTA
+                    if (_scan1Confirmed || _scan2Confirmed || _scan3Confirmed || _record?.foalingDueDate != null)
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/congratulations',
+                            arguments: {
+                              'species': 'Equine',
+                              'damMareId': widget.carrierAnimalId,
+                            },
+                          );
+                        },
+                        icon: const Icon(Icons.celebration_rounded, size: 18, color: AppColors.background),
+                        label: const Text(
+                          'CELEBRATE FOAL ARRIVAL 🎉',
+                          style: TextStyle(
+                            color: AppColors.background,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGold,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                        ),
+                      ),
+                    const SizedBox(height: 20.0),
 
                     // Save CTA
                     GradientCtaButton(

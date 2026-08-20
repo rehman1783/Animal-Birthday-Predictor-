@@ -21,8 +21,15 @@ import '../../../../core/utils/app_uuid.dart';
 
 class FoalDetailsScreen extends ConsumerStatefulWidget {
   final FoalRecord? foal;
+  final String? initialMareId;
+  final String? initialStallion;
 
-  const FoalDetailsScreen({super.key, this.foal});
+  const FoalDetailsScreen({
+    super.key,
+    this.foal,
+    this.initialMareId,
+    this.initialStallion,
+  });
 
   @override
   ConsumerState<FoalDetailsScreen> createState() => _FoalDetailsScreenState();
@@ -63,7 +70,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
     super.initState();
     final f = widget.foal;
     _nameController = TextEditingController(text: f?.foalName ?? '');
-    _stallionController = TextEditingController(text: f?.stallion ?? '');
+    _stallionController = TextEditingController(text: f?.stallion ?? widget.initialStallion ?? '');
     _breedController = TextEditingController(text: f?.breed ?? '');
     _iggController = TextEditingController(text: f?.iggValue ?? '');
     _microchipController = TextEditingController(text: f?.foalMicrochipNo ?? '');
@@ -86,7 +93,24 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
 
     if (f != null) {
       _loadLinkedAnimals(f);
+    } else if (widget.initialMareId != null && widget.initialMareId!.isNotEmpty) {
+      _loadInitialMare(widget.initialMareId!);
     }
+  }
+
+  Future<void> _loadInitialMare(String mareId) async {
+    try {
+      final repo = ref.read(animalRepositoryProvider);
+      final m = await repo.getAnimalById(mareId);
+      if (m != null && mounted) {
+        setState(() {
+          _selectedMare = m;
+          if (_breedController.text.isEmpty && m.breed != null) {
+            _breedController.text = m.breed!;
+          }
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadLinkedAnimals(FoalRecord f) async {

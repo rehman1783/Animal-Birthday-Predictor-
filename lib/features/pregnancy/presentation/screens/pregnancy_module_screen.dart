@@ -10,6 +10,7 @@ import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
+import '../widgets/mare_pregnancy_card.dart';
 
 class PregnancyModuleScreen extends ConsumerWidget {
   const PregnancyModuleScreen({super.key});
@@ -33,187 +34,101 @@ class PregnancyModuleScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              // Header CTA
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                  border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.6)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Record New Breeding Event', style: AppTypography.displayHeadline.copyWith(fontSize: 17)),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Select a mare, choose the breeding method (Natural, Chilled, Frozen, ICSI), and auto-calculate pregnancy scan due dates.',
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GradientCtaButton(
-                            text: '+ LOG BREEDING',
-                            onPressed: () => Navigator.pushNamed(context, '/breeding-details'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.pushNamed(context, '/vet-pregnancy-scans'),
-                            icon: const Icon(Icons.medical_services_outlined, color: AppColors.primaryGold, size: 16),
-                            label: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text('VET & SCANS', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24.0),
-
-              const SectionDividerLabel(label: 'REGISTERED MARES & CARRIERS'),
-              const SizedBox(height: 14.0),
-
-              horsesAsync.when(
-                data: (allHorses) {
-                  final horses = allHorses
-                      .where((h) => h.species.toLowerCase().trim() == 'horse')
-                      .toList();
-
-                  if (horses.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          children: [
-                            const Icon(Icons.pets, size: 40, color: AppColors.primaryGold),
-                            const SizedBox(height: 12),
-                            const Text('No horses registered yet', style: TextStyle(color: AppColors.textPrimary)),
-                            const SizedBox(height: 12),
-                            OutlinedButton(
-                              onPressed: () => Navigator.pushNamed(context, '/species-select'),
-                              child: const Text('Register First Mare'),
-                            ),
-                          ],
-                        ),
+                // Header CTA Banner
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                    border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.6)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Record New Breeding Event', style: AppTypography.displayHeadline.copyWith(fontSize: 17)),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Select a mare, choose the breeding method (Natural, Chilled, Frozen, ICSI), and auto-calculate pregnancy scan due dates.',
+                        style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                       ),
-                    );
-                  }
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GradientCtaButton(
+                              text: '+ LOG BREEDING',
+                              onPressed: () => Navigator.pushNamed(context, '/breeding-details'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => Navigator.pushNamed(context, '/vet-pregnancy-scans'),
+                              icon: const Icon(Icons.medical_services_outlined, color: AppColors.primaryGold, size: 16),
+                              label: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('VET & SCANS', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: AppColors.primaryGold),
+                                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24.0),
 
-                  return Column(
-                    children: horses.map((horse) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                          border: Border.all(color: AppColors.surface),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Wrap(
-                              alignment: WrapAlignment.spaceBetween,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 8,
-                              runSpacing: 4,
-                              children: [
-                                Text(
-                                  horse.name,
-                                  style: AppTypography.displayHeadline.copyWith(
-                                    fontSize: 16,
-                                    color: AppColors.primaryGold,
-                                  ),
-                                  softWrap: true,
-                                ),
-                                Text(
-                                  horse.breed ?? 'Equine',
-                                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Chip: ${horse.microchipNo ?? "N/A"} • DNA: ${horse.dna ?? "N/A"}',
-                              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted, fontSize: 11),
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/breeding-details',
-                                        arguments: horse.id,
-                                      );
-                                    },
-                                    icon: const Icon(Icons.favorite_outline, size: 16, color: AppColors.primaryGold),
-                                    label: const FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text('Log Breeding', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(color: AppColors.primaryGold),
-                                      foregroundColor: AppColors.primaryGold,
-                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/vet-pregnancy-scans',
-                                        arguments: {'carrierAnimalId': horse.id},
-                                      );
-                                    },
-                                    icon: const Icon(Icons.medical_services_outlined, size: 16),
-                                    label: const FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text('Scans & Vet', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryGold,
-                                      foregroundColor: AppColors.background,
-                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                const SectionDividerLabel(label: 'REGISTERED MARES & PREGNANCY STATUS'),
+                const SizedBox(height: 14.0),
+
+                horsesAsync.when(
+                  data: (allHorses) {
+                    final horses = allHorses
+                        .where((h) => h.species.toLowerCase().trim() == 'horse')
+                        .toList();
+
+                    if (horses.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            children: [
+                              const Icon(Icons.pets, size: 40, color: AppColors.primaryGold),
+                              const SizedBox(height: 12),
+                              const Text('No horses registered yet', style: TextStyle(color: AppColors.textPrimary)),
+                              const SizedBox(height: 12),
+                              OutlinedButton(
+                                onPressed: () => Navigator.pushNamed(context, '/species-select'),
+                                child: const Text('Register First Mare'),
+                              ),
+                            ],
+                          ),
                         ),
                       );
-                    }).toList(),
-                  );
-                },
-                loading: () => const AppLoadingView(message: 'Loading registered mares...'),
-                error: (e, _) => AppErrorView(
-                  error: e,
-                  onRetry: () => ref.invalidate(animalsListProvider('horse')),
+                    }
+
+                    return Column(
+                      children: horses.map((horse) {
+                        return MarePregnancyCard(mare: horse);
+                      }).toList(),
+                    );
+                  },
+                  loading: () => const AppLoadingView(message: 'Loading registered mares...'),
+                  error: (e, _) => AppErrorView(
+                    error: e,
+                    onRetry: () => ref.invalidate(animalsListProvider('horse')),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

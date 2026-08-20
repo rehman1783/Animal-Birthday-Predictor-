@@ -316,16 +316,44 @@ abstract class AppRouter {
         );
 
       case '/foal-details':
-        final foal = settings.arguments as FoalRecord?;
+        FoalRecord? foal;
+        String? initialMareId;
+        String? initialStallion;
+        if (settings.arguments is FoalRecord) {
+          foal = settings.arguments as FoalRecord;
+        } else if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          foal = map['foal'] as FoalRecord?;
+          initialMareId = (map['damMareId'] as String?) ?? (map['mareId'] as String?);
+          initialStallion = (map['stallion'] as String?) ?? (map['stallionName'] as String?);
+        }
         return MaterialPageRoute(
-          builder: (_) => FoalDetailsScreen(foal: foal),
+          builder: (_) => FoalDetailsScreen(
+            foal: foal,
+            initialMareId: initialMareId,
+            initialStallion: initialStallion,
+          ),
           settings: settings,
         );
 
       case '/congratulations':
-        final species = (settings.arguments as String?) ?? 'Equine';
+        String species = 'Equine';
+        String? damMareId;
+        String? stallion;
+        if (settings.arguments is String) {
+          species = settings.arguments as String;
+        } else if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          species = (map['species'] as String?) ?? 'Equine';
+          damMareId = (map['damMareId'] as String?) ?? (map['mareId'] as String?);
+          stallion = (map['stallion'] as String?) ?? (map['stallionName'] as String?);
+        }
         return MaterialPageRoute(
-          builder: (_) => CongratulationsScreen(species: species),
+          builder: (_) => CongratulationsScreen(
+            species: species,
+            damMareId: damMareId,
+            stallionName: stallion,
+          ),
           settings: settings,
         );
 
