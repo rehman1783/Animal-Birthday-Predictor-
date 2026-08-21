@@ -8,6 +8,7 @@ class SpeciesSelectCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final Widget? customIcon;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -17,6 +18,7 @@ class SpeciesSelectCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.customIcon,
     this.isSelected = false,
     required this.onTap,
   });
@@ -58,10 +60,13 @@ class SpeciesSelectCard extends StatelessWidget {
                   color: isSelected ? AppColors.primaryGold : AppColors.surface,
                 ),
               ),
-              child: Icon(
-                icon,
-                color: isSelected ? AppColors.background : AppColors.primaryGold,
-                size: 26,
+              child: Center(
+                child: customIcon ??
+                    Icon(
+                      icon,
+                      color: isSelected ? AppColors.background : AppColors.primaryGold,
+                      size: 26,
+                    ),
               ),
             ),
             const SizedBox(width: 16),

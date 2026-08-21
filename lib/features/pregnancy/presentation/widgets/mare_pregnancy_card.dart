@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../animals/domain/animal.dart';
 import '../providers/pregnancy_provider.dart';
 
@@ -120,7 +121,7 @@ class MarePregnancyCard extends ConsumerWidget {
                         border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.6)),
                       ),
                       child: const Center(
-                        child: Icon(Icons.pets_rounded, color: AppColors.primaryGold, size: 22),
+                        child: HorseshoeIcon(size: 22, color: AppColors.primaryGold),
                       ),
                     ),
                     const SizedBox(width: 12),

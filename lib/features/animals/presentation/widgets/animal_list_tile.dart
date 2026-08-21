@@ -54,6 +54,11 @@ class AnimalListTile extends StatelessWidget {
             AppThumbnailAvatar(
               imagePath: animal.photoUrl,
               fallbackIcon: _getSpeciesIcon(animal.species),
+              customFallback: animal.species == 'horse'
+                  ? const HorseshoeIcon(size: 24, color: AppColors.primaryGold)
+                  : animal.species == 'dog'
+                      ? const Icon(Icons.pets, size: 24, color: AppColors.primaryGold)
+                      : null,
               size: 50,
               iconSize: 24,
             ),

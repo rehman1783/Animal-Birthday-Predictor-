@@ -9,6 +9,7 @@ import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/domain/animal.dart';
@@ -516,8 +517,13 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton(
+                            child: OutlinedButton.icon(
                               onPressed: () => setState(() => _sex = 'filly'),
+                              icon: HorseshoeIcon(
+                                size: 16,
+                                color: _sex == 'filly' ? AppColors.background : AppColors.primaryGold,
+                              ),
+                              label: const Text('FILLY (FEMALE)', style: TextStyle(fontWeight: FontWeight.bold)),
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: _sex == 'filly' ? AppColors.primaryGold : AppColors.inputField,
                                 foregroundColor: _sex == 'filly' ? AppColors.background : AppColors.textPrimary,
@@ -525,13 +531,17 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              child: const Text('FILLY (FEMALE)', style: TextStyle(fontWeight: FontWeight.bold)),
                             ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: OutlinedButton(
+                            child: OutlinedButton.icon(
                               onPressed: () => setState(() => _sex = 'colt'),
+                              icon: HorseshoeIcon(
+                                size: 16,
+                                color: _sex == 'colt' ? AppColors.background : AppColors.primaryGold,
+                              ),
+                              label: const Text('COLT (MALE)', style: TextStyle(fontWeight: FontWeight.bold)),
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: _sex == 'colt' ? AppColors.primaryGold : AppColors.inputField,
                                 foregroundColor: _sex == 'colt' ? AppColors.background : AppColors.textPrimary,
@@ -539,7 +549,6 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              child: const Text('COLT (MALE)', style: TextStyle(fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],
@@ -596,7 +605,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.pets, color: AppColors.primaryGold, size: 24),
+                          const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -653,7 +662,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.favorite_border_rounded, color: AppColors.primaryGold, size: 24),
+                          const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(

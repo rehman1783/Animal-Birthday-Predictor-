@@ -65,7 +65,7 @@ class _PuppyListScreenState extends ConsumerState<PuppyListScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
                           ),
-                          child: const Icon(Icons.bedroom_baby_outlined, size: 36, color: AppColors.primaryGold),
+                          child: const Icon(Icons.pets, size: 36, color: AppColors.primaryGold),
                         ),
                         const SizedBox(height: 20),
                         Text(

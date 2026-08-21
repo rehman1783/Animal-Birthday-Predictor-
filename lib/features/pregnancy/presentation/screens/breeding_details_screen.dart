@@ -11,6 +11,7 @@ import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/utils/app_uuid.dart';
@@ -391,7 +392,9 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                             color: AppColors.inputField,
                             border: Border.all(color: AppColors.primaryGold),
                           ),
-                          child: const Icon(Icons.pets, color: AppColors.primaryGold, size: 24),
+                          child: const Center(
+                            child: HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                          ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -441,7 +444,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                           setState(() => _stallionController.text = chosen.name);
                         }
                       },
-                      icon: const Icon(Icons.pets, size: 14, color: AppColors.primaryGold),
+                      icon: const HorseshoeIcon(size: 14, color: AppColors.primaryGold),
                       label: const Text('Pick Saved', style: TextStyle(color: AppColors.primaryGold, fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ],
@@ -452,7 +455,6 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                   label: 'Stallion Name / Stud (Optional)',
                   hintText: 'e.g. Northern Dancer (External Stud or Saved)',
                   controller: _stallionController,
-                  prefixIcon: Icons.pets_outlined,
                 ),
                 const SizedBox(height: 24.0),
 
@@ -582,7 +584,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.favorite_border_rounded, color: AppColors.primaryGold, size: 24),
+                          const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(

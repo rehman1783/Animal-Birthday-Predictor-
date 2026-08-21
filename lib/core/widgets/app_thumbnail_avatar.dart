@@ -7,6 +7,7 @@ import '../constants/app_colors.dart';
 class AppThumbnailAvatar extends StatelessWidget {
   final String? imagePath;
   final IconData fallbackIcon;
+  final Widget? customFallback;
   final double size;
   final double iconSize;
   final double borderRadius;
@@ -16,6 +17,7 @@ class AppThumbnailAvatar extends StatelessWidget {
     super.key,
     required this.imagePath,
     this.fallbackIcon = Icons.pets,
+    this.customFallback,
     this.size = 50,
     this.iconSize = 24,
     this.borderRadius = 8,
@@ -25,7 +27,7 @@ class AppThumbnailAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget fallbackWidget = Center(
-      child: Icon(fallbackIcon, color: AppColors.primaryGold, size: iconSize),
+      child: customFallback ?? Icon(fallbackIcon, color: AppColors.primaryGold, size: iconSize),
     );
 
     Widget content;

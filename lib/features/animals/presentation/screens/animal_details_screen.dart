@@ -12,6 +12,7 @@ import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/animal.dart';
@@ -457,11 +458,17 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(
-                                          sp.$3,
-                                          size: 18,
-                                          color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
-                                        ),
+                                        if (sp.$1 == 'horse')
+                                          HorseshoeIcon(
+                                            size: 18,
+                                            color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                          )
+                                        else
+                                          Icon(
+                                            sp.$3,
+                                            size: 18,
+                                            color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                          ),
                                         const SizedBox(height: 4),
                                         Text(
                                           sp.$1.toUpperCase(),
@@ -493,9 +500,9 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                         Row(
                           children: [
                             for (final hOpt in const [
-                              ('mare', 'MARE', 'Female / Dam', Icons.female),
-                              ('stallion', 'STALLION', 'Male / Stud', Icons.male),
-                              ('gelding', 'GELDING', 'Castrated', Icons.pets_outlined),
+                              ('mare', 'MARE', 'Female / Dam'),
+                              ('stallion', 'STALLION', 'Male / Stud'),
+                              ('gelding', 'GELDING', 'Castrated'),
                             ])
                               Expanded(
                                 child: Padding(
@@ -518,9 +525,8 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(
-                                            hOpt.$4,
-                                            size: 20,
+                                          HorseshoeIcon(
+                                            size: 18,
                                             color: _selectedSex == hOpt.$1 ? AppColors.primaryGold : AppColors.textSecondary,
                                           ),
                                           const SizedBox(height: 5),
@@ -567,9 +573,17 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            for (final gOpt in const [
-                              ('female', 'FEMALE', Icons.female),
-                              ('male', 'MALE', Icons.male),
+                            for (final gOpt in [
+                              (
+                                'female',
+                                _currentSpecies == 'dog' ? 'DAM / BITCH' : 'FEMALE',
+                                _currentSpecies == 'dog' ? Icons.pets : Icons.female,
+                              ),
+                              (
+                                'male',
+                                _currentSpecies == 'dog' ? 'STUD / DOG' : 'MALE',
+                                _currentSpecies == 'dog' ? Icons.pets : Icons.male,
+                              ),
                             ])
                               Expanded(
                                 child: Padding(
@@ -594,17 +608,20 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                                         children: [
                                           Icon(
                                             gOpt.$3,
-                                            size: 20,
+                                            size: 18,
                                             color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.textSecondary,
                                           ),
                                           const SizedBox(width: 8),
-                                          Text(
-                                            gOpt.$2,
-                                            style: TextStyle(
-                                              fontSize: 14.5,
-                                              fontWeight: FontWeight.bold,
-                                              color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.textPrimary,
-                                              letterSpacing: 0.5,
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              gOpt.$2,
+                                              style: TextStyle(
+                                                fontSize: 13.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.textPrimary,
+                                                letterSpacing: 0.5,
+                                              ),
                                             ),
                                           ),
                                         ],

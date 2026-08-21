@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
 import 'animal_list_tile.dart';
@@ -137,7 +138,9 @@ class _SelectOrAddAnimalSheetState extends ConsumerState<_SelectOrAddAnimalSheet
                   Navigator.pop(context, createdAnimal);
                 }
               },
-              icon: const Icon(Icons.add_circle_outline, color: AppColors.primaryGold),
+              icon: widget.species == 'horse'
+                  ? const HorseshoeIcon(size: 16, color: AppColors.primaryGold)
+                  : const Icon(Icons.pets, color: AppColors.primaryGold, size: 16),
               label: Text(
                 () {
                   if (widget.requiredSex != null) {

@@ -12,6 +12,7 @@ import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
 import '../providers/mare_provider.dart';
@@ -222,6 +223,11 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                       AppThumbnailAvatar(
                         imagePath: _currentAnimal.photoUrl,
                         fallbackIcon: _getSpeciesIcon(_currentAnimal.species),
+                        customFallback: isHorse
+                            ? const HorseshoeIcon(size: 44, color: AppColors.primaryGold)
+                            : isDog
+                                ? const Icon(Icons.pets, size: 44, color: AppColors.primaryGold)
+                                : null,
                         size: 96,
                         iconSize: 44,
                       ),
@@ -246,11 +252,24 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                         children: [
                           _buildBadge(
                             label: _currentAnimal.species.toUpperCase(),
+                            customIcon: isHorse
+                                ? const HorseshoeIcon(size: 13, color: AppColors.primaryGold)
+                                : isDog
+                                    ? const Icon(Icons.pets, size: 13, color: AppColors.primaryGold)
+                                    : null,
                             icon: _getSpeciesIcon(_currentAnimal.species),
                             isGold: true,
                           ),
                           _buildBadge(
                             label: _currentAnimal.displaySex.toUpperCase(),
+                            customIcon: isHorse
+                                ? HorseshoeIcon(
+                                    size: 13,
+                                    color: _currentAnimal.isStallion ? Colors.lightBlueAccent : AppColors.primaryGold,
+                                  )
+                                : isDog
+                                    ? const Icon(Icons.pets, size: 13, color: AppColors.primaryGold)
+                                    : null,
                             icon: _currentAnimal.isStallion ? Icons.male : Icons.female,
                             isGold: false,
                           ),
@@ -1230,7 +1249,12 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
     );
   }
 
-  Widget _buildBadge({required String label, required IconData icon, bool isGold = false}) {
+  Widget _buildBadge({
+    required String label,
+    IconData? icon,
+    Widget? customIcon,
+    bool isGold = false,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -1243,7 +1267,10 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: isGold ? AppColors.primaryGold : AppColors.textSecondary),
+          if (customIcon != null)
+            customIcon
+          else if (icon != null)
+            Icon(icon, size: 13, color: isGold ? AppColors.primaryGold : AppColors.textSecondary),
           const SizedBox(width: 4),
           Flexible(
             child: Text(

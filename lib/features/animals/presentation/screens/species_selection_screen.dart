@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../providers/animal_provider.dart';
@@ -100,12 +101,19 @@ class _SpeciesSelectionScreenState extends ConsumerState<SpeciesSelectionScreen>
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final item = _speciesList[index];
+                    final isSel = _selectedSpecies == item.key;
                     return SpeciesSelectCard(
                       speciesKey: item.key,
                       title: item.title,
                       subtitle: item.subtitle,
                       icon: item.icon,
-                      isSelected: _selectedSpecies == item.key,
+                      customIcon: item.key == 'horse'
+                          ? HorseshoeIcon(
+                              size: 26,
+                              color: isSel ? AppColors.background : AppColors.primaryGold,
+                            )
+                          : null,
+                      isSelected: isSel,
                       onTap: () => setState(() => _selectedSpecies = item.key),
                     );
                   },
