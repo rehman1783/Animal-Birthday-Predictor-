@@ -7,6 +7,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
@@ -111,12 +112,25 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
           indicatorColor: AppColors.primaryGold,
           labelColor: AppColors.primaryGold,
           unselectedLabelColor: AppColors.textMuted,
-          labelStyle: AppTypography.buttonLabel.copyWith(fontSize: 12),
+          labelStyle: AppTypography.buttonLabel.copyWith(fontSize: 11),
+          isScrollable: true,
           tabs: const [
-            Tab(text: 'HORSES'),
-            Tab(text: 'DOGS'),
-            Tab(text: 'CATS'),
-            Tab(text: 'OTHER'),
+            Tab(
+              icon: HorseshoeIcon(size: 14, color: AppColors.primaryGold),
+              text: 'MARES & HORSES',
+            ),
+            Tab(
+              icon: Icon(Icons.pets, size: 15, color: AppColors.primaryGold),
+              text: 'DAMS/BITCHES & DOGS',
+            ),
+            Tab(
+              icon: Icon(Icons.cruelty_free, size: 15),
+              text: 'CATS',
+            ),
+            Tab(
+              icon: Icon(Icons.category_outlined, size: 15),
+              text: 'OTHER',
+            ),
           ],
         ),
       ),
@@ -170,6 +184,7 @@ class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
             .toList();
 
         final isHorseTab = widget.species.toLowerCase() == 'horse';
+        final isDogTab = widget.species.toLowerCase() == 'dog';
         
         List<Animal> displayedAnimals = speciesAnimals;
         if (isHorseTab) {
@@ -177,6 +192,12 @@ class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
             displayedAnimals = speciesAnimals.where((a) => a.isMare).toList();
           } else if (_selectedSubFilter == 'stallions') {
             displayedAnimals = speciesAnimals.where((a) => a.isStallion).toList();
+          }
+        } else if (isDogTab) {
+          if (_selectedSubFilter == 'dams') {
+            displayedAnimals = speciesAnimals.where((a) => a.isDamOrBitch).toList();
+          } else if (_selectedSubFilter == 'studs') {
+            displayedAnimals = speciesAnimals.where((a) => a.isStudOrDog).toList();
           }
         }
 
@@ -196,25 +217,27 @@ class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
                       ),
-                      child: const Icon(Icons.pets, size: 36, color: AppColors.primaryGold),
+                      child: isHorseTab
+                          ? const Center(child: HorseshoeIcon(size: 32, color: AppColors.primaryGold))
+                          : const Icon(Icons.pets, size: 36, color: AppColors.primaryGold),
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'No ${widget.species.toUpperCase()}s Registered',
+                      'No ${isHorseTab ? "Horses / Mares" : isDogTab ? "Dams / Dogs" : "${widget.species.toUpperCase()}s"} Registered',
                       style: AppTypography.displayHeadline.copyWith(fontSize: 20),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Register your ${widget.species.toLowerCase()}s in the registry and view their complete profile, breeding history, and health logs.',
+                      'Register your ${isHorseTab ? "mares & horses" : isDogTab ? "dams/bitches & dogs" : widget.species.toLowerCase()} in the registry and view their complete profile, breeding history, and health logs.',
                       style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
-                      width: 220,
+                      width: 240,
                       child: GradientCtaButton(
-                        text: '+ Add ${widget.species.toUpperCase()}',
+                        text: '+ Add ${isHorseTab ? "Mare / Horse" : isDogTab ? "Dam / Dog" : widget.species.toUpperCase()}',
                         onPressed: () async {
                           final result = await Navigator.pushNamed(
                             context,
@@ -237,6 +260,8 @@ class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
 
         final mareCount = speciesAnimals.where((a) => a.isMare).length;
         final stallionCount = speciesAnimals.where((a) => a.isStallion).length;
+        final damCount = speciesAnimals.where((a) => a.isDamOrBitch).length;
+        final studCount = speciesAnimals.where((a) => a.isStudOrDog).length;
 
         return RefreshIndicator(
           color: AppColors.primaryGold,
@@ -269,11 +294,7 @@ class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
                         ),
                         const SizedBox(width: 8),
                         ChoiceChip(
-                          avatar: Icon(
-                            Icons.female,
-                            size: 14,
-                            color: _selectedSubFilter == 'mares' ? AppColors.background : AppColors.primaryGold,
-                          ),
+                          avatar: const HorseshoeIcon(size: 13, color: AppColors.background),
                           label: Text('MARES ($mareCount)'),
                           selected: _selectedSubFilter == 'mares',
                           selectedColor: AppColors.primaryGold,
@@ -287,11 +308,7 @@ class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
                         ),
                         const SizedBox(width: 8),
                         ChoiceChip(
-                          avatar: Icon(
-                            Icons.male,
-                            size: 14,
-                            color: _selectedSubFilter == 'stallions' ? AppColors.background : AppColors.primaryGold,
-                          ),
+                          avatar: const HorseshoeIcon(size: 13, color: AppColors.background),
                           label: Text('STALLIONS ($stallionCount)'),
                           selected: _selectedSubFilter == 'stallions',
                           selectedColor: AppColors.primaryGold,
@@ -302,6 +319,55 @@ class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
                             fontWeight: FontWeight.bold,
                           ),
                           onSelected: (_) => setState(() => _selectedSubFilter = 'stallions'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (isDogTab) ...[
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        ChoiceChip(
+                          label: Text('ALL (${speciesAnimals.length})'),
+                          selected: _selectedSubFilter == 'all',
+                          selectedColor: AppColors.primaryGold,
+                          backgroundColor: AppColors.surface,
+                          labelStyle: TextStyle(
+                            color: _selectedSubFilter == 'all' ? AppColors.background : AppColors.textPrimary,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          onSelected: (_) => setState(() => _selectedSubFilter = 'all'),
+                        ),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          avatar: const Icon(Icons.pets, size: 13),
+                          label: Text('DAMS / BITCHES ($damCount)'),
+                          selected: _selectedSubFilter == 'dams',
+                          selectedColor: AppColors.primaryGold,
+                          backgroundColor: AppColors.surface,
+                          labelStyle: TextStyle(
+                            color: _selectedSubFilter == 'dams' ? AppColors.background : AppColors.textPrimary,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          onSelected: (_) => setState(() => _selectedSubFilter = 'dams'),
+                        ),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          avatar: const Icon(Icons.pets, size: 13),
+                          label: Text('STUDS / MALES ($studCount)'),
+                          selected: _selectedSubFilter == 'studs',
+                          selectedColor: AppColors.primaryGold,
+                          backgroundColor: AppColors.surface,
+                          labelStyle: TextStyle(
+                            color: _selectedSubFilter == 'studs' ? AppColors.background : AppColors.textPrimary,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          onSelected: (_) => setState(() => _selectedSubFilter = 'studs'),
                         ),
                       ],
                     ),

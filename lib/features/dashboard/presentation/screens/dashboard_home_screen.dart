@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
@@ -87,40 +88,16 @@ class DashboardHomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24.0),
 
-                // 2. Overview Stats Cards Grid (Horses, Foals, Dogs/Puppies, Contacts)
+                // 2. EQUINE SUITE (SAVED MARES + FOAL RECORDS)
                 Row(
                   children: [
+                    const HorseshoeIcon(size: 16, color: AppColors.primaryGold),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: horsesAsync.when(
-                        data: (horses) => _StatCard(
-                          title: 'Saved Horses',
-                          count: '${horses.length}',
-                          icon: Icons.pets,
-                          accentColor: AppColors.primaryGold,
-                          onTap: () {
-                            ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'horse');
-                            onNavigateTab?.call(1);
-                          },
-                        ),
-                        loading: () => const _StatCard(title: 'Saved Horses', count: '...', icon: Icons.pets, accentColor: AppColors.primaryGold),
-                        error: (err, stack) => const _StatCard(title: 'Saved Horses', count: '0', icon: Icons.pets, accentColor: AppColors.primaryGold),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: foalsAsync.when(
-                        data: (foals) => _StatCard(
-                          title: 'Foal Records',
-                          count: '${foals.length}',
-                          icon: Icons.child_care,
-                          accentColor: AppColors.primaryGold,
-                          onTap: () {
-                            ref.read(mainNavigationProvider.notifier).setTab(3, category: 'foals');
-                            onNavigateTab?.call(3);
-                          },
-                        ),
-                        loading: () => const _StatCard(title: 'Foal Records', count: '...', icon: Icons.child_care, accentColor: AppColors.primaryGold),
-                        error: (err, stack) => const _StatCard(title: 'Foal Records', count: '0', icon: Icons.child_care, accentColor: AppColors.primaryGold),
+                      child: Text(
+                        'EQUINE SUITE — MARES & FOALS',
+                        style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -130,61 +107,64 @@ class DashboardHomeScreen extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: puppiesAsync.when(
-                        data: (puppies) => _StatCard(
-                          title: 'Puppy Registry',
-                          count: '${puppies.length}',
-                          icon: Icons.bedroom_baby_outlined,
+                      child: horsesAsync.when(
+                        data: (horses) => _StatCard(
+                          title: 'Saved Mares / Horses',
+                          count: '${horses.length}',
+                          customIcon: const HorseshoeIcon(size: 22, color: AppColors.primaryGold),
                           accentColor: AppColors.primaryGold,
                           onTap: () {
-                            ref.read(mainNavigationProvider.notifier).setTab(3, category: 'puppies');
-                            onNavigateTab?.call(3);
+                            ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'horse');
+                            onNavigateTab?.call(1);
                           },
                         ),
-                        loading: () => const _StatCard(title: 'Puppy Registry', count: '...', icon: Icons.bedroom_baby_outlined, accentColor: AppColors.primaryGold),
-                        error: (err, stack) => const _StatCard(title: 'Puppy Registry', count: '0', icon: Icons.bedroom_baby_outlined, accentColor: AppColors.primaryGold),
+                        loading: () => const _StatCard(
+                          title: 'Saved Mares / Horses',
+                          count: '...',
+                          customIcon: HorseshoeIcon(size: 22, color: AppColors.primaryGold),
+                          accentColor: AppColors.primaryGold,
+                        ),
+                        error: (err, stack) => const _StatCard(
+                          title: 'Saved Mares / Horses',
+                          count: '0',
+                          customIcon: HorseshoeIcon(size: 22, color: AppColors.primaryGold),
+                          accentColor: AppColors.primaryGold,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: contactsAsync.when(
-                        data: (contacts) => _StatCard(
-                          title: 'Contacts Directory',
-                          count: '${contacts.length}',
-                          icon: Icons.contacts_outlined,
+                      child: foalsAsync.when(
+                        data: (foals) => _StatCard(
+                          title: 'Foal Records',
+                          count: '${foals.length}',
+                          customIcon: const HorseshoeIcon(size: 22, color: AppColors.primaryGold),
                           accentColor: AppColors.primaryGold,
-                          onTap: () => Navigator.pushNamed(context, '/contacts'),
+                          onTap: () {
+                            ref.read(mainNavigationProvider.notifier).setTab(3, category: 'foals');
+                            onNavigateTab?.call(3);
+                          },
                         ),
-                        loading: () => const _StatCard(title: 'Contacts Directory', count: '...', icon: Icons.contacts_outlined, accentColor: AppColors.primaryGold),
-                        error: (err, stack) => const _StatCard(title: 'Contacts Directory', count: '0', icon: Icons.contacts_outlined, accentColor: AppColors.primaryGold),
+                        loading: () => const _StatCard(
+                          title: 'Foal Records',
+                          count: '...',
+                          customIcon: HorseshoeIcon(size: 22, color: AppColors.primaryGold),
+                          accentColor: AppColors.primaryGold,
+                        ),
+                        error: (err, stack) => const _StatCard(
+                          title: 'Foal Records',
+                          count: '0',
+                          customIcon: HorseshoeIcon(size: 22, color: AppColors.primaryGold),
+                          accentColor: AppColors.primaryGold,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 28.0),
-
-                // 3. Primary Quick Actions
-                const SectionDividerLabel(label: 'CORE WORKFLOWS'),
-                const SizedBox(height: 14.0),
+                const SizedBox(height: 10.0),
 
                 Row(
                   children: [
-                    Expanded(
-                      child: GradientCtaButton(
-                        text: '+ Add Animal',
-                        onPressed: () async {
-                          final newAnimal = await Navigator.pushNamed(context, '/species-select');
-                          ref.invalidate(animalsListProvider(null));
-                          ref.invalidate(animalsListProvider('horse'));
-                          ref.invalidate(animalsListProvider('dog'));
-                          if (newAnimal != null && context.mounted) {
-                            ref.read(mainNavigationProvider.notifier).setTab(1);
-                            onNavigateTab?.call(1);
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
                     Expanded(
                       child: GradientCtaButton(
                         text: '+ Record Breeding',
@@ -195,12 +175,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                         },
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12.0),
-
-                Row(
-                  children: [
+                    const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () async {
@@ -211,7 +186,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                             onNavigateTab?.call(3);
                           }
                         },
-                        icon: const Icon(Icons.child_care, color: AppColors.primaryGold, size: 16),
+                        icon: const HorseshoeIcon(size: 14, color: AppColors.primaryGold),
                         label: const FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
@@ -226,9 +201,90 @@ class DashboardHomeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                  ],
+                ),
+                const SizedBox(height: 24.0),
+
+                // 3. CANINE SUITE (DAMS/BITCHES + PUPPY RECORDS)
+                Row(
+                  children: [
+                    const Icon(Icons.pets, size: 16, color: AppColors.primaryGold),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: OutlinedButton.icon(
+                      child: Text(
+                        'CANINE SUITE — DAMS/BITCHES & PUPPIES',
+                        style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: ref.watch(animalsListProvider('dog')).when(
+                        data: (dogs) => _StatCard(
+                          title: 'Dams / Bitches & Dogs',
+                          count: '${dogs.length}',
+                          icon: Icons.pets,
+                          accentColor: AppColors.primaryGold,
+                          onTap: () {
+                            ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'dog');
+                            onNavigateTab?.call(1);
+                          },
+                        ),
+                        loading: () => const _StatCard(
+                          title: 'Dams / Bitches & Dogs',
+                          count: '...',
+                          icon: Icons.pets,
+                          accentColor: AppColors.primaryGold,
+                        ),
+                        error: (err, stack) => const _StatCard(
+                          title: 'Dams / Bitches & Dogs',
+                          count: '0',
+                          icon: Icons.pets,
+                          accentColor: AppColors.primaryGold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: puppiesAsync.when(
+                        data: (puppies) => _StatCard(
+                          title: 'Puppy Records',
+                          count: '${puppies.length}',
+                          icon: Icons.pets,
+                          accentColor: AppColors.primaryGold,
+                          onTap: () {
+                            ref.read(mainNavigationProvider.notifier).setTab(3, category: 'puppies');
+                            onNavigateTab?.call(3);
+                          },
+                        ),
+                        loading: () => const _StatCard(
+                          title: 'Puppy Records',
+                          count: '...',
+                          icon: Icons.pets,
+                          accentColor: AppColors.primaryGold,
+                        ),
+                        error: (err, stack) => const _StatCard(
+                          title: 'Puppy Records',
+                          count: '0',
+                          icon: Icons.pets,
+                          accentColor: AppColors.primaryGold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10.0),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: GradientCtaButton(
+                        text: '+ New Puppy',
                         onPressed: () async {
                           final newPuppy = await Navigator.pushNamed(context, '/puppy-details');
                           ref.invalidate(puppiesListProvider(null));
@@ -237,11 +293,22 @@ class DashboardHomeScreen extends ConsumerWidget {
                             onNavigateTab?.call(3);
                           }
                         },
-                        icon: const Icon(Icons.bedroom_baby_outlined, color: AppColors.primaryGold, size: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          await Navigator.pushNamed(context, '/dog-preventative-care', arguments: {
+                            'ownerType': 'general_canine',
+                            'title': 'Canine Health & Vaccines',
+                          });
+                        },
+                        icon: const Icon(Icons.pets, color: AppColors.primaryGold, size: 14),
                         label: const FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            '+ NEW PUPPY',
+                            'CANINE HEALTH',
                             style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
                           ),
                         ),
@@ -254,21 +321,31 @@ class DashboardHomeScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12.0),
+                const SizedBox(height: 24.0),
+
+                // 4. DIRECTORY & REGISTRY
+                const SectionDividerLabel(label: 'DIRECTORY & REGISTRY'),
+                const SizedBox(height: 14.0),
 
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          ref.read(mainNavigationProvider.notifier).setTab(1);
-                          onNavigateTab?.call(1);
+                        onPressed: () async {
+                          final newAnimal = await Navigator.pushNamed(context, '/species-select');
+                          ref.invalidate(animalsListProvider(null));
+                          ref.invalidate(animalsListProvider('horse'));
+                          ref.invalidate(animalsListProvider('dog'));
+                          if (newAnimal != null && context.mounted) {
+                            ref.read(mainNavigationProvider.notifier).setTab(1);
+                            onNavigateTab?.call(1);
+                          }
                         },
-                        icon: const Icon(Icons.list_alt, color: AppColors.primaryGold, size: 16),
+                        icon: const Icon(Icons.add, color: AppColors.primaryGold, size: 16),
                         label: const FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            'SAVED ANIMALS',
+                            '+ ADD ANIMAL',
                             style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 11.5),
                           ),
                         ),
@@ -350,15 +427,17 @@ class DashboardHomeScreen extends ConsumerWidget {
 class _StatCard extends StatelessWidget {
   final String title;
   final String count;
-  final IconData icon;
+  final IconData? icon;
+  final Widget? customIcon;
   final Color accentColor;
   final VoidCallback? onTap;
 
   const _StatCard({
     required this.title,
     required this.count,
-    required this.icon,
-    required this.accentColor,
+    this.icon,
+    this.customIcon,
+    this.accentColor = AppColors.primaryGold,
     this.onTap,
   });
 
@@ -379,7 +458,10 @@ class _StatCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, color: accentColor, size: 22),
+                if (customIcon != null)
+                  customIcon!
+                else if (icon != null)
+                  Icon(icon, color: accentColor, size: 22),
                 if (onTap != null)
                   const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 12),
               ],

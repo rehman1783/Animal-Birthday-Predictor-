@@ -53,14 +53,31 @@ class Animal {
     return s == 'gelding';
   }
 
+  bool get isDamOrBitch {
+    if (species != 'dog') return false;
+    final s = sex?.toLowerCase().trim();
+    if (s == null || s.isEmpty) return true;
+    return s == 'dam' || s == 'bitch' || s == 'female';
+  }
+
+  bool get isStudOrDog {
+    if (species != 'dog') return false;
+    final s = sex?.toLowerCase().trim();
+    if (s == null) return false;
+    return s == 'stud' || s == 'sire' || s == 'male' || s == 'dog';
+  }
+
   String get displaySex {
     if (species == 'horse') {
       if (isStallion) return 'Stallion';
       if (isGelding) return 'Gelding';
       return 'Mare';
+    } else if (species == 'dog') {
+      if (isStudOrDog) return 'Stud (Male)';
+      return 'Dam / Bitch';
     } else {
       final s = sex?.toLowerCase().trim();
-      return (s == 'male' || s == 'dog' || s == 'tom') ? 'Male' : 'Female';
+      return (s == 'male' || s == 'tom') ? 'Male' : 'Female';
     }
   }
 

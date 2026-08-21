@@ -26,13 +26,29 @@ class OnboardingScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Hero Image Graphic Header
-              Image.asset(
-                'assets/images/onboarding_hero_full_header.png',
+              // 1. Hero Image Graphic Header (Official ABP Calendar Dial & Animal Logo)
+              Container(
                 width: double.infinity,
-                fit: BoxFit.fitWidth,
-                errorBuilder: (context, error, stackTrace) =>
-                    Container(height: 300, color: AppColors.surface),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+                decoration: const BoxDecoration(
+                  color: AppColors.background,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    'assets/images/abp_official_logo.jpg',
+                    width: double.infinity,
+                    height: 320,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      'assets/images/onboarding_hero_full_header.png',
+                      width: double.infinity,
+                      fit: BoxFit.fitWidth,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Container(height: 300, color: AppColors.surface),
+                    ),
+                  ),
+                ),
               ),
 
               // 2. Body Section below Hero

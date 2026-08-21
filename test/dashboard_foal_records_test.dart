@@ -95,12 +95,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
-      expect(find.text('FOALS'), findsOneWidget);
-      expect(find.text('PUPPIES'), findsOneWidget);
+      expect(find.text('FOALS (EQUINE)'), findsOneWidget);
+      expect(find.text('PUPPIES (CANINE)'), findsOneWidget);
       expect(find.text('+ REGISTER NEW FOAL'), findsOneWidget);
 
       // Switch to PUPPIES tab
-      await tester.tap(find.text('PUPPIES'));
+      await tester.tap(find.text('PUPPIES (CANINE)'));
       await tester.pumpAndSettle();
 
       expect(find.text('+ REGISTER NEW PUPPY'), findsOneWidget);
@@ -122,7 +122,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
-      expect(find.text('FOALS'), findsOneWidget);
+      expect(find.text('FOALS (EQUINE)'), findsOneWidget);
     });
 
     testWidgets('Pressing system back on non-dashboard tab in MainNavigationScreen navigates to Dashboard', (tester) async {

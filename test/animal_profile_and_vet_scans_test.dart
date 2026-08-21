@@ -182,16 +182,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('HORSES'), findsOneWidget);
-      expect(find.text('DOGS'), findsOneWidget);
+      expect(find.text('MARES & HORSES'), findsOneWidget);
+      expect(find.text('DAMS/BITCHES & DOGS'), findsOneWidget);
       expect(find.text('CATS'), findsOneWidget);
       expect(find.text('OTHER'), findsOneWidget);
 
       // Tap DOGS tab
-      await tester.tap(find.text('DOGS'));
+      await tester.tap(find.text('DAMS/BITCHES & DOGS'));
       await tester.pumpAndSettle();
 
-      expect(find.text('No DOGs Registered'), findsOneWidget);
+      expect(find.text('No Dams / Dogs Registered'), findsOneWidget);
     });
 
     testWidgets('SavedAnimalsScreen strictly isolates horses and dogs into their respective tabs', (tester) async {
@@ -238,7 +238,7 @@ void main() {
       expect(find.text('Bella Golden'), findsNothing);
 
       // Switch to Dogs tab:
-      await tester.tap(find.text('DOGS'));
+      await tester.tap(find.text('DAMS/BITCHES & DOGS'));
       await tester.pumpAndSettle();
 
       expect(find.text('Bella Golden'), findsOneWidget);

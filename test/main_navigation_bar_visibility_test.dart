@@ -31,7 +31,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap on Saved Horses StatCard
-      final savedHorsesCard = find.text('Saved Horses');
+      final savedHorsesCard = find.text('Saved Mares / Horses');
       expect(savedHorsesCard, findsOneWidget);
       await tester.tap(savedHorsesCard);
       await tester.pumpAndSettle();
@@ -46,7 +46,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap on Puppy Registry StatCard
-      final puppyRegistryCard = find.text('Puppy Registry');
+      final puppyRegistryCard = find.text('Puppy Records');
       expect(puppyRegistryCard, findsOneWidget);
       await tester.tap(puppyRegistryCard);
       await tester.pumpAndSettle();
@@ -89,7 +89,7 @@ void main() {
 
       expect(find.byType(BottomNavigationBar), findsOneWidget);
       expect(find.text('SAVED ANIMALS REGISTRY'), findsOneWidget);
-      expect(find.text('DOGS'), findsOneWidget);
+      expect(find.text('DAMS/BITCHES & DOGS'), findsOneWidget);
     });
 
     testWidgets('Navigating to /pregnancy route opens MainNavigationScreen with BottomNavigationBar', (tester) async {

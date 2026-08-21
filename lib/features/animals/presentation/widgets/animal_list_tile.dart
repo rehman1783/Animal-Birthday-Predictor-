@@ -3,6 +3,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../domain/animal.dart';
 
 class AnimalListTile extends StatelessWidget {
@@ -91,13 +92,25 @@ class AnimalListTile extends StatelessWidget {
                             width: 0.8,
                           ),
                         ),
-                        child: Text(
-                          animal.displaySex.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.bold,
-                            color: animal.isStallion ? Colors.lightBlueAccent : AppColors.primaryGold,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (animal.species == 'horse') ...[
+                              const HorseshoeIcon(size: 11, color: AppColors.primaryGold),
+                              const SizedBox(width: 4),
+                            ] else if (animal.species == 'dog') ...[
+                              const Icon(Icons.pets, size: 11, color: AppColors.primaryGold),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              animal.displaySex.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: animal.isStallion ? Colors.lightBlueAccent : AppColors.primaryGold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       if (animal.breed?.isNotEmpty == true)

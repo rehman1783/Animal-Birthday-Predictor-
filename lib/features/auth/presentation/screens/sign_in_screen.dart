@@ -239,9 +239,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
                     const SizedBox(height: 24.0),
 
-                    // Primary CTA Button: Begin Journey ✦
+                    // Primary CTA Button: Sign In
                     GradientCtaButton(
-                      text: 'Begin Journey ✦',
+                      text: 'Sign In',
                       isLoading: isLoading,
                       onPressed: _handleSignIn,
                     ),
@@ -255,7 +255,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           const Text(
-                            'New to the celestial cycle? ',
+                            'New to Animal BirthDay Predictor? ',
                             style: AppTypography.body,
                           ),
                           GestureDetector(
@@ -263,7 +263,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                               Navigator.pushNamed(context, '/signup');
                             },
                             child: Text(
-                              'Join the Pride →',
+                              'Create Account →',
                               style: AppTypography.body.copyWith(
                                 color: AppColors.primaryGold,
                                 fontWeight: FontWeight.bold,

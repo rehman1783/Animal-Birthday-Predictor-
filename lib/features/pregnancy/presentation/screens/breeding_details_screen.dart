@@ -614,7 +614,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
 
                   CustomTextField(
                     label: 'DAM of Embryo (Genetic Mother) (Optional)',
-                    hintText: 'e.g. Celestial Queen',
+                    hintText: 'e.g. Royal Duchess',
                     controller: _damOfEmbryoController,
                   ),
                   const SizedBox(height: 14.0),

@@ -8,6 +8,7 @@ import 'package:animal_birthday_predictor/core/widgets/app_error_view.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_loading_view.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_thumbnail_avatar.dart';
 import 'package:animal_birthday_predictor/core/widgets/gradient_cta_button.dart';
+import 'package:animal_birthday_predictor/core/widgets/horseshoe_icon.dart';
 import 'package:animal_birthday_predictor/core/widgets/responsive_body.dart';
 import 'package:animal_birthday_predictor/features/foal/domain/foal_record.dart';
 import 'package:animal_birthday_predictor/features/foal/presentation/providers/foal_provider.dart';
@@ -156,12 +157,25 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
           indicatorColor: AppColors.primaryGold,
           labelColor: AppColors.primaryGold,
           unselectedLabelColor: AppColors.textMuted,
-          labelStyle: AppTypography.buttonLabel.copyWith(fontSize: 12),
+          labelStyle: AppTypography.buttonLabel.copyWith(fontSize: 11),
+          isScrollable: true,
           tabs: const [
-            Tab(text: 'FOALS'),
-            Tab(text: 'PUPPIES'),
-            Tab(text: 'KITTENS'),
-            Tab(text: 'OTHER'),
+            Tab(
+              icon: HorseshoeIcon(size: 14, color: AppColors.primaryGold),
+              text: 'FOALS (EQUINE)',
+            ),
+            Tab(
+              icon: Icon(Icons.pets, size: 15, color: AppColors.primaryGold),
+              text: 'PUPPIES (CANINE)',
+            ),
+            Tab(
+              icon: Icon(Icons.cruelty_free, size: 15),
+              text: 'KITTENS',
+            ),
+            Tab(
+              icon: Icon(Icons.category_outlined, size: 15),
+              text: 'OTHER',
+            ),
           ],
         ),
       ),
