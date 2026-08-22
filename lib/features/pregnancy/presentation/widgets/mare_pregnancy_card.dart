@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../../animals/domain/animal.dart';
 import '../providers/pregnancy_provider.dart';
 
@@ -49,21 +50,37 @@ class MarePregnancyCard extends ConsumerWidget {
     final hasBreeding = breeding != null;
     final foalingDueDate = pregnancy?.foalingDueDate;
 
-    // Determine status text & colors
+    final sp = mare.species.toLowerCase().trim();
+    final isHorse = sp == 'horse';
+    final isDog = sp == 'dog';
+    final isCat = sp == 'cat';
+
+    // Determine species-specific status text & colors
     final String statusText;
     final Color statusColor;
     final IconData statusIcon;
+
+    final String pregnantLabel = isHorse
+        ? 'IN FOAL'
+        : (isDog
+            ? 'IN WHELP'
+            : (isCat ? 'PREGNANT QUEEN' : 'PREGNANT'));
+    final String notPregnantLabel = isHorse
+        ? 'NOT IN FOAL'
+        : (isDog
+            ? 'NOT IN WHELP'
+            : 'NOT PREGNANT');
 
     if (isScan3Confirmed) {
       statusText = 'SCAN 3 CONFIRMED • FULL GESTATION';
       statusColor = const Color(0xFF10B981); // Emerald
       statusIcon = Icons.check_circle_rounded;
     } else if (isScan2Confirmed) {
-      statusText = 'SCAN 2 CONFIRMED • IN FOAL (30D)';
+      statusText = 'SCAN 2 CONFIRMED • $pregnantLabel (30D)';
       statusColor = const Color(0xFF10B981);
       statusIcon = Icons.check_circle_rounded;
     } else if (isScan1Confirmed) {
-      statusText = 'SCAN 1 CONFIRMED • PREGNANT (14D)';
+      statusText = 'SCAN 1 CONFIRMED • $pregnantLabel (14D)';
       statusColor = const Color(0xFF10B981);
       statusIcon = Icons.check_circle_rounded;
     } else if (hasBreeding || pregnancy != null) {
@@ -71,10 +88,28 @@ class MarePregnancyCard extends ConsumerWidget {
       statusColor = const Color(0xFFF59E0B); // Amber
       statusIcon = Icons.pending_actions_rounded;
     } else {
-      statusText = 'READY FOR BREEDING • NOT IN FOAL';
+      statusText = 'READY FOR BREEDING • $notPregnantLabel';
       statusColor = AppColors.textMuted;
       statusIcon = Icons.favorite_border_rounded;
     }
+
+    final String defaultSpeciesLabel = isHorse
+        ? 'Equine Mare'
+        : (isDog
+            ? 'Canine Dam/Bitch'
+            : (isCat ? 'Feline Queen' : 'Breeding Female'));
+
+    final String dueDateTitle = isHorse
+        ? 'FINAL FOALING DUE DATE'
+        : (isDog
+            ? 'FINAL WHELPING DUE DATE'
+            : (isCat ? 'FINAL QUEENING DUE DATE' : 'FINAL GESTATION DUE DATE'));
+
+    final String sireTitle = isHorse
+        ? 'Stallion / Sire'
+        : (isDog
+            ? 'Stud Dog / Sire'
+            : (isCat ? 'Tom Cat / Sire' : 'Sire'));
 
     final sexDisplay = (mare.sex != null && mare.sex!.isNotEmpty) ? mare.sex!.toUpperCase() : 'FEMALE';
 
@@ -116,7 +151,7 @@ class MarePregnancyCard extends ConsumerWidget {
                     AppThumbnailAvatar(
                       imagePath: mare.photoUrl,
                       species: mare.species,
-                      customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                      customFallback: SpeciesIcon(species: mare.species, size: 24, color: AppColors.primaryGold),
                       size: 48,
                       iconSize: 24,
                       isCircle: true,
@@ -135,9 +170,18 @@ class MarePregnancyCard extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            '${mare.breed ?? "Equine Mare"} • $sexDisplay',
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                          Row(
+                            children: [
+                              SpeciesIcon(species: mare.species, size: 13, color: AppColors.primaryGold),
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: Text(
+                                  '${mare.breed ?? defaultSpeciesLabel} • $sexDisplay',
+                                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                           if (mare.microchipNo != null && mare.microchipNo!.isNotEmpty) ...[
                             const SizedBox(height: 2),
@@ -200,7 +244,7 @@ class MarePregnancyCard extends ConsumerWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Stallion: ${breeding.stallionName?.isNotEmpty == true ? breeding.stallionName! : "Unknown"} • Method: ${breeding.method.toUpperCase()}',
+                            '$sireTitle: ${breeding.stallionName?.isNotEmpty == true ? breeding.stallionName! : "Unknown"} • Method: ${breeding.method.toUpperCase()}',
                             style: AppTypography.bodySmall.copyWith(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.w600,
@@ -224,7 +268,7 @@ class MarePregnancyCard extends ConsumerWidget {
                     const SizedBox(height: 10),
                   ],
 
-                  // Confirmed Foaling Date Banner
+                  // Confirmed Foaling / Due Date Banner
                   if (foalingDueDate != null) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -243,11 +287,11 @@ class MarePregnancyCard extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.calendar_month_rounded, color: AppColors.primaryGold, size: 20),
+                              SpeciesIcon(species: mare.species, color: AppColors.primaryGold, size: 18),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'FINAL FOALING DUE DATE',
+                                  dueDateTitle,
                                   style: AppTypography.displayHeadline.copyWith(
                                     fontSize: 12,
                                     color: AppColors.primaryGold,

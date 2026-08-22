@@ -12,6 +12,7 @@ import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -387,8 +388,8 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                       children: [
                         AppThumbnailAvatar(
                           imagePath: _selectedMare?.photoUrl,
-                          species: 'horse',
-                          customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                          species: _selectedMare?.species ?? 'horse',
+                          customFallback: SpeciesIcon(species: _selectedMare?.species ?? 'horse', size: 24, color: AppColors.primaryGold),
                           size: 48,
                           iconSize: 24,
                           isCircle: true,
@@ -582,13 +583,13 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                       child: Row(
                         children: [
                           AppThumbnailAvatar(
-                          imagePath: _selectedRecipient?.photoUrl,
-                          species: 'horse',
-                          customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
-                          size: 48,
-                          iconSize: 24,
-                          isCircle: true,
-                        ),
+                            imagePath: _selectedRecipient?.photoUrl,
+                            species: _selectedRecipient?.species ?? 'horse',
+                            customFallback: SpeciesIcon(species: _selectedRecipient?.species ?? 'horse', size: 24, color: AppColors.primaryGold),
+                            size: 48,
+                            iconSize: 24,
+                            isCircle: true,
+                          ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(

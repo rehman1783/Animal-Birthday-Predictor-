@@ -54,7 +54,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     final List<Widget> screens = [
       DashboardHomeScreen(onNavigateTab: _onTabTapped),
       SavedAnimalsScreen(initialSpecies: navState.initialSpeciesTab),
-      const PregnancyModuleScreen(),
+      PregnancyModuleScreen(initialSpecies: navState.initialSpeciesTab),
       FoalModuleScreen(initialCategory: navState.initialCategory),
       const ProfileScreen(),
     ];

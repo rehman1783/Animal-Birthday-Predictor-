@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -308,8 +309,8 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                               children: [
                                 AppThumbnailAvatar(
                                   imagePath: carrier?.photoUrl,
-                                  species: 'horse',
-                                  customFallback: const HorseshoeIcon(size: 26, color: AppColors.primaryGold),
+                                  species: carrier?.species ?? 'horse',
+                                  customFallback: SpeciesIcon(species: carrier?.species ?? 'horse', size: 26, color: AppColors.primaryGold),
                                   size: 48,
                                   iconSize: 26,
                                   isCircle: true,
@@ -320,12 +321,12 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        carrier != null ? carrier.name : 'Carrying Mare',
+                                        carrier != null ? carrier.name : 'Breeding Female',
                                         style: AppTypography.displayHeadline.copyWith(fontSize: 18),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'Foaling Due: ${_formatDate(_record?.foalingDueDate)}',
+                                        '${(carrier?.species.toLowerCase() == 'dog') ? 'Whelping' : ((carrier?.species.toLowerCase() == 'cat') ? 'Queening' : 'Foaling')} Due: ${_formatDate(_record?.foalingDueDate)}',
                                         style: AppTypography.bodySmall.copyWith(
                                           color: AppColors.primaryGold,
                                           fontWeight: FontWeight.bold,
