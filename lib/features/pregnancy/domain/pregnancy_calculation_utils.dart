@@ -23,38 +23,46 @@ class CalculatedPregnancyDates {
 CalculatedPregnancyDates calculatePregnancyDates({
   bool isEmbryoTransfer = false,
   String? carrierType,
-  required String method, // 'natural', 'chilled', 'frozen', 'icsi'
-  required DateTime baseDate,
+  required String method, // 'natural', 'chilled', 'frozen', 'et', 'icsi'
+  required DateTime baseDate, // Insemination date if donor mare, or transfer date (Day 7) if recipient mare
 }) {
   final cleanMethod = method.toLowerCase().trim();
   final cleanCarrier = carrierType?.toLowerCase().trim() ?? '';
-  final isET = isEmbryoTransfer || cleanCarrier == 'recipient_mare' || cleanMethod == 'icsi';
+  final isET = isEmbryoTransfer || cleanCarrier == 'recipient_mare' || cleanMethod == 'et' || cleanMethod == 'icsi';
 
   if (isET) {
-    // Embryo Transfer / Recipient Mare / ICSI calculation
+    // Embryo Transfer / Recipient Mare calculation
+    // Transfer occurs at Day 7 post-cover/ovulation.
+    // Scan 1 is at 7 days post-transfer (Day 14 post-ovulation)
+    // Scan 2 is at 23 days post-transfer (Day 30 post-ovulation)
+    // Scan 3 is at 38 days post-transfer (Day 45 post-ovulation)
+    // Foaling due is 334 days post-transfer (341 - 7 = 334d for standard gestation; 333d for frozen/icsi)
+    final isFrozenMethod = cleanMethod == 'frozen' || cleanMethod == 'icsi';
+    final gestationDaysPostTransfer = isFrozenMethod ? 333 : 334;
+
     return CalculatedPregnancyDates(
       scan1DueDate: baseDate.add(const Duration(days: 7)),
-      scan2DueDate: baseDate.add(const Duration(days: 30)),
-      scan3DueDate: baseDate.add(const Duration(days: 45)),
-      foalingDueDate: baseDate.add(const Duration(days: 332)),
+      scan2DueDate: baseDate.add(const Duration(days: 23)),
+      scan3DueDate: baseDate.add(const Duration(days: 38)),
+      foalingDueDate: baseDate.add(Duration(days: gestationDaysPostTransfer)),
     );
   }
 
-  // Donor Mare Frozen calculations
+  // Donor Mare Frozen calculations (340 days, 1 day shorter than natural 341 days)
   if (cleanMethod == 'frozen') {
     return CalculatedPregnancyDates(
       scan1DueDate: baseDate.add(const Duration(days: 14)),
       scan2DueDate: baseDate.add(const Duration(days: 30)),
       scan3DueDate: baseDate.add(const Duration(days: 45)),
-      foalingDueDate: baseDate.add(const Duration(days: 340)), // Frozen is 340 days
+      foalingDueDate: baseDate.add(const Duration(days: 340)),
     );
   }
 
-  // Natural / Chilled calculations
+  // Natural / Chilled calculations (341 days)
   return CalculatedPregnancyDates(
     scan1DueDate: baseDate.add(const Duration(days: 14)),
     scan2DueDate: baseDate.add(const Duration(days: 30)),
     scan3DueDate: baseDate.add(const Duration(days: 45)),
-    foalingDueDate: baseDate.add(const Duration(days: 341)), // Natural/Chilled is 341 days
+    foalingDueDate: baseDate.add(const Duration(days: 341)),
   );
 }

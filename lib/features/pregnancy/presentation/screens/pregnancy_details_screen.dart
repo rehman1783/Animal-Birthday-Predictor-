@@ -496,27 +496,50 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              if (_record != null) {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/advanced-pregnancy',
-                                  arguments: _record!.id,
-                                );
-                              }
+                              Navigator.pushNamed(
+                                context,
+                                '/preventative-care',
+                                arguments: {
+                                  'ownerType': 'animal',
+                                  'ownerId': widget.carrierAnimalId,
+                                  'title': '${carrierAnimalAsync.valueOrNull?.name ?? "Carrier"} - Preventative Care',
+                                },
+                              );
                             },
-                            icon: const Icon(Icons.science_outlined, color: AppColors.primaryGold, size: 16),
+                            icon: const Icon(Icons.health_and_safety_outlined, color: AppColors.primaryGold, size: 16),
                             label: const FittedBox(
                               fit: BoxFit.scaleDown,
-                              child: Text('ADVANCED INFO', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+                              child: Text('PREVENTATIVE CARE', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
                             ),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.surface),
+                              side: const BorderSide(color: AppColors.primaryGold),
                               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
                             ),
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 10.0),
+
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        if (_record != null) {
+                          Navigator.pushNamed(
+                            context,
+                            '/advanced-pregnancy',
+                            arguments: _record!.id,
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.science_outlined, color: AppColors.primaryGold, size: 16),
+                      label: const Text('ADVANCED PREGNANCY INFO & FETAL SEXING', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.surface),
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                      ),
                     ),
                     const SizedBox(height: 12.0),
 

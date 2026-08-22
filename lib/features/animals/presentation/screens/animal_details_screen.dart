@@ -161,7 +161,7 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
       AppFeedbackSnackbar.showError(
         context,
         title: 'Required Field',
-        error: 'Please enter the animal name before saving.',
+        error: 'Please enter the registered name before saving.',
       );
       return;
     }
@@ -633,11 +633,11 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                   ],
 
                   CustomTextField(
-                    label: 'Animal Name *',
-                    hintText: 'e.g. Starlight Eclipse',
+                    label: 'Registered Name *',
+                    hintText: 'e.g. Silver Oak, Starlight Eclipse...',
                     controller: _nameController,
                     validator: (val) {
-                      if (val == null || val.trim().isEmpty) return 'Animal Name is required';
+                      if (val == null || val.trim().isEmpty) return 'Registered Name is required';
                       return null;
                     },
                   ),

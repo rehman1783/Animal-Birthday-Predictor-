@@ -317,9 +317,64 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
                         ],
                       ),
                     ),
+                    // 4. Preventative Care & Health Protocols
+                    const SectionDividerLabel(label: 'PREVENTATIVE CARE & GESTATIONAL HEALTH'),
+                    const SizedBox(height: 12.0),
+
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                        border: Border.all(color: AppColors.surface),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.health_and_safety_outlined, color: AppColors.primaryGold, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Recommended Gestational Protocols',
+                                  style: AppTypography.displayHeadline.copyWith(fontSize: 15),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          const _ProtocolTimelineItem(
+                            milestone: 'Month 5 (150 Days)',
+                            protocol: 'Rhinopneumonitis (EHV-1) Vaccination #1',
+                            note: 'Protects mare against viral abortion',
+                          ),
+                          const _ProtocolTimelineItem(
+                            milestone: 'Month 7 (210 Days)',
+                            protocol: 'Rhinopneumonitis (EHV-1) Vaccination #2',
+                            note: 'Second booster for maximum gestational immunity',
+                          ),
+                          const _ProtocolTimelineItem(
+                            milestone: 'Month 9 (270 Days)',
+                            protocol: 'Rhinopneumonitis (EHV-1) Vaccination #3',
+                            note: 'Third booster dose prior to late gestation',
+                          ),
+                          const _ProtocolTimelineItem(
+                            milestone: 'Month 10 (300 Days)',
+                            protocol: 'Pre-Foaling 5-in-1 Booster & Deworming',
+                            note: 'Tetanus, Strangles booster & maternal antibody transfer in colostrum',
+                          ),
+                          const _ProtocolTimelineItem(
+                            milestone: 'Ongoing / Bi-monthly',
+                            protocol: 'Farrier & Dental Care Check',
+                            note: 'Regular hoof balance and dental maintenance',
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 24.0),
 
-                    // 4. Ultrasound Image
+                    // 5. Ultrasound Image
                     const SectionDividerLabel(label: 'FETAL ULTRASOUND SCAN IMAGE'),
                     const SizedBox(height: 12.0),
                     AppImagePicker(
@@ -433,6 +488,72 @@ class _ProcedureCard extends StatelessWidget {
                       color: isDone ? AppColors.primaryGold : AppColors.textPrimary,
                       fontWeight: isDone ? FontWeight.bold : FontWeight.normal,
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProtocolTimelineItem extends StatelessWidget {
+  final String milestone;
+  final String protocol;
+  final String note;
+
+  const _ProtocolTimelineItem({
+    required this.milestone,
+    required this.protocol,
+    required this.note,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 3),
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryGold,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  milestone,
+                  style: const TextStyle(
+                    color: AppColors.primaryGold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  protocol,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  note,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
                   ),
                 ),
               ],
