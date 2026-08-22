@@ -13,6 +13,7 @@ import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../domain/animal.dart';
@@ -458,17 +459,11 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (sp.$1 == 'horse')
-                                          HorseshoeIcon(
-                                            size: 18,
-                                            color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
-                                          )
-                                        else
-                                          Icon(
-                                            sp.$3,
-                                            size: 18,
-                                            color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
-                                          ),
+                                        SpeciesIcon(
+                                          species: sp.$1,
+                                          size: 18,
+                                          color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                        ),
                                         const SizedBox(height: 4),
                                         Text(
                                           sp.$1.toUpperCase(),

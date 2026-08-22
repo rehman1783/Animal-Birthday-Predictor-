@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
 import 'animal_list_tile.dart';
@@ -138,9 +139,7 @@ class _SelectOrAddAnimalSheetState extends ConsumerState<_SelectOrAddAnimalSheet
                   Navigator.pop(context, createdAnimal);
                 }
               },
-              icon: widget.species == 'horse'
-                  ? const HorseshoeIcon(size: 16, color: AppColors.primaryGold)
-                  : const Icon(Icons.pets, color: AppColors.primaryGold, size: 16),
+              icon: SpeciesIcon(species: widget.species, size: 16, color: AppColors.primaryGold),
               label: Text(
                 () {
                   if (widget.requiredSex != null) {
@@ -192,7 +191,11 @@ class _SelectOrAddAnimalSheetState extends ConsumerState<_SelectOrAddAnimalSheet
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.pets, size: 48, color: AppColors.primaryGold.withValues(alpha: 0.4)),
+                          SpeciesIcon(
+                            species: widget.species,
+                            size: 48,
+                            color: AppColors.primaryGold.withValues(alpha: 0.4),
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             animals.isEmpty ? 'No ${widget.species}s registered yet' : 'No matching results found',

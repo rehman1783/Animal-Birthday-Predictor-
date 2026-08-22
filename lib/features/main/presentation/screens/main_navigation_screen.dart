@@ -100,8 +100,8 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                 label: 'Dashboard',
               ),
               BottomNavigationBarViewItem(
-                icon: Icon(Icons.pets_outlined),
-                activeIcon: Icon(Icons.pets),
+                icon: Icon(Icons.list_alt_outlined),
+                activeIcon: Icon(Icons.list_alt),
                 label: 'Animals',
               ),
               BottomNavigationBarViewItem(
