@@ -465,12 +465,15 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                                           color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(
-                                          sp.$1.toUpperCase(),
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            sp.$1.toUpperCase(),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: _currentSpecies == sp.$1 ? AppColors.primaryGold : AppColors.textSecondary,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -603,19 +606,21 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                                         children: [
                                           Icon(
                                             gOpt.$3,
-                                            size: 18,
+                                            size: 16,
                                             color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.textSecondary,
                                           ),
-                                          const SizedBox(width: 8),
-                                          FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              gOpt.$2,
-                                              style: TextStyle(
-                                                fontSize: 13.5,
-                                                fontWeight: FontWeight.bold,
-                                                color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.textPrimary,
-                                                letterSpacing: 0.5,
+                                          const SizedBox(width: 6),
+                                          Flexible(
+                                            child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Text(
+                                                gOpt.$2,
+                                                style: TextStyle(
+                                                  fontSize: 13.5,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: _selectedSex == gOpt.$1 ? AppColors.primaryGold : AppColors.textPrimary,
+                                                  letterSpacing: 0.5,
+                                                ),
                                               ),
                                             ),
                                           ),

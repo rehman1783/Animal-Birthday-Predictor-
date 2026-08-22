@@ -318,9 +318,12 @@ class _VeterinarianPregnancyScansScreenState
             ),
             onPressed: () => Navigator.maybePop(context),
           ),
-          title: const Text(
-            'VET CONTACT & SCANS OVERVIEW',
-            style: AppTypography.sectionLabel,
+          title: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'VET CONTACT & SCANS OVERVIEW',
+              style: AppTypography.sectionLabel,
+            ),
           ),
           centerTitle: true,
           actions: [
@@ -421,21 +424,19 @@ class _VeterinarianPregnancyScansScreenState
                                       vertical: 10,
                                     ),
                                   ),
-                                  items: horsesList.map((h) {
-                                    return DropdownMenuItem<String>(
-                                      value: h.id,
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                  selectedItemBuilder: (BuildContext context) {
+                                    return horsesList.map((h) {
+                                      return Row(
                                         children: [
-                                           AppThumbnailAvatar(
-                                             imagePath: h.photoUrl,
-                                             species: h.species,
-                                             customFallback: SpeciesIcon(species: h.species, size: 16, color: AppColors.primaryGold),
-                                             size: 24,
-                                             iconSize: 14,
-                                             isCircle: true,
-                                           ),
-                                          const SizedBox(width: 10),
+                                          AppThumbnailAvatar(
+                                            imagePath: h.photoUrl,
+                                            species: h.species,
+                                            customFallback: SpeciesIcon(species: h.species, size: 16, color: AppColors.primaryGold),
+                                            size: 24,
+                                            iconSize: 14,
+                                            isCircle: true,
+                                          ),
+                                          const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
                                               '${h.name} (${h.breed ?? "Equine"})',
@@ -444,6 +445,36 @@ class _VeterinarianPregnancyScansScreenState
                                                 fontSize: 13,
                                               ),
                                               overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }).toList();
+                                  },
+                                  items: horsesList.map((h) {
+                                    return DropdownMenuItem<String>(
+                                      value: h.id,
+                                      child: Row(
+                                        children: [
+                                          AppThumbnailAvatar(
+                                            imagePath: h.photoUrl,
+                                            species: h.species,
+                                            customFallback: SpeciesIcon(species: h.species, size: 16, color: AppColors.primaryGold),
+                                            size: 24,
+                                            iconSize: 14,
+                                            isCircle: true,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              '${h.name} (${h.breed ?? "Equine"})',
+                                              style: const TextStyle(
+                                                color: AppColors.textPrimary,
+                                                fontSize: 13,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
                                             ),
                                           ),
                                         ],

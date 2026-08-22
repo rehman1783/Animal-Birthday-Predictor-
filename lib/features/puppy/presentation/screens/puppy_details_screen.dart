@@ -353,9 +353,12 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
             icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
             onPressed: () => Navigator.maybePop(context),
           ),
-          title: Text(
-            isEditing ? 'PUPPY: ${widget.puppy?.puppyName ?? "RECORD"}' : 'NEW PUPPY REGISTRATION',
-            style: AppTypography.sectionLabel,
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              isEditing ? 'PUPPY: ${widget.puppy?.puppyName ?? "RECORD"}' : 'NEW PUPPY REGISTRATION',
+              style: AppTypography.sectionLabel,
+            ),
           ),
           centerTitle: true,
           actions: [
@@ -457,68 +460,58 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                   ),
                   const SizedBox(height: 14.0),
 
-                  // Sex & Birth Order
-                  Row(
+                  // Sex Selection
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Sex *', style: AppTypography.inputLabel),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () => setState(() => _sex = 'male'),
-                                    icon: Icon(
-                                      Icons.pets,
-                                      size: 14,
-                                      color: _sex == 'male' ? AppColors.background : AppColors.primaryGold,
-                                    ),
-                                    label: const Text('MALE', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    style: OutlinedButton.styleFrom(
-                                      backgroundColor: _sex == 'male' ? AppColors.primaryGold : AppColors.inputField,
-                                      foregroundColor: _sex == 'male' ? AppColors.background : AppColors.textPrimary,
-                                      side: const BorderSide(color: AppColors.primaryGold),
-                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () => setState(() => _sex = 'female'),
-                                    icon: Icon(
-                                      Icons.pets,
-                                      size: 14,
-                                      color: _sex == 'female' ? AppColors.background : AppColors.primaryGold,
-                                    ),
-                                    label: const Text('FEMALE', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    style: OutlinedButton.styleFrom(
-                                      backgroundColor: _sex == 'female' ? AppColors.primaryGold : AppColors.inputField,
-                                      foregroundColor: _sex == 'female' ? AppColors.background : AppColors.textPrimary,
-                                      side: const BorderSide(color: AppColors.primaryGold),
-                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                      const Text('Sex *', style: AppTypography.inputLabel),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => setState(() => _sex = 'male'),
+                              icon: Icon(
+                                Icons.pets,
+                                size: 14,
+                                color: _sex == 'male' ? AppColors.background : AppColors.primaryGold,
+                              ),
+                              label: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('MALE (DOG)', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: _sex == 'male' ? AppColors.primaryGold : AppColors.inputField,
+                                foregroundColor: _sex == 'male' ? AppColors.background : AppColors.textPrimary,
+                                side: const BorderSide(color: AppColors.primaryGold),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 110,
-                        child: CustomTextField(
-                          label: 'Birth Order (Optional)',
-                          hintText: 'e.g. 1',
-                          controller: _birthOrderController,
-                          keyboardType: TextInputType.number,
-                        ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => setState(() => _sex = 'female'),
+                              icon: Icon(
+                                Icons.pets,
+                                size: 14,
+                                color: _sex == 'female' ? AppColors.background : AppColors.primaryGold,
+                              ),
+                              label: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('FEMALE (BITCH)', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: _sex == 'female' ? AppColors.primaryGold : AppColors.inputField,
+                                foregroundColor: _sex == 'female' ? AppColors.background : AppColors.textPrimary,
+                                side: const BorderSide(color: AppColors.primaryGold),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -528,21 +521,29 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                     children: [
                       Expanded(
                         child: CustomTextField(
-                          label: 'Coat Colour / Pattern (Optional)',
-                          hintText: 'e.g. Golden, Tricolour',
-                          controller: _colourController,
+                          label: 'Birth Order (Optional)',
+                          hintText: 'e.g. 1',
+                          controller: _birthOrderController,
+                          keyboardType: TextInputType.number,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: CustomTextField(
-                          label: 'Microchip No. (Optional)',
-                          hintText: '15-digit ISO chip',
-                          controller: _microchipController,
-                          keyboardType: TextInputType.number,
+                          label: 'Coat Colour / Pattern',
+                          hintText: 'e.g. Golden, Tricolour',
+                          controller: _colourController,
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 14.0),
+
+                  CustomTextField(
+                    label: 'Microchip No. (Optional)',
+                    hintText: '15-digit ISO chip',
+                    controller: _microchipController,
+                    keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 14.0),
 
@@ -751,8 +752,11 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 4,
                           children: [
                             const Text('NEW OWNER / HOME', style: AppTypography.sectionLabel),
                             TextButton.icon(

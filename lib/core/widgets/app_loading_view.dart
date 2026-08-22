@@ -31,10 +31,13 @@ class AppLoadingView extends StatelessWidget {
               ),
               if (message != null) ...[
                 const SizedBox(width: 12),
-                Text(
-                  message!,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
+                Flexible(
+                  child: Text(
+                    message!,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    softWrap: true,
                   ),
                 ),
               ],

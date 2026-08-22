@@ -584,18 +584,26 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Wrap(
+                                alignment: WrapAlignment.spaceBetween,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 8,
+                                runSpacing: 6,
                                 children: [
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.favorite_outline, color: AppColors.primaryGold, size: 18),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'PREGNANCY & SCANS',
-                                        style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
-                                      ),
-                                    ],
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.favorite_outline, color: AppColors.primaryGold, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'PREGNANCY & SCANS',
+                                          style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1126,9 +1134,12 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                       );
                     },
                     icon: const HorseshoeIcon(size: 16, color: AppColors.primaryGold),
-                    label: const Text(
-                      'VIEW FOAL RECORDS & BIRTH LOG',
-                      style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
+                    label: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'VIEW FOAL RECORDS & BIRTH LOG',
+                        style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.primaryGold),

@@ -488,8 +488,11 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                               // 2. Stallion (Father)
                               const SectionDividerLabel(label: 'STALLION (FATHER)'),
                               const SizedBox(height: 10.0),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Wrap(
+                                alignment: WrapAlignment.spaceBetween,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 8,
+                                runSpacing: 4,
                                 children: [
                                   const Text('Stallion Information', style: AppTypography.inputLabel),
                                   TextButton.icon(
@@ -575,16 +578,23 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primaryGold),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            _formatDate(_coverDate),
-                                            style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 15),
-                                          ),
-                                        ],
+                                      Flexible(
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primaryGold),
+                                            const SizedBox(width: 10),
+                                            Flexible(
+                                              child: Text(
+                                                _formatDate(_coverDate),
+                                                style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 15),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
+                                      const SizedBox(width: 8),
                                       const Text('Tap to change', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
                                     ],
                                   ),
@@ -760,8 +770,11 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      Wrap(
+                                        alignment: WrapAlignment.spaceBetween,
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        spacing: 8,
+                                        runSpacing: 4,
                                         children: [
                                           const Text('Embryo Transfer Date *', style: AppTypography.inputLabel),
                                           Container(
@@ -787,16 +800,23 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.event_available, size: 18, color: AppColors.primaryGold),
-                                                  const SizedBox(width: 10),
-                                                  Text(
-                                                    _formatDate(_transferDate),
-                                                    style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 15),
-                                                  ),
-                                                ],
+                                              Flexible(
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.event_available, size: 18, color: AppColors.primaryGold),
+                                                    const SizedBox(width: 10),
+                                                    Flexible(
+                                                      child: Text(
+                                                        _formatDate(_transferDate),
+                                                        style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 15),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
+                                              const SizedBox(width: 8),
                                               const Text('Tap to adjust', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
                                             ],
                                           ),

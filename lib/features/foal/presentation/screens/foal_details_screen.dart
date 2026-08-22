@@ -414,9 +414,12 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
             icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
             onPressed: () => Navigator.maybePop(context),
           ),
-          title: Text(
-            isEditing ? 'FOAL: ${widget.foal?.foalName ?? "RECORD"}' : 'NEW FOAL REGISTRATION',
-            style: AppTypography.sectionLabel,
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              isEditing ? 'FOAL: ${widget.foal?.foalName ?? "RECORD"}' : 'NEW FOAL REGISTRATION',
+              style: AppTypography.sectionLabel,
+            ),
           ),
           centerTitle: true,
           actions: [
@@ -518,37 +521,55 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton.icon(
+                            child: OutlinedButton(
                               onPressed: () => setState(() => _sex = 'filly'),
-                              icon: HorseshoeIcon(
-                                size: 16,
-                                color: _sex == 'filly' ? AppColors.background : AppColors.primaryGold,
-                              ),
-                              label: const Text('FILLY (FEMALE)', style: TextStyle(fontWeight: FontWeight.bold)),
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: _sex == 'filly' ? AppColors.primaryGold : AppColors.inputField,
                                 foregroundColor: _sex == 'filly' ? AppColors.background : AppColors.textPrimary,
                                 side: const BorderSide(color: AppColors.primaryGold),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    HorseshoeIcon(
+                                      size: 14,
+                                      color: _sex == 'filly' ? AppColors.background : AppColors.primaryGold,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Text('FILLY (FEMALE)', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 6),
                           Expanded(
-                            child: OutlinedButton.icon(
+                            child: OutlinedButton(
                               onPressed: () => setState(() => _sex = 'colt'),
-                              icon: HorseshoeIcon(
-                                size: 16,
-                                color: _sex == 'colt' ? AppColors.background : AppColors.primaryGold,
-                              ),
-                              label: const Text('COLT (MALE)', style: TextStyle(fontWeight: FontWeight.bold)),
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: _sex == 'colt' ? AppColors.primaryGold : AppColors.inputField,
                                 foregroundColor: _sex == 'colt' ? AppColors.background : AppColors.textPrimary,
                                 side: const BorderSide(color: AppColors.primaryGold),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    HorseshoeIcon(
+                                      size: 14,
+                                      color: _sex == 'colt' ? AppColors.background : AppColors.primaryGold,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Text('COLT (MALE)', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -764,7 +785,9 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                               checkColor: AppColors.background,
                               side: const BorderSide(color: AppColors.primaryGold),
                             ),
-                            const Text('Gelded (Castrated)', style: TextStyle(color: AppColors.textPrimary)),
+                            const Expanded(
+                              child: Text('Gelded (Castrated)', style: TextStyle(color: AppColors.textPrimary)),
+                            ),
                           ],
                         ),
                         if (_gelded) ...[
@@ -850,8 +873,11 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
                             children: [
                               Text(
                                 _status == 'sold' ? 'SOLD TO (OPTIONAL)' : 'TRANSFERRED TO (OPTIONAL)',
@@ -893,7 +919,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton.icon(
+                          child: OutlinedButton(
                             onPressed: () {
                               Navigator.pushNamed(
                                 context,
@@ -901,21 +927,30 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                                 arguments: {'ownerType': 'foal', 'ownerId': foalId},
                               );
                             },
-                            icon: const Icon(Icons.photo_library_outlined, color: AppColors.primaryGold, size: 16),
-                            label: Text(
-                              'MARKINGS',
-                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 12),
-                            ),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.photo_library_outlined, color: AppColors.primaryGold, size: 14),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'MARKINGS',
+                                    style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
-                          child: OutlinedButton.icon(
+                          child: OutlinedButton(
                             onPressed: () {
                               Navigator.pushNamed(
                                 context,
@@ -928,21 +963,30 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                                 },
                               );
                             },
-                            icon: const Icon(Icons.healing_outlined, color: AppColors.primaryGold, size: 16),
-                            label: Text(
-                              'HEALTH',
-                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 12),
-                            ),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.healing_outlined, color: AppColors.primaryGold, size: 14),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'HEALTH',
+                                    style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
-                          child: OutlinedButton.icon(
+                          child: OutlinedButton(
                             onPressed: () {
                               Navigator.pushNamed(
                                 context,
@@ -950,15 +994,24 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                                 arguments: {'foal': widget.foal, 'dam': _selectedMare},
                               );
                             },
-                            icon: const Icon(Icons.card_membership_outlined, color: AppColors.primaryGold, size: 16),
-                            label: Text(
-                              'CERTIFICATE',
-                              style: AppTypography.buttonLabel.copyWith(color: AppColors.primaryGold, fontSize: 11),
-                            ),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.card_membership_outlined, color: AppColors.primaryGold, size: 14),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'CERTIFICATE',
+                                    style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
