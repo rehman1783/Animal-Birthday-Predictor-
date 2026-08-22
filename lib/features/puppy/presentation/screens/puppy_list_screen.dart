@@ -241,7 +241,7 @@ class _PuppyListCard extends StatelessWidget {
                   children: [
                     AppThumbnailAvatar(
                       imagePath: puppy.photoUrl,
-                      fallbackIcon: Icons.pets,
+                      species: 'dog',
                       size: 40,
                       iconSize: 20,
                       isCircle: true,
@@ -281,14 +281,23 @@ class _PuppyListCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            [
-              if (puppy.dateOfBirth != null) 'DOB: ${_formatDate(puppy.dateOfBirth)}',
-              if (puppy.sex?.isNotEmpty == true) (puppy.sex!.toLowerCase() == 'male' ? 'Male' : 'Female'),
-              if (collar != null) 'Collar: $collar',
-              if (birthOrder != null) 'Birth Order: $birthOrder',
-            ].join(' • '),
-            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+          Row(
+            children: [
+              const Icon(Icons.pets, size: 13, color: AppColors.primaryGold),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  [
+                    if (puppy.dateOfBirth != null) 'DOB: ${_formatDate(puppy.dateOfBirth)}',
+                    if (puppy.sex?.isNotEmpty == true) (puppy.sex!.toLowerCase() == 'male' ? 'Male' : 'Female'),
+                    if (collar != null) 'Collar: $collar',
+                    if (birthOrder != null) 'Birth Order: $birthOrder',
+                  ].join(' • '),
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           if (puppy.microchipNo?.isNotEmpty == true) ...[
             const SizedBox(height: 4),

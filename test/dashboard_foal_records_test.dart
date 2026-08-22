@@ -95,12 +95,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
-      expect(find.text('FOALS (EQUINE)'), findsOneWidget);
-      expect(find.text('PUPPIES (CANINE)'), findsOneWidget);
+      expect(find.text('SAVED MARES FOAL RECORDS'), findsOneWidget);
+      expect(find.text('DAM/BITCH PUPPY RECORDS'), findsOneWidget);
       expect(find.text('+ REGISTER NEW FOAL'), findsOneWidget);
 
       // Switch to PUPPIES tab
-      await tester.tap(find.text('PUPPIES (CANINE)'));
+      await tester.tap(find.text('DAM/BITCH PUPPY RECORDS'));
       await tester.pumpAndSettle();
 
       expect(find.text('+ REGISTER NEW PUPPY'), findsOneWidget);
@@ -122,7 +122,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
-      expect(find.text('FOALS (EQUINE)'), findsOneWidget);
+      expect(find.text('SAVED MARES FOAL RECORDS'), findsOneWidget);
     });
 
     testWidgets('Pressing system back on non-dashboard tab in MainNavigationScreen navigates to Dashboard', (tester) async {
@@ -136,7 +136,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Initially on Dashboard
-      expect(find.text('WELCOME TO ABP'), findsOneWidget);
+      expect(find.text('ANIMAL BIRTHDAY PREDICTOR'), findsOneWidget);
 
       // Switch to Animals tab (index 1)
       await tester.tap(find.text('Animals'));
@@ -149,7 +149,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify it navigated back to Dashboard instead of popping the app
-      expect(find.text('WELCOME TO ABP'), findsOneWidget);
+      expect(find.text('ANIMAL BIRTHDAY PREDICTOR'), findsOneWidget);
     });
   });
 }

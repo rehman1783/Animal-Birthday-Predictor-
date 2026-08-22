@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/domain/animal.dart';
@@ -605,7 +606,14 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       ),
                       child: Row(
                         children: [
-                          const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                          AppThumbnailAvatar(
+                            imagePath: _selectedMare?.photoUrl,
+                            species: 'horse',
+                            customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                            size: 40,
+                            iconSize: 20,
+                            isCircle: true,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -662,7 +670,14 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                       ),
                       child: Row(
                         children: [
-                          const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                          AppThumbnailAvatar(
+                            imagePath: _selectedRecipient?.photoUrl,
+                            species: 'horse',
+                            customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                            size: 40,
+                            iconSize: 20,
+                            isCircle: true,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(

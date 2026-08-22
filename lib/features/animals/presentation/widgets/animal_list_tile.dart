@@ -4,6 +4,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../domain/animal.dart';
 
 class AnimalListTile extends StatelessWidget {
@@ -19,19 +20,6 @@ class AnimalListTile extends StatelessWidget {
     this.trailing,
     this.isSelected = false,
   });
-
-  IconData _getSpeciesIcon(String species) {
-    switch (species.toLowerCase()) {
-      case 'horse':
-        return Icons.pets_rounded;
-      case 'dog':
-        return Icons.pets;
-      case 'cat':
-        return Icons.catching_pokemon;
-      default:
-        return Icons.category_rounded;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,15 +38,10 @@ class AnimalListTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Thumbnail / Avatar
+            // Thumbnail / Avatar (with exact SpeciesIcon fallback)
             AppThumbnailAvatar(
               imagePath: animal.photoUrl,
-              fallbackIcon: _getSpeciesIcon(animal.species),
-              customFallback: animal.species == 'horse'
-                  ? const HorseshoeIcon(size: 24, color: AppColors.primaryGold)
-                  : animal.species == 'dog'
-                      ? const Icon(Icons.pets, size: 24, color: AppColors.primaryGold)
-                      : null,
+              species: animal.species,
               size: 50,
               iconSize: 24,
             ),
@@ -86,12 +69,12 @@ class AnimalListTile extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: animal.isStallion
+                          color: animal.isStallion || animal.isStudOrDog
                               ? Colors.blueAccent.withValues(alpha: 0.15)
                               : AppColors.primaryGold.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: animal.isStallion
+                            color: animal.isStallion || animal.isStudOrDog
                                 ? Colors.blueAccent.withValues(alpha: 0.6)
                                 : AppColors.primaryGold.withValues(alpha: 0.6),
                             width: 0.8,
@@ -100,19 +83,22 @@ class AnimalListTile extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (animal.species == 'horse') ...[
-                              const HorseshoeIcon(size: 11, color: AppColors.primaryGold),
-                              const SizedBox(width: 4),
-                            ] else if (animal.species == 'dog') ...[
-                              const Icon(Icons.pets, size: 11, color: AppColors.primaryGold),
-                              const SizedBox(width: 4),
-                            ],
+                            SpeciesIcon(
+                              species: animal.species,
+                              size: 11,
+                              color: animal.isStallion || animal.isStudOrDog
+                                  ? Colors.lightBlueAccent
+                                  : AppColors.primaryGold,
+                            ),
+                            const SizedBox(width: 4),
                             Text(
                               animal.displaySex.toUpperCase(),
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
-                                color: animal.isStallion ? Colors.lightBlueAccent : AppColors.primaryGold,
+                                color: animal.isStallion || animal.isStudOrDog
+                                    ? Colors.lightBlueAccent
+                                    : AppColors.primaryGold,
                               ),
                             ),
                           ],

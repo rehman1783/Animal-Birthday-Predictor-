@@ -7,6 +7,7 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
@@ -98,9 +99,9 @@ class PregnancyModuleScreen extends ConsumerWidget {
                           padding: const EdgeInsets.all(24.0),
                           child: Column(
                             children: [
-                              const Icon(Icons.pets, size: 40, color: AppColors.primaryGold),
+                              const HorseshoeIcon(size: 40, color: AppColors.primaryGold),
                               const SizedBox(height: 12),
-                              const Text('No horses registered yet', style: TextStyle(color: AppColors.textPrimary)),
+                              const Text('No mares/horses registered yet', style: TextStyle(color: AppColors.textPrimary)),
                               const SizedBox(height: 12),
                               OutlinedButton(
                                 onPressed: () => Navigator.pushNamed(context, '/species-select'),

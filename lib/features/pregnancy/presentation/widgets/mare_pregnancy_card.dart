@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../animals/domain/animal.dart';
 import '../providers/pregnancy_provider.dart';
@@ -111,18 +112,14 @@ class MarePregnancyCard extends ConsumerWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar / Horse Icon
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.inputField,
-                        border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.6)),
-                      ),
-                      child: const Center(
-                        child: HorseshoeIcon(size: 22, color: AppColors.primaryGold),
-                      ),
+                    // Animal Photo / Avatar
+                    AppThumbnailAvatar(
+                      imagePath: mare.photoUrl,
+                      species: mare.species,
+                      customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                      size: 48,
+                      iconSize: 24,
+                      isCircle: true,
                     ),
                     const SizedBox(width: 12),
                     Expanded(

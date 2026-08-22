@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -11,6 +10,8 @@ import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
@@ -422,12 +423,29 @@ class _VeterinarianPregnancyScansScreenState
                                   items: horsesList.map((h) {
                                     return DropdownMenuItem<String>(
                                       value: h.id,
-                                      child: Text(
-                                        '${h.name} (${h.breed ?? "Equine"})',
-                                        style: const TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontSize: 13,
-                                        ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          AppThumbnailAvatar(
+                                            imagePath: h.photoUrl,
+                                            species: 'horse',
+                                            customFallback: const HorseshoeIcon(size: 16, color: AppColors.primaryGold),
+                                            size: 24,
+                                            iconSize: 14,
+                                            isCircle: true,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              '${h.name} (${h.breed ?? "Equine"})',
+                                              style: const TextStyle(
+                                                color: AppColors.textPrimary,
+                                                fontSize: 13,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     );
                                   }).toList(),

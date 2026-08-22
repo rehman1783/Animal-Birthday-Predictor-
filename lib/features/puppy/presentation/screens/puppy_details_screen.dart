@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/domain/animal.dart';
@@ -468,8 +469,14 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                             Row(
                               children: [
                                 Expanded(
-                                  child: OutlinedButton(
+                                  child: OutlinedButton.icon(
                                     onPressed: () => setState(() => _sex = 'male'),
+                                    icon: Icon(
+                                      Icons.pets,
+                                      size: 14,
+                                      color: _sex == 'male' ? AppColors.background : AppColors.primaryGold,
+                                    ),
+                                    label: const Text('MALE', style: TextStyle(fontWeight: FontWeight.bold)),
                                     style: OutlinedButton.styleFrom(
                                       backgroundColor: _sex == 'male' ? AppColors.primaryGold : AppColors.inputField,
                                       foregroundColor: _sex == 'male' ? AppColors.background : AppColors.textPrimary,
@@ -477,26 +484,24 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                     ),
-                                    child: const FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text('MALE', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
                                 Expanded(
-                                  child: OutlinedButton(
+                                  child: OutlinedButton.icon(
                                     onPressed: () => setState(() => _sex = 'female'),
+                                    icon: Icon(
+                                      Icons.pets,
+                                      size: 14,
+                                      color: _sex == 'female' ? AppColors.background : AppColors.primaryGold,
+                                    ),
+                                    label: const Text('FEMALE', style: TextStyle(fontWeight: FontWeight.bold)),
                                     style: OutlinedButton.styleFrom(
                                       backgroundColor: _sex == 'female' ? AppColors.primaryGold : AppColors.inputField,
                                       foregroundColor: _sex == 'female' ? AppColors.background : AppColors.textPrimary,
                                       side: const BorderSide(color: AppColors.primaryGold),
                                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    child: const FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text('FEMALE', style: TextStyle(fontWeight: FontWeight.bold)),
                                     ),
                                   ),
                                 ),
@@ -598,7 +603,14 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.pets, color: AppColors.primaryGold, size: 24),
+                          AppThumbnailAvatar(
+                            imagePath: _selectedDam?.photoUrl,
+                            species: 'dog',
+                            customFallback: const Icon(Icons.pets, size: 24, color: AppColors.primaryGold),
+                            size: 40,
+                            iconSize: 20,
+                            isCircle: true,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(

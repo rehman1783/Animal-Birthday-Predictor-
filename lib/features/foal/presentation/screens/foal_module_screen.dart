@@ -9,6 +9,7 @@ import 'package:animal_birthday_predictor/core/widgets/app_loading_view.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_thumbnail_avatar.dart';
 import 'package:animal_birthday_predictor/core/widgets/gradient_cta_button.dart';
 import 'package:animal_birthday_predictor/core/widgets/horseshoe_icon.dart';
+import 'package:animal_birthday_predictor/core/widgets/species_icon.dart';
 import 'package:animal_birthday_predictor/core/widgets/responsive_body.dart';
 import 'package:animal_birthday_predictor/features/foal/domain/foal_record.dart';
 import 'package:animal_birthday_predictor/features/foal/presentation/providers/foal_provider.dart';
@@ -162,18 +163,18 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
           tabs: const [
             Tab(
               icon: HorseshoeIcon(size: 14, color: AppColors.primaryGold),
-              text: 'FOALS (EQUINE)',
+              text: 'SAVED MARES FOAL RECORDS',
             ),
             Tab(
               icon: Icon(Icons.pets, size: 15, color: AppColors.primaryGold),
-              text: 'PUPPIES (CANINE)',
+              text: 'DAM/BITCH PUPPY RECORDS',
             ),
             Tab(
-              icon: Icon(Icons.cruelty_free, size: 15),
+              icon: SpeciesIcon(species: 'cat', size: 15, color: AppColors.primaryGold),
               text: 'KITTENS',
             ),
             Tab(
-              icon: Icon(Icons.category_outlined, size: 15),
+              icon: SpeciesIcon(species: 'other', size: 15, color: AppColors.primaryGold),
               text: 'OTHER',
             ),
           ],
@@ -254,7 +255,7 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.pets_rounded, color: AppColors.primaryGold, size: 20),
+                          const HorseshoeIcon(size: 20, color: AppColors.primaryGold),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -324,7 +325,7 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
                               shape: BoxShape.circle,
                               border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
                             ),
-                            child: const Icon(Icons.child_care, size: 32, color: AppColors.primaryGold),
+                            child: const Center(child: HorseshoeIcon(size: 30, color: AppColors.primaryGold)),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -377,7 +378,8 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
                   children: [
                     AppThumbnailAvatar(
                       imagePath: foal.photoUrl,
-                      fallbackIcon: Icons.pets_rounded,
+                      species: 'horse',
+                      customFallback: const HorseshoeIcon(size: 20, color: AppColors.primaryGold),
                       size: 40,
                       iconSize: 20,
                       isCircle: true,
@@ -415,9 +417,18 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            'DOB: ${_formatDate(foal.dateOfBirth)} • ${foal.sex == "colt" ? "Colt" : "Filly"} • ${foal.breed ?? "Equine"}',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+          Row(
+            children: [
+              const HorseshoeIcon(size: 13, color: AppColors.primaryGold),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'DOB: ${_formatDate(foal.dateOfBirth)} • ${foal.sex == "colt" ? "Colt" : "Filly"} • ${foal.breed ?? "Equine"}',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           if (foal.foalMicrochipNo?.isNotEmpty == true) ...[
             const SizedBox(height: 4),
@@ -542,7 +553,7 @@ class _PuppiesBirthListViewState extends ConsumerState<_PuppiesBirthListView> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.bedroom_baby_outlined, color: AppColors.primaryGold, size: 20),
+                          const Icon(Icons.pets, color: AppColors.primaryGold, size: 20),
                           const SizedBox(width: 8),
                           Text('Register Newborn Puppy', style: AppTypography.displayHeadline.copyWith(fontSize: 17)),
                         ],
@@ -609,7 +620,7 @@ class _PuppiesBirthListViewState extends ConsumerState<_PuppiesBirthListView> {
                               shape: BoxShape.circle,
                               border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
                             ),
-                            child: const Icon(Icons.bedroom_baby_outlined, size: 32, color: AppColors.primaryGold),
+                            child: const Icon(Icons.pets, size: 32, color: AppColors.primaryGold),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -705,14 +716,23 @@ class _PuppiesBirthListViewState extends ConsumerState<_PuppiesBirthListView> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            [
-              if (puppy.dateOfBirth != null) 'DOB: ${_formatDate(puppy.dateOfBirth)}',
-              if (puppy.sex?.isNotEmpty == true) (puppy.sex!.toLowerCase() == 'male' ? 'Male' : 'Female'),
-              if (collar != null) 'Collar: $collar',
-              if (birthOrder != null) 'Birth Order: $birthOrder',
-            ].join(' • '),
-            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+          Row(
+            children: [
+              const Icon(Icons.pets, size: 13, color: AppColors.primaryGold),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  [
+                    if (puppy.dateOfBirth != null) 'DOB: ${_formatDate(puppy.dateOfBirth)}',
+                    if (puppy.sex?.isNotEmpty == true) (puppy.sex!.toLowerCase() == 'male' ? 'Male' : 'Female'),
+                    if (collar != null) 'Collar: $collar',
+                    if (birthOrder != null) 'Birth Order: $birthOrder',
+                  ].join(' • '),
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           if (puppy.microchipNo?.isNotEmpty == true) ...[
             const SizedBox(height: 4),
@@ -811,7 +831,9 @@ class _KittensBirthListView extends ConsumerWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
                 ),
-                child: const Icon(Icons.catching_pokemon, size: 36, color: AppColors.primaryGold),
+                child: const Center(
+                  child: SpeciesIcon(species: 'cat', size: 36, color: AppColors.primaryGold),
+                ),
               ),
               const SizedBox(height: 20),
               Text(
@@ -870,7 +892,9 @@ class _OtherBirthListView extends ConsumerWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
                 ),
-                child: const Icon(Icons.category_rounded, size: 36, color: AppColors.primaryGold),
+                child: const Center(
+                  child: SpeciesIcon(species: 'other', size: 36, color: AppColors.primaryGold),
+                ),
               ),
               const SizedBox(height: 20),
               Text(

@@ -13,6 +13,8 @@ import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
+import 'package:animal_birthday_predictor/features/main/presentation/providers/main_navigation_provider.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
 import '../providers/mare_provider.dart';
@@ -222,12 +224,7 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                       // Photo or Emblem
                       AppThumbnailAvatar(
                         imagePath: _currentAnimal.photoUrl,
-                        fallbackIcon: _getSpeciesIcon(_currentAnimal.species),
-                        customFallback: isHorse
-                            ? const HorseshoeIcon(size: 44, color: AppColors.primaryGold)
-                            : isDog
-                                ? const Icon(Icons.pets, size: 44, color: AppColors.primaryGold)
-                                : null,
+                        species: _currentAnimal.species,
                         size: 96,
                         iconSize: 44,
                       ),
@@ -252,31 +249,24 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                         children: [
                           _buildBadge(
                             label: _currentAnimal.species.toUpperCase(),
-                            customIcon: isHorse
-                                ? const HorseshoeIcon(size: 13, color: AppColors.primaryGold)
-                                : isDog
-                                    ? const Icon(Icons.pets, size: 13, color: AppColors.primaryGold)
-                                    : null,
-                            icon: _getSpeciesIcon(_currentAnimal.species),
+                            customIcon: SpeciesIcon(species: _currentAnimal.species, size: 13, color: AppColors.primaryGold),
                             isGold: true,
                           ),
                           _buildBadge(
                             label: _currentAnimal.displaySex.toUpperCase(),
-                            customIcon: isHorse
-                                ? HorseshoeIcon(
-                                    size: 13,
-                                    color: _currentAnimal.isStallion ? Colors.lightBlueAccent : AppColors.primaryGold,
-                                  )
-                                : isDog
-                                    ? const Icon(Icons.pets, size: 13, color: AppColors.primaryGold)
-                                    : null,
-                            icon: _currentAnimal.isStallion ? Icons.male : Icons.female,
-                            isGold: false,
+                            customIcon: SpeciesIcon(
+                              species: _currentAnimal.species,
+                              size: 13,
+                              color: _currentAnimal.isStallion || _currentAnimal.isStudOrDog
+                                  ? Colors.lightBlueAccent
+                                  : AppColors.primaryGold,
+                            ),
+                            isGold: !_currentAnimal.isStallion && !_currentAnimal.isStudOrDog,
                           ),
                           if (_currentAnimal.breed?.isNotEmpty == true)
                             _buildBadge(
                               label: _currentAnimal.breed!,
-                              icon: Icons.bookmark_border,
+                              icon: Icons.bookmark_outline,
                             ),
                           if (_currentAnimal.colour?.isNotEmpty == true)
                             _buildBadge(
@@ -859,7 +849,7 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.pets_outlined, color: AppColors.primaryGold, size: 16),
+                                      const HorseshoeIcon(size: 16, color: AppColors.primaryGold),
                                       const SizedBox(width: 6),
                                       Text(
                                         'BREEDING RECORD & PHOTO',
@@ -1122,6 +1112,30 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+
+                  // Direct link to Foal Records in Birth Log
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      ref.read(mainNavigationProvider.notifier).setTab(3, category: 'foals');
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/home',
+                        (r) => false,
+                        arguments: {'tabIndex': 3, 'category': 'foals'},
+                      );
+                    },
+                    icon: const HorseshoeIcon(size: 16, color: AppColors.primaryGold),
+                    label: const Text(
+                      'VIEW FOAL RECORDS & BIRTH LOG',
+                      style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryGold),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
                 ],
 
                 // Canine Specific Actions
@@ -1137,10 +1151,10 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
                               arguments: _currentAnimal.id,
                             );
                           },
-                          icon: const Icon(Icons.bedroom_baby_outlined, color: AppColors.primaryGold, size: 16),
+                          icon: const Icon(Icons.pets, color: AppColors.primaryGold, size: 16),
                           label: const FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text('PUPPIES / LITTER', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+                            child: Text('PUPPIES & LITTERS', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
                           ),
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: AppColors.primaryGold),

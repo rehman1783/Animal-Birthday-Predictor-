@@ -210,7 +210,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
-        expect(find.text('WELCOME TO ABP'), findsOneWidget);
+        expect(find.text('ANIMAL BIRTHDAY PREDICTOR'), findsOneWidget);
       });
 
       // 2. MainNavigationScreen

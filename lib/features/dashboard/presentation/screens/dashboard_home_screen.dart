@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
@@ -57,7 +58,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'WELCOME TO ABP',
+                            'ANIMAL BIRTHDAY PREDICTOR',
                             style: AppTypography.sectionLabel,
                           ),
                           const SizedBox(height: 4),
@@ -78,10 +79,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.primaryGold, width: 1.5),
                       ),
-                      child: const Icon(
-                        Icons.pets_rounded,
-                        color: AppColors.primaryGold,
-                        size: 22,
+                      child: const Center(
+                        child: HorseshoeIcon(size: 22, color: AppColors.primaryGold),
                       ),
                     ),
                   ],
@@ -95,7 +94,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'EQUINE SUITE — MARES & FOALS',
+                        'EQUINE SUITE — SAVED MARES & FOAL RECORDS',
                         style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -212,7 +211,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'CANINE SUITE — DAMS/BITCHES & PUPPIES',
+                        'CANINE SUITE — DAM/BITCH & PUPPY RECORDS',
                         style: AppTypography.sectionLabel.copyWith(color: AppColors.primaryGold),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -226,7 +225,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                     Expanded(
                       child: ref.watch(animalsListProvider('dog')).when(
                         data: (dogs) => _StatCard(
-                          title: 'Dams / Bitches & Dogs',
+                          title: 'Saved Dams / Dogs',
                           count: '${dogs.length}',
                           icon: Icons.pets,
                           accentColor: AppColors.primaryGold,
@@ -236,13 +235,13 @@ class DashboardHomeScreen extends ConsumerWidget {
                           },
                         ),
                         loading: () => const _StatCard(
-                          title: 'Dams / Bitches & Dogs',
+                          title: 'Saved Dams / Dogs',
                           count: '...',
                           icon: Icons.pets,
                           accentColor: AppColors.primaryGold,
                         ),
                         error: (err, stack) => const _StatCard(
-                          title: 'Dams / Bitches & Dogs',
+                          title: 'Saved Dams / Dogs',
                           count: '0',
                           icon: Icons.pets,
                           accentColor: AppColors.primaryGold,
@@ -386,7 +385,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                 _SpeciesModuleCard(
                   title: 'Horse / Equine Module',
                   subtitle: 'Natural, Chilled, Frozen & ICSI pregnancy tracking with embryo transfer support.',
-                  icon: Icons.pets_rounded,
+                  customIcon: const HorseshoeIcon(size: 22, color: AppColors.primaryGold),
                   isAvailable: true,
                   onTap: () {
                     ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'horse');
@@ -398,7 +397,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                 _SpeciesModuleCard(
                   title: 'Dog / Canine Module',
                   subtitle: 'Dog profiles, litters, collar tags & preventative care.',
-                  icon: Icons.pets,
+                  customIcon: const Icon(Icons.pets, size: 22, color: AppColors.primaryGold),
                   isAvailable: true,
                   onTap: () {
                     ref.read(mainNavigationProvider.notifier).setTab(1, speciesTab: 'dog');
@@ -410,7 +409,25 @@ class DashboardHomeScreen extends ConsumerWidget {
                 _SpeciesModuleCard(
                   title: 'Cat / Feline Module',
                   subtitle: 'Feline kittening & queen gestation tracker.',
-                  icon: Icons.catching_pokemon,
+                  customIcon: const SpeciesIcon(species: 'cat', size: 22, color: AppColors.textMuted),
+                  isAvailable: false,
+                  onTap: () => Navigator.pushNamed(context, '/species-select'),
+                ),
+                const SizedBox(height: 10.0),
+
+                _SpeciesModuleCard(
+                  title: 'Cattle / Bovine Module',
+                  subtitle: 'Cattle breeding cycle, gestation calendar & calf tracking.',
+                  customIcon: const SpeciesIcon(species: 'cattle', size: 22, color: AppColors.textMuted),
+                  isAvailable: false,
+                  onTap: () => Navigator.pushNamed(context, '/species-select'),
+                ),
+                const SizedBox(height: 10.0),
+
+                _SpeciesModuleCard(
+                  title: 'Sheep / Ovine Module',
+                  subtitle: 'Ovine gestation rules, flock breeding & lamb records.',
+                  customIcon: const SpeciesIcon(species: 'sheep', size: 22, color: AppColors.textMuted),
                   isAvailable: false,
                   onTap: () => Navigator.pushNamed(context, '/species-select'),
                 ),
@@ -486,14 +503,16 @@ class _StatCard extends StatelessWidget {
 class _SpeciesModuleCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final IconData? icon;
+  final Widget? customIcon;
   final bool isAvailable;
   final VoidCallback onTap;
 
   const _SpeciesModuleCard({
     required this.title,
     required this.subtitle,
-    required this.icon,
+    this.icon,
+    this.customIcon,
     required this.isAvailable,
     required this.onTap,
   });
@@ -519,7 +538,11 @@ class _SpeciesModuleCard extends StatelessWidget {
                 color: AppColors.inputField,
                 border: Border.all(color: isAvailable ? AppColors.primaryGold : AppColors.surface),
               ),
-              child: Icon(icon, color: isAvailable ? AppColors.primaryGold : AppColors.textMuted, size: 22),
+              child: Center(
+                child: customIcon ??
+                    Icon(icon ?? Icons.category_rounded,
+                        color: isAvailable ? AppColors.primaryGold : AppColors.textMuted, size: 22),
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(

@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import 'species_icon.dart';
 
 class AppThumbnailAvatar extends StatelessWidget {
+  final String? species;
   final String? imagePath;
   final IconData fallbackIcon;
   final Widget? customFallback;
@@ -16,6 +18,7 @@ class AppThumbnailAvatar extends StatelessWidget {
   const AppThumbnailAvatar({
     super.key,
     required this.imagePath,
+    this.species,
     this.fallbackIcon = Icons.pets,
     this.customFallback,
     this.size = 50,
@@ -27,7 +30,10 @@ class AppThumbnailAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget fallbackWidget = Center(
-      child: customFallback ?? Icon(fallbackIcon, color: AppColors.primaryGold, size: iconSize),
+      child: customFallback ??
+          (species != null
+              ? SpeciesIcon(species: species, size: iconSize)
+              : Icon(fallbackIcon, color: AppColors.primaryGold, size: iconSize)),
     );
 
     Widget content;

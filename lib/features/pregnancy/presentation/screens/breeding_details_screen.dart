@@ -12,6 +12,7 @@ import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/utils/app_uuid.dart';
@@ -384,17 +385,13 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                     ),
                     child: Row(
                       children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.inputField,
-                            border: Border.all(color: AppColors.primaryGold),
-                          ),
-                          child: const Center(
-                            child: HorseshoeIcon(size: 24, color: AppColors.primaryGold),
-                          ),
+                        AppThumbnailAvatar(
+                          imagePath: _selectedMare?.photoUrl,
+                          species: 'horse',
+                          customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                          size: 48,
+                          iconSize: 24,
+                          isCircle: true,
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -584,7 +581,14 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                       ),
                       child: Row(
                         children: [
-                          const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                          AppThumbnailAvatar(
+                          imagePath: _selectedRecipient?.photoUrl,
+                          species: 'horse',
+                          customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
+                          size: 48,
+                          iconSize: 24,
+                          isCircle: true,
+                        ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(

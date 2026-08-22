@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../domain/animal.dart';
 import '../providers/animal_provider.dart';
@@ -124,11 +125,11 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
               text: 'DAMS/BITCHES & DOGS',
             ),
             Tab(
-              icon: Icon(Icons.cruelty_free, size: 15),
+              icon: SpeciesIcon(species: 'cat', size: 15, color: AppColors.primaryGold),
               text: 'CATS',
             ),
             Tab(
-              icon: Icon(Icons.category_outlined, size: 15),
+              icon: SpeciesIcon(species: 'other', size: 15, color: AppColors.primaryGold),
               text: 'OTHER',
             ),
           ],
@@ -217,9 +218,9 @@ class _SpeciesAnimalListState extends ConsumerState<_SpeciesAnimalList> {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
                       ),
-                      child: isHorseTab
-                          ? const Center(child: HorseshoeIcon(size: 32, color: AppColors.primaryGold))
-                          : const Icon(Icons.pets, size: 36, color: AppColors.primaryGold),
+                      child: Center(
+                        child: SpeciesIcon(species: widget.species, size: 34, color: AppColors.primaryGold),
+                      ),
                     ),
                     const SizedBox(height: 20),
                     Text(

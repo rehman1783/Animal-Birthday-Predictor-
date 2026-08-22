@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
+import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../providers/animal_provider.dart';
@@ -37,12 +38,24 @@ class _SpeciesSelectionScreenState extends ConsumerState<SpeciesSelectionScreen>
       key: 'cat',
       title: 'Cat / Feline',
       subtitle: 'Feline kittening & breeding cycle tracker (Coming soon)',
-      icon: Icons.catching_pokemon,
+      icon: Icons.cruelty_free,
+    ),
+    (
+      key: 'cattle',
+      title: 'Cattle / Bovine',
+      subtitle: 'Bovine breeding cycle, pregnancy calculation & calf tracking',
+      icon: Icons.agriculture_rounded,
+    ),
+    (
+      key: 'sheep',
+      title: 'Sheep / Ovine',
+      subtitle: 'Ovine gestation rules, flock breeding & lamb records',
+      icon: Icons.grass_rounded,
     ),
     (
       key: 'other',
       title: 'Other Species',
-      subtitle: 'Custom livestock and exotic animal gestation rules (Coming soon)',
+      subtitle: 'Custom livestock and exotic animal gestation rules',
       icon: Icons.category_rounded,
     ),
   ];
@@ -107,12 +120,11 @@ class _SpeciesSelectionScreenState extends ConsumerState<SpeciesSelectionScreen>
                       title: item.title,
                       subtitle: item.subtitle,
                       icon: item.icon,
-                      customIcon: item.key == 'horse'
-                          ? HorseshoeIcon(
-                              size: 26,
-                              color: isSel ? AppColors.background : AppColors.primaryGold,
-                            )
-                          : null,
+                      customIcon: SpeciesIcon(
+                        species: item.key,
+                        size: 26,
+                        color: isSel ? AppColors.background : AppColors.primaryGold,
+                      ),
                       isSelected: isSel,
                       onTap: () => setState(() => _selectedSpecies = item.key),
                     );

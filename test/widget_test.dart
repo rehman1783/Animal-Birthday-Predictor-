@@ -11,7 +11,7 @@ void main() {
       ),
     );
 
-    // Verify that onboarding screen loads with "WHY ABP?" section label
-    expect(find.textContaining('WHY ABP?'), findsOneWidget);
+    // Verify that onboarding screen loads with "Precision Tracking"
+    expect(find.textContaining('Precision Tracking'), findsOneWidget);
   });
 }
