@@ -15,6 +15,7 @@ import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
+import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../domain/pregnancy_record.dart';
 import '../providers/pregnancy_provider.dart';
@@ -209,6 +210,77 @@ class _VeterinarianPregnancyScansScreenState
 
   Future<void> _callVet() async {
     await AppPhoneLauncher.makePhoneCall(context, _vetNumberController.text);
+  }
+
+  Future<void> _navigateTo45DayCertificate() async {
+    if (_selectedCarrierId == null || _selectedCarrierId!.isEmpty) {
+      AppFeedbackSnackbar.showError(
+        context,
+        title: 'Carrier Required',
+        error: 'Please select a mare carrier record first.',
+      );
+      return;
+    }
+
+    try {
+      final animalRepo = ref.read(animalRepositoryProvider);
+      final pregRepo = ref.read(pregnancyRepositoryProvider);
+
+      final carrierMare = await animalRepo.getAnimalById(_selectedCarrierId!);
+      if (carrierMare == null) {
+        if (mounted) {
+          AppFeedbackSnackbar.showError(
+            context,
+            title: 'Mare Not Found',
+            error: 'Carrier mare record could not be loaded.',
+          );
+        }
+        return;
+      }
+
+      final breeding = await pregRepo.getBreedingRecordByMare(carrierMare.id);
+      Animal? donorMare;
+      if (breeding != null && breeding.mareAnimalId.isNotEmpty && breeding.mareAnimalId != carrierMare.id) {
+        donorMare = await animalRepo.getAnimalById(breeding.mareAnimalId);
+      }
+
+      final current = _record ??
+          PregnancyRecord(
+            id: '',
+            accountId: '',
+            carrierAnimalId: _selectedCarrierId!,
+            breedingRecordId: breeding?.id ?? '',
+            scan1DueDate: DateTime.now().add(const Duration(days: 2)),
+            scan1Confirmed: _scan1Confirmed,
+            scan2DueDate: DateTime.now().add(const Duration(days: 16)),
+            scan2Confirmed: _scan2Confirmed,
+            scan3DueDate: DateTime.now().add(const Duration(days: 31)),
+            scan3Confirmed: _scan3Confirmed,
+            foalingDueDate: DateTime.now().add(const Duration(days: 326)),
+            vetName: _vetNameController.text.trim(),
+            vetNumber: _vetNumberController.text.trim(),
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+
+      if (mounted) {
+        Navigator.pushNamed(
+          context,
+          '/certificate',
+          arguments: {
+            'pregnancy': current,
+            'carrierMare': carrierMare,
+            'donorMare': donorMare,
+            'breedingRecord': breeding,
+            'is45DayScan': true,
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppFeedbackSnackbar.showError(context, title: 'Certificate Error', error: e);
+      }
+    }
   }
 
   Future<void> _handleSave() async {
@@ -719,7 +791,82 @@ class _VeterinarianPregnancyScansScreenState
                         onSaveScan: () => _handleSaveScan(3),
                         isSavingScan: _savingScanNumber == 3,
                       ),
-                      const SizedBox(height: 20.0),
+                      const SizedBox(height: 16.0),
+
+                      // 45-Day Scan Certificate Milestone Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                          border: Border.all(
+                            color: _scan3Confirmed ? AppColors.primaryGold : AppColors.inputBorder,
+                            width: _scan3Confirmed ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const HorseshoeIcon(size: 18, color: AppColors.primaryGold),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '45-DAY SCAN CERTIFICATE',
+                                    style: AppTypography.displayHeadline.copyWith(fontSize: 14),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'EQUINE MILESTONE',
+                                    style: TextStyle(
+                                      color: Color(0xFF10B981),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Generate official 45-day pregnancy scan certificate for AI mares & Recipient mares. Required for Thoroughbred & Sport Horse breeding records.',
+                              style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              onPressed: _navigateTo45DayCertificate,
+                              icon: const Icon(Icons.picture_as_pdf_outlined, size: 16, color: AppColors.background),
+                              label: const Text(
+                                'VIEW & EXPORT 45-DAY CERTIFICATE',
+                                style: TextStyle(
+                                  color: AppColors.background,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryGold,
+                                foregroundColor: AppColors.background,
+                                minimumSize: const Size(double.infinity, 44),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
 
                       // Save All Updates CTA
                       GradientCtaButton(

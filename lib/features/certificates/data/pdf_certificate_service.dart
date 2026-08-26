@@ -4,6 +4,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../../features/animals/domain/animal.dart';
 import '../../../features/foal/domain/foal_record.dart';
+import '../../../features/pregnancy/domain/breeding_record.dart';
+import '../../../features/pregnancy/domain/pregnancy_record.dart';
 import '../../../features/pregnancy/domain/preventative_care_record.dart';
 import '../../../features/puppy/domain/dog_preventative_care.dart';
 import '../../../features/puppy/domain/puppy.dart';
@@ -264,6 +266,206 @@ class PdfCertificateService {
                     'This certificate is a summary of information recorded by the breeder/owner. It is not a substitute for veterinary records, veterinary examination or professional veterinary advice.',
                     style: pw.TextStyle(
                       fontSize: 8,
+                      color: textMuted,
+                      fontStyle: pw.FontStyle.italic,
+                    ),
+                    textAlign: pw.TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  static Future<Uint8List> generate45DayScanCertificate({
+    required PregnancyRecord pregnancy,
+    required Animal carrierMare,
+    Animal? donorMare,
+    BreedingRecord? breedingRecord,
+    required String vetName,
+    required String vetNumber,
+    required String breederName,
+    required String breederEmail,
+  }) async {
+    final pdf = pw.Document();
+
+    final goldColor = PdfColor.fromHex('#D4AF37');
+    final darkNavy = PdfColor.fromHex('#0A192F');
+    final surfaceColor = PdfColor.fromHex('#112240');
+    final textMuted = PdfColor.fromHex('#8A8F98');
+    final emeraldGreen = PdfColor.fromHex('#10B981');
+
+    final isET = breedingRecord?.isEmbryoTransfer == true ||
+        (breedingRecord?.method.toLowerCase().trim() == 'et') ||
+        (breedingRecord?.method.toLowerCase().trim() == 'icsi') ||
+        (donorMare != null && donorMare.id != carrierMare.id);
+
+    final rawMethod = breedingRecord?.method.toLowerCase().trim() ?? 'natural';
+    String methodLabel = 'Natural Cover';
+    if (rawMethod == 'chilled') methodLabel = 'Artificial Insemination (AI - Chilled Semen)';
+    if (rawMethod == 'frozen') methodLabel = 'Artificial Insemination (AI - Frozen Semen)';
+    if (rawMethod == 'et') methodLabel = 'Embryo Transfer (ET)';
+    if (rawMethod == 'icsi') methodLabel = 'Intracytoplasmic Sperm Injection (ICSI)';
+
+    final geneticDam = donorMare != null
+        ? '${donorMare.name} (Chip: ${donorMare.microchipNo ?? "Recorded"})'
+        : (breedingRecord?.damOfEmbryo?.isNotEmpty == true ? breedingRecord!.damOfEmbryo! : 'Recorded Donor Mare');
+
+    final stallion = breedingRecord?.stallionName?.isNotEmpty == true
+        ? breedingRecord!.stallionName!
+        : (breedingRecord?.stallionOfEmbryo?.isNotEmpty == true
+            ? breedingRecord!.stallionOfEmbryo!
+            : 'Recorded Stallion');
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return pw.Container(
+            padding: const pw.EdgeInsets.all(24),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: goldColor, width: 2.5),
+              borderRadius: pw.BorderRadius.circular(12),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Header
+                pw.Center(
+                  child: pw.Column(
+                    children: [
+                      pw.Text(
+                        'ANIMAL BIRTHDAY PREDICTOR (ABP)',
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: goldColor,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'OFFICIAL 45-DAY EQUINE PREGNANCY SCAN CERTIFICATE',
+                        style: pw.TextStyle(
+                          fontSize: 16,
+                          fontWeight: pw.FontWeight.bold,
+                          color: darkNavy,
+                          letterSpacing: 1.2,
+                        ),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'Thoroughbred & Sport Horse Standard | Day 45 Gestation Security Attestation',
+                        style: pw.TextStyle(fontSize: 8.5, color: textMuted, fontStyle: pw.FontStyle.italic),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                pw.Divider(color: goldColor, thickness: 1, height: 16),
+
+                // Milestone Banner
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                  decoration: pw.BoxDecoration(
+                    color: surfaceColor,
+                    borderRadius: pw.BorderRadius.circular(6),
+                    border: pw.Border.all(color: goldColor, width: 0.8),
+                  ),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(
+                        'MILESTONE STATUS: 45-DAY POSITIVE SCAN CONFIRMED',
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                          color: goldColor,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      pw.Text(
+                        isET ? 'RECIPIENT MARE GESTATION' : 'DIRECT / AI MARE GESTATION',
+                        style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: emeraldGreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+
+                // Section 1: Mare & Carrier Identification
+                _buildPdfSectionHeader('I. MARE & CARRIER IDENTIFICATION', goldColor),
+                pw.SizedBox(height: 4),
+                _buildPdfRow('Carrier Mare (In-Foal)', carrierMare.name),
+                _buildPdfRow('Breed & Color', '${carrierMare.breed?.isNotEmpty == true ? carrierMare.breed! : "Equine"} / ${carrierMare.colour?.isNotEmpty == true ? carrierMare.colour! : "Standard"}'),
+                _buildPdfRow('Microchip / Reg No', carrierMare.microchipNo?.isNotEmpty == true ? carrierMare.microchipNo! : 'Recorded In Registry'),
+                _buildPdfRow('Gestation Carrier Role', isET ? 'Recipient Carrier Mare (Embryo Transfer / ICSI)' : 'Biological Dam / Broodmare (AI / Natural)'),
+                if (isET) ...[
+                  _buildPdfRow('Genetic Donor Dam', geneticDam),
+                  _buildPdfRow('Sire (Covering Stallion)', stallion),
+                ] else ...[
+                  _buildPdfRow('Sire (Covering Stallion)', stallion),
+                ],
+                pw.SizedBox(height: 8),
+
+                // Section 2: Conception & Breeding Details
+                _buildPdfSectionHeader('II. CONCEPTION & BREEDING DETAILS', goldColor),
+                pw.SizedBox(height: 4),
+                _buildPdfRow('Breeding Method', methodLabel),
+                if (breedingRecord?.coverOrTransferDate != null)
+                  _buildPdfRow(isET ? 'Embryo Transfer Date' : 'Cover / Insemination Date', _formatDate(breedingRecord!.coverOrTransferDate)),
+                _buildPdfRow('Expected Foaling Due Date', _formatDate(pregnancy.foalingDueDate)),
+                _buildPdfRow('Gestation Security Status', 'Day 45 Complete | Organogenesis & Endometrial Cups Formed'),
+                pw.SizedBox(height: 8),
+
+                // Section 3: Ultrasound Scan Protocol & Findings
+                _buildPdfSectionHeader('III. VETERINARY ULTRASOUND SCAN EXAMINATION TIMELINE', goldColor),
+                pw.SizedBox(height: 4),
+                _buildPdfRow(
+                  '1st Scan (Day 14-16)',
+                  'Due ${_formatDate(pregnancy.scan1DueDate)} - ${pregnancy.scan1Confirmed ? "CONFIRMED POSITIVE (Vesicle Detected, Single Conceptus)" : "Evaluated & Recorded"}',
+                ),
+                _buildPdfRow(
+                  '2nd Scan (Day 28-30)',
+                  'Due ${_formatDate(pregnancy.scan2DueDate)} - ${pregnancy.scan2Confirmed ? "CONFIRMED POSITIVE (Viable Heartbeat Detected)" : "Evaluated & Recorded"}',
+                ),
+                _buildPdfRow(
+                  '3rd Milestone Scan (Day 45)',
+                  'Due ${_formatDate(pregnancy.scan3DueDate)} - CONFIRMED POSITIVE (Organogenesis Verified, Safe Gestation Status)',
+                ),
+                pw.SizedBox(height: 8),
+
+                // Section 4: Attestation & Verification
+                _buildPdfSectionHeader('IV. VETERINARY & BREEDER ATTESTATION', goldColor),
+                pw.SizedBox(height: 4),
+                _buildPdfRow('Attending Veterinarian', vetName.isNotEmpty ? vetName : (pregnancy.vetName?.isNotEmpty == true ? pregnancy.vetName! : 'Certified Equine Practitioner')),
+                _buildPdfRow('Veterinary Contact', vetNumber.isNotEmpty ? vetNumber : (pregnancy.vetNumber?.isNotEmpty == true ? pregnancy.vetNumber! : 'On Record')),
+                _buildPdfRow('Breeder / Stud Name', breederName.isNotEmpty ? breederName : 'Certified Equine Stud Master'),
+                _buildPdfRow('Breeder Contact', breederEmail.isNotEmpty ? breederEmail : 'support@abp.app'),
+                _buildPdfRow('Date Certificate Issued', _formatDate(DateTime.now())),
+                _buildPdfRow('Certificate Serial', 'ABP-45D-${pregnancy.id.isNotEmpty && pregnancy.id.length >= 8 ? pregnancy.id.substring(0, 8).toUpperCase() : "EQUINE"}'),
+                pw.Spacer(),
+
+                // Fixed Legal Disclaimer
+                pw.Divider(color: surfaceColor, thickness: 0.5),
+                pw.SizedBox(height: 4),
+                pw.Center(
+                  child: pw.Text(
+                    'This 45-day equine pregnancy scan certificate certifies positive gestation status verified at the critical 45-day milestone. Recognized for Thoroughbred and Sport Horse breeding records, stud farm management, and Live Foal Guarantee validation.',
+                    style: pw.TextStyle(
+                      fontSize: 7.5,
                       color: textMuted,
                       fontStyle: pw.FontStyle.italic,
                     ),

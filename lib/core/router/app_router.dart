@@ -13,6 +13,8 @@ import '../../features/animals/presentation/screens/saved_animals_screen.dart';
 import '../../features/animals/presentation/screens/animal_details_screen.dart';
 import '../../features/animals/presentation/screens/animal_profile_screen.dart';
 import '../../features/animals/presentation/screens/markings_screen.dart';
+import '../../features/pregnancy/domain/breeding_record.dart';
+import '../../features/pregnancy/domain/pregnancy_record.dart';
 import '../../features/pregnancy/presentation/screens/breeding_details_screen.dart';
 import '../../features/pregnancy/presentation/screens/pregnancy_details_screen.dart';
 import '../../features/pregnancy/presentation/screens/veterinarian_pregnancy_scans_screen.dart';
@@ -362,8 +364,23 @@ abstract class AppRouter {
         final foal = args['foal'] as FoalRecord?;
         final puppy = args['puppy'] as Puppy?;
         final dam = args['dam'] as Animal?;
+        final pregnancy = args['pregnancy'] as PregnancyRecord?;
+        final carrierMare = (args['carrierMare'] as Animal?) ?? (args['carrier'] as Animal?);
+        final donorMare = (args['donorMare'] as Animal?) ?? (args['donor'] as Animal?);
+        final breedingRecord = (args['breedingRecord'] as BreedingRecord?) ?? (args['breeding'] as BreedingRecord?);
+        final is45DayScan = (args['is45DayScan'] as bool?) ?? (pregnancy != null);
+
         return MaterialPageRoute(
-          builder: (_) => CertificateScreen(foal: foal, puppy: puppy, dam: dam),
+          builder: (_) => CertificateScreen(
+            foal: foal,
+            puppy: puppy,
+            dam: dam,
+            pregnancy: pregnancy,
+            carrierMare: carrierMare,
+            donorMare: donorMare,
+            breedingRecord: breedingRecord,
+            is45DayScan: is45DayScan,
+          ),
           settings: settings,
         );
     }

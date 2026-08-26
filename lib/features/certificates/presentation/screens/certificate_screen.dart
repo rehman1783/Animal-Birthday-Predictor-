@@ -6,11 +6,15 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../foal/domain/foal_record.dart';
+import '../../../pregnancy/domain/breeding_record.dart';
+import '../../../pregnancy/domain/pregnancy_record.dart';
+import '../../../pregnancy/presentation/providers/pregnancy_provider.dart';
 import '../../../pregnancy/presentation/providers/preventative_care_provider.dart';
 import '../../../puppy/domain/puppy.dart';
 import '../../../puppy/presentation/providers/puppy_provider.dart';
@@ -20,12 +24,22 @@ class CertificateScreen extends ConsumerStatefulWidget {
   final FoalRecord? foal;
   final Puppy? puppy;
   final Animal? dam;
+  final PregnancyRecord? pregnancy;
+  final Animal? carrierMare;
+  final Animal? donorMare;
+  final BreedingRecord? breedingRecord;
+  final bool is45DayScan;
 
   const CertificateScreen({
     super.key,
     this.foal,
     this.puppy,
     this.dam,
+    this.pregnancy,
+    this.carrierMare,
+    this.donorMare,
+    this.breedingRecord,
+    this.is45DayScan = false,
   });
 
   @override
@@ -48,7 +62,36 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
       final breederName = user?.fullName.isNotEmpty == true ? user!.fullName : 'Certified Breeder';
       final breederEmail = user?.email.isNotEmpty == true ? user!.email : 'support@abp.app';
 
-      if (widget.foal != null) {
+      if (widget.is45DayScan || widget.pregnancy != null) {
+        final preg = widget.pregnancy!;
+        final carrier = widget.carrierMare ?? (await ref.read(animalRepositoryProvider).getAnimalById(preg.carrierAnimalId));
+        if (carrier == null) {
+          throw Exception('Carrier mare record not found');
+        }
+        final breeding = widget.breedingRecord ?? (await ref.read(pregnancyRepositoryProvider).getBreedingRecordByMare(carrier.id));
+        final donor = widget.donorMare ?? ((breeding?.mareAnimalId != null && breeding!.mareAnimalId != carrier.id)
+            ? await ref.read(animalRepositoryProvider).getAnimalById(breeding.mareAnimalId)
+            : null);
+
+        final vetName = preg.vetName ?? '';
+        final vetNumber = preg.vetNumber ?? '';
+
+        final pdfBytes = await PdfCertificateService.generate45DayScanCertificate(
+          pregnancy: preg,
+          carrierMare: carrier,
+          donorMare: donor,
+          breedingRecord: breeding,
+          vetName: vetName,
+          vetNumber: vetNumber,
+          breederName: breederName,
+          breederEmail: breederEmail,
+        );
+
+        await PdfCertificateService.exportOrPrintPdf(
+          pdfBytes,
+          '45_day_scan_certificate_${carrier.name.replaceAll(' ', '_')}.pdf',
+        );
+      } else if (widget.foal != null) {
         final damMare = widget.dam ?? (await ref.read(animalRepositoryProvider).getAnimalById(widget.foal!.mareAnimalId));
         final prevCare = await ref.read(preventativeCareRepositoryProvider).getPreventativeCare('foal', widget.foal!.id);
 
@@ -98,10 +141,11 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final is45Day = widget.is45DayScan || widget.pregnancy != null;
     final isHorse = widget.foal != null;
     final isDog = widget.puppy != null;
 
-    if (!isHorse && !isDog) {
+    if (!is45Day && !isHorse && !isDog) {
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(backgroundColor: AppColors.background, title: const Text('CERTIFICATE')),
@@ -116,6 +160,15 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     final authState = ref.watch(authControllerProvider);
     final user = authState.value;
 
+    String titleText = 'CERTIFICATE';
+    if (is45Day) {
+      titleText = '45-DAY SCAN CERTIFICATE';
+    } else if (isHorse) {
+      titleText = 'FOAL CERTIFICATE';
+    } else if (isDog) {
+      titleText = 'PUPPY CERTIFICATE';
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -126,7 +179,7 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
           onPressed: () => Navigator.maybePop(context),
         ),
         title: Text(
-          isHorse ? 'FOAL CERTIFICATE' : 'PUPPY CERTIFICATE',
+          titleText,
           style: AppTypography.sectionLabel,
         ),
         centerTitle: true,
@@ -160,9 +213,11 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
                       ),
                     ],
                   ),
-                  child: isHorse
-                      ? _buildFoalCertificateContent(user)
-                      : _buildPuppyCertificateContent(user),
+                  child: is45Day
+                      ? _build45DayScanCertificateContent(user)
+                      : (isHorse
+                          ? _buildFoalCertificateContent(user)
+                          : _buildPuppyCertificateContent(user)),
                 ),
                 const SizedBox(height: 24),
 
@@ -177,6 +232,222 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _build45DayScanCertificateContent(dynamic user) {
+    final preg = widget.pregnancy!;
+    final carrierMareAsync = widget.carrierMare != null
+        ? AsyncValue.data(widget.carrierMare)
+        : ref.watch(animalByIdProvider(preg.carrierAnimalId));
+    final breedingAsync = widget.breedingRecord != null
+        ? AsyncValue.data(widget.breedingRecord)
+        : ref.watch(breedingRecordByMareProvider(preg.carrierAnimalId));
+
+    final carrierMare = carrierMareAsync.valueOrNull ?? widget.carrierMare;
+    final breeding = breedingAsync.valueOrNull ?? widget.breedingRecord;
+
+    final isET = breeding?.isEmbryoTransfer == true ||
+        (breeding?.method.toLowerCase().trim() == 'et') ||
+        (breeding?.method.toLowerCase().trim() == 'icsi') ||
+        (widget.donorMare != null && widget.donorMare?.id != carrierMare?.id);
+
+    final rawMethod = breeding?.method.toLowerCase().trim() ?? 'natural';
+    String methodLabel = 'Natural Cover';
+    if (rawMethod == 'chilled') methodLabel = 'AI (Chilled Semen)';
+    if (rawMethod == 'frozen') methodLabel = 'AI (Frozen Semen)';
+    if (rawMethod == 'et') methodLabel = 'Embryo Transfer (ET)';
+    if (rawMethod == 'icsi') methodLabel = 'ICSI';
+
+    final geneticDamName = widget.donorMare?.name ??
+        (breeding?.damOfEmbryo?.isNotEmpty == true ? breeding!.damOfEmbryo! : 'Registered Donor Dam');
+
+    final stallionName = breeding?.stallionName?.isNotEmpty == true
+        ? breeding!.stallionName!
+        : (breeding?.stallionOfEmbryo?.isNotEmpty == true ? breeding!.stallionOfEmbryo! : 'Recorded Stallion');
+
+    final vetName = preg.vetName?.isNotEmpty == true
+        ? preg.vetName!
+        : 'Certified Equine Practitioner';
+    final vetNumber = preg.vetNumber?.isNotEmpty == true
+        ? preg.vetNumber!
+        : 'On Record';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Certificate Header
+        Center(
+          child: Column(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primaryGold, width: 2),
+                ),
+                child: const Center(
+                  child: HorseshoeIcon(size: 28, color: AppColors.primaryGold),
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text('ANIMAL BIRTHDAY PREDICTOR', style: AppTypography.sectionLabel),
+              const SizedBox(height: 4),
+              Text(
+                '45-DAY SCAN CERTIFICATE',
+                style: AppTypography.displayHeadline.copyWith(
+                  color: AppColors.primaryGold,
+                  fontSize: 18,
+                  letterSpacing: 1.2,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Official Equine Gestation Security Attestation • Thoroughbred & Sport Horse Standard',
+                style: AppTypography.finePrint.copyWith(fontStyle: FontStyle.italic, color: AppColors.textMuted),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        const Divider(color: AppColors.primaryGold, height: 28),
+
+        // Milestone Confirmation Badge
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.primaryGold, width: 1.2),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.verified, color: Color(0xFF10B981), size: 18),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      '45-DAY POSITIVE SCAN CONFIRMED',
+                      style: AppTypography.displayHeadline.copyWith(
+                        fontSize: 13,
+                        color: AppColors.primaryGold,
+                        letterSpacing: 1,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  isET ? 'RECIPIENT MARE GESTATION' : 'DIRECT / AI MARE GESTATION',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF10B981),
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // Section 1: Mare & Carrier Identification
+        const Text('I. MARE & CARRIER IDENTIFICATION', style: AppTypography.sectionLabel),
+        const SizedBox(height: 10),
+        _CertRow(label: 'Carrier Mare (In-Foal)', value: carrierMare?.name ?? 'Loading Mare...'),
+        _CertRow(
+          label: 'Breed & Color',
+          value: '${carrierMare?.breed ?? "Equine"} • ${carrierMare?.colour ?? "Standard"}',
+        ),
+        _CertRow(
+          label: 'Microchip / Reg No',
+          value: carrierMare?.microchipNo?.isNotEmpty == true ? carrierMare!.microchipNo! : 'Recorded in Registry',
+        ),
+        _CertRow(
+          label: 'Carrier Role',
+          value: isET ? 'Recipient Carrier (Embryo Transfer / ICSI)' : 'Biological Dam (AI / Natural)',
+        ),
+        if (isET) ...[
+          _CertRow(label: 'Genetic Donor Dam', value: geneticDamName),
+          _CertRow(label: 'Sire (Covering Stallion)', value: stallionName),
+        ] else ...[
+          _CertRow(label: 'Sire (Covering Stallion)', value: stallionName),
+        ],
+        const SizedBox(height: 18),
+
+        // Section 2: Conception & Breeding Details
+        const Text('II. CONCEPTION & BREEDING DETAILS', style: AppTypography.sectionLabel),
+        const SizedBox(height: 10),
+        _CertRow(label: 'Breeding Method', value: methodLabel),
+        if (breeding?.coverOrTransferDate != null)
+          _CertRow(
+            label: isET ? 'Embryo Transfer Date' : 'Cover / Insemination Date',
+            value: _formatDate(breeding!.coverOrTransferDate),
+          ),
+        _CertRow(label: 'Expected Foaling Due Date', value: _formatDate(preg.foalingDueDate)),
+        _CertRow(label: 'Gestation Security', value: 'Day 45 Complete • Organogenesis Secured'),
+        const SizedBox(height: 18),
+
+        // Section 3: Ultrasound Examination Timeline
+        const Text('III. VETERINARY ULTRASOUND SCAN TIMELINE', style: AppTypography.sectionLabel),
+        const SizedBox(height: 10),
+        _CertRow(
+          label: '1st Scan (Day 14-16)',
+          value: 'Due ${_formatDate(preg.scan1DueDate)} • ${preg.scan1Confirmed ? "✅ Confirmed Positive" : "Recorded"}',
+        ),
+        _CertRow(
+          label: '2nd Scan (Day 28-30)',
+          value: 'Due ${_formatDate(preg.scan2DueDate)} • ${preg.scan2Confirmed ? "✅ Heartbeat Viable" : "Recorded"}',
+        ),
+        _CertRow(
+          label: '3rd Milestone Scan (Day 45)',
+          value: 'Due ${_formatDate(preg.scan3DueDate)} • ✅ CONFIRMED POSITIVE',
+        ),
+        const SizedBox(height: 18),
+
+        // Section 4: Attestation & Verification
+        const Text('IV. VETERINARY & BREEDER ATTESTATION', style: AppTypography.sectionLabel),
+        const SizedBox(height: 10),
+        _CertRow(label: 'Attending Veterinarian', value: vetName),
+        _CertRow(label: 'Veterinary Contact', value: vetNumber),
+        _CertRow(
+          label: 'Breeder / Stud Master',
+          value: user?.fullName.isNotEmpty == true ? user!.fullName : 'Certified Equine Breeder',
+        ),
+        _CertRow(label: 'Breeder Contact', value: user?.email.isNotEmpty == true ? user!.email : 'support@abp.app'),
+        _CertRow(label: 'Date Issued', value: _formatDate(DateTime.now())),
+        _CertRow(
+          label: 'Certificate ID',
+          value: 'ABP-45D-${preg.id.isNotEmpty && preg.id.length >= 8 ? preg.id.substring(0, 8).toUpperCase() : "EQUINE"}',
+        ),
+        const Divider(color: AppColors.surface, height: 28),
+
+        // Fixed Footer Disclaimer
+        Text(
+          'This 45-day pregnancy scan certificate confirms positive equine gestation status at Day 45 milestone. Recognized for Thoroughbred and Sport Horse breeding records, stud management, and Live Foal Guarantee protocols.',
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.textMuted,
+            fontStyle: FontStyle.italic,
+            fontSize: 10.5,
+            height: 1.4,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 

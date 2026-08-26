@@ -14,6 +14,7 @@ import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
+import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../domain/pregnancy_record.dart';
 import '../providers/pregnancy_provider.dart';
@@ -208,6 +209,68 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
         (_scan3Image ?? '') != (r.scan3ImageUrl ?? '') ||
         _vetNameController.text.trim() != (r.vetName?.trim() ?? '') ||
         _vetNumberController.text.trim() != (r.vetNumber?.trim() ?? '');
+  }
+
+  Future<void> _navigateTo45DayCertificate() async {
+    try {
+      final animalRepo = ref.read(animalRepositoryProvider);
+      final pregRepo = ref.read(pregnancyRepositoryProvider);
+
+      final carrierMare = await animalRepo.getAnimalById(widget.carrierAnimalId);
+      if (carrierMare == null) {
+        if (mounted) {
+          AppFeedbackSnackbar.showError(
+            context,
+            title: 'Mare Not Found',
+            error: 'Carrier mare record could not be loaded.',
+          );
+        }
+        return;
+      }
+
+      final breeding = await pregRepo.getBreedingRecordByMare(carrierMare.id);
+      Animal? donorMare;
+      if (breeding != null && breeding.mareAnimalId.isNotEmpty && breeding.mareAnimalId != carrierMare.id) {
+        donorMare = await animalRepo.getAnimalById(breeding.mareAnimalId);
+      }
+
+      final current = _record ??
+          PregnancyRecord(
+            id: '',
+            accountId: '',
+            carrierAnimalId: widget.carrierAnimalId,
+            breedingRecordId: breeding?.id ?? '',
+            scan1DueDate: DateTime.now().add(const Duration(days: 2)),
+            scan1Confirmed: _scan1Confirmed,
+            scan2DueDate: DateTime.now().add(const Duration(days: 16)),
+            scan2Confirmed: _scan2Confirmed,
+            scan3DueDate: DateTime.now().add(const Duration(days: 31)),
+            scan3Confirmed: _scan3Confirmed,
+            foalingDueDate: DateTime.now().add(const Duration(days: 326)),
+            vetName: _vetNameController.text.trim(),
+            vetNumber: _vetNumberController.text.trim(),
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+
+      if (mounted) {
+        Navigator.pushNamed(
+          context,
+          '/certificate',
+          arguments: {
+            'pregnancy': current,
+            'carrierMare': carrierMare,
+            'donorMare': donorMare,
+            'breedingRecord': breeding,
+            'is45DayScan': true,
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppFeedbackSnackbar.showError(context, title: 'Certificate Error', error: e);
+      }
+    }
   }
 
   @override
@@ -536,6 +599,23 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                       label: const Text('ADVANCED PREGNANCY INFO & FETAL SEXING', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.surface),
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                      ),
+                    ),
+                    const SizedBox(height: 10.0),
+
+                    // 45-Day Scan Certificate Button
+                    OutlinedButton.icon(
+                      onPressed: _navigateTo45DayCertificate,
+                      icon: const Icon(Icons.picture_as_pdf_outlined, color: AppColors.primaryGold, size: 16),
+                      label: const Text(
+                        'OFFICIAL 45-DAY SCAN CERTIFICATE',
+                        style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primaryGold),
                         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                         minimumSize: const Size(double.infinity, 48),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
