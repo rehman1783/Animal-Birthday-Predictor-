@@ -580,6 +580,47 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                   ),
                   const SizedBox(height: 14.0),
 
+                  // Foal Status Selector
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Foal Status', style: AppTypography.inputLabel),
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            {'id': 'keep', 'label': 'Healthy / Retained'},
+                            {'id': 'available', 'label': 'Available'},
+                            {'id': 'reserved', 'label': 'Reserved'},
+                            {'id': 'sold', 'label': 'Sold / Transferred'},
+                            {'id': 'weaned', 'label': 'Weaned'},
+                            {'id': 'training', 'label': 'In Training'},
+                            {'id': 'deceased', 'label': 'Deceased / Stillborn'},
+                          ].map((st) {
+                            final isSel = _status.toLowerCase() == st['id']!.toLowerCase();
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ChoiceChip(
+                                label: Text(st['label']!),
+                                selected: isSel,
+                                selectedColor: AppColors.primaryGold,
+                                backgroundColor: AppColors.inputField,
+                                labelStyle: TextStyle(
+                                  color: isSel ? AppColors.background : AppColors.textPrimary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                onSelected: (_) => setState(() => _status = st['id']!),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14.0),
+
                   Row(
                     children: [
                       Expanded(

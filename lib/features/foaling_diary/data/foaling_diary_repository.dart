@@ -46,7 +46,7 @@ class FoalingDiaryRepository {
         debugPrint('Supabase getFoalingDiaryEntries table query error: $e');
       }
 
-      // 2. Also retrieve any active equine pregnancy records recorded in the breeding suite
+      // 2. Also retrieve active equine pregnancy records conforming to 01_schema.sql
       try {
         final pregData = await c
             .from('pregnancy_records')
@@ -54,19 +54,10 @@ class FoalingDiaryRepository {
               id,
               breeding_record_id,
               carrier_animal_id,
+              scan_1_confirmed,
+              scan_2_confirmed,
+              scan_3_confirmed,
               foaling_due_date,
-              earliest_foaling_date,
-              latest_foaling_date,
-              is_embryo_transfer,
-              donor_dam_name,
-              recipient_mare_name,
-              scan1_confirmed,
-              scan2_confirmed,
-              scan3_confirmed,
-              twins_suspected,
-              current_paddock,
-              notes,
-              is_foaled,
               animals!carrier_animal_id (
                 id,
                 name,
@@ -76,8 +67,10 @@ class FoalingDiaryRepository {
               breeding_records (
                 id,
                 stallion_name,
-                breeding_type,
-                service_date
+                method,
+                cover_or_transfer_date,
+                is_embryo_transfer,
+                dam_of_embryo
               )
             ''')
             .eq('account_id', user.id);
@@ -104,19 +97,16 @@ class FoalingDiaryRepository {
               final microchip = animal?['microchip_no']?.toString();
               final breeding = rowMap['breeding_records'] as Map<String, dynamic>?;
               final stallionName = breeding?['stallion_name']?.toString() ?? 'Recorded Stallion';
-              final breedingType = breeding?['breeding_type']?.toString() ?? 'natural';
+              final breedingType = breeding?['method']?.toString() ?? 'natural';
 
-              final serviceDateStr = breeding?['service_date']?.toString();
+              final serviceDateStr = breeding?['cover_or_transfer_date']?.toString();
               final serviceDate = serviceDateStr != null ? DateTime.tryParse(serviceDateStr) ?? DateTime.now() : DateTime.now();
 
               final dueDateStr = rowMap['foaling_due_date']?.toString();
               final foalingDueDate = dueDateStr != null ? DateTime.tryParse(dueDateStr) ?? serviceDate.add(const Duration(days: 340)) : serviceDate.add(const Duration(days: 340));
 
-              final minDateStr = rowMap['earliest_foaling_date']?.toString();
-              final minDueDate = minDateStr != null ? DateTime.tryParse(minDateStr) ?? serviceDate.add(const Duration(days: 320)) : serviceDate.add(const Duration(days: 320));
-
-              final maxDateStr = rowMap['latest_foaling_date']?.toString();
-              final maxDueDate = maxDateStr != null ? DateTime.tryParse(maxDateStr) ?? serviceDate.add(const Duration(days: 365)) : serviceDate.add(const Duration(days: 365));
+              final minDueDate = serviceDate.add(const Duration(days: 320));
+              final maxDueDate = serviceDate.add(const Duration(days: 365));
 
               final entry = FoalingDiaryEntry(
                 id: pregId,
@@ -124,21 +114,21 @@ class FoalingDiaryRepository {
                 mareName: mareName,
                 microchipNo: microchip,
                 stallionName: stallionName,
-                isEmbryoTransfer: rowMap['is_embryo_transfer'] == true,
-                donorMareName: rowMap['donor_dam_name']?.toString(),
-                recipientMareName: rowMap['recipient_mare_name']?.toString(),
+                isEmbryoTransfer: breeding?['is_embryo_transfer'] == true,
+                donorMareName: breeding?['dam_of_embryo']?.toString(),
+                recipientMareName: null,
                 breedingMethod: breedingType,
                 serviceDate: serviceDate,
                 foalingDueDate: foalingDueDate,
                 minDueDate: minDueDate,
                 maxDueDate: maxDueDate,
-                currentPaddock: rowMap['current_paddock']?.toString() ?? 'Main Broodmare Pasture',
-                scan1Confirmed: rowMap['scan1_confirmed'] == true,
-                scan2Confirmed: rowMap['scan2_confirmed'] == true,
-                scan3Confirmed: rowMap['scan3_confirmed'] == true,
-                twinDetected: rowMap['twins_suspected'] == true,
-                isFoaled: rowMap['is_foaled'] == true,
-                notes: rowMap['notes']?.toString() ?? '',
+                currentPaddock: 'Main Broodmare Pasture',
+                scan1Confirmed: rowMap['scan_1_confirmed'] == true,
+                scan2Confirmed: rowMap['scan_2_confirmed'] == true,
+                scan3Confirmed: rowMap['scan_3_confirmed'] == true,
+                twinDetected: false,
+                isFoaled: false,
+                notes: '',
               );
 
               results.add(entry);

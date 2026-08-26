@@ -227,6 +227,12 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
 
     return foalsAsync.when(
       data: (allFoals) {
+        final totalFoals = allFoals.length;
+        final coltsCount = allFoals.where((f) => f.sex?.toLowerCase() == 'colt').length;
+        final filliesCount = allFoals.where((f) => f.sex?.toLowerCase() == 'filly').length;
+        final geldedCount = allFoals.where((f) => f.gelded == true).length;
+        final soldCount = allFoals.where((f) => (f.status ?? '').toLowerCase().contains('sold')).length;
+
         final foals = allFoals.where((f) {
           if (_selectedStatus == 'all') return true;
           return (f.status ?? 'keep').toLowerCase() == _selectedStatus.toLowerCase();
@@ -242,6 +248,33 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
               children: [
+                // Foal Summary KPI Strip
+                if (allFoals.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                      border: Border.all(color: AppColors.inputBorder),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildSummaryKpi('TOTAL', totalFoals.toString(), AppColors.primaryGold),
+                        _buildSummaryDivider(),
+                        _buildSummaryKpi('COLTS', coltsCount.toString(), const Color(0xFF64B5F6)),
+                        _buildSummaryDivider(),
+                        _buildSummaryKpi('FILLIES', filliesCount.toString(), const Color(0xFFF48FB1)),
+                        _buildSummaryDivider(),
+                        _buildSummaryKpi('GELDED', geldedCount.toString(), const Color(0xFFFFB74D)),
+                        _buildSummaryDivider(),
+                        _buildSummaryKpi('SOLD', soldCount.toString(), const Color(0xFF81C784)),
+                      ],
+                    ),
+                  ),
+                ],
+
                 // Header CTA Banner
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -288,7 +321,7 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: ['all', 'keep', 'available', 'reserved', 'sold'].map((st) {
+                    children: ['all', 'keep', 'available', 'reserved', 'sold', 'weaned', 'training', 'deceased'].map((st) {
                       final isSel = _selectedStatus == st;
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
@@ -355,6 +388,40 @@ class _FoalsBirthListViewState extends ConsumerState<_FoalsBirthListView> {
         error: e,
         onRetry: () => ref.invalidate(foalsListProvider),
       ),
+    );
+  }
+
+  Widget _buildSummaryKpi(String label, String value, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryDivider() {
+    return Container(
+      width: 1,
+      height: 22,
+      color: AppColors.inputBorder,
     );
   }
 

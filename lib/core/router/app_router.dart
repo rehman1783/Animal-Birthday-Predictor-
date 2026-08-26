@@ -36,6 +36,7 @@ import '../../features/puppy/presentation/screens/puppy_weight_tracker_screen.da
 import '../../features/puppy/presentation/screens/dog_preventative_care_screen.dart';
 import '../../features/faq/presentation/screens/faq_screen.dart';
 import '../../features/disclaimer/presentation/screens/disclaimer_screen.dart';
+import '../../features/animals/presentation/screens/markings_screen.dart';
 import '../../features/foaling_diary/presentation/screens/foaling_diary_screen.dart';
 import '../../features/foaling_diary/presentation/screens/due_date_calculator_screen.dart';
 import '../utils/app_uuid.dart';
@@ -391,6 +392,24 @@ abstract class AppRouter {
             donorMare: donorMare,
             breedingRecord: breedingRecord,
             is45DayScan: is45DayScan,
+          ),
+          settings: settings,
+        );
+
+      case '/markings':
+        String ownerType = 'animal';
+        String ownerId = '';
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          ownerType = (map['ownerType'] as String?) ?? (map['type'] as String?) ?? 'animal';
+          ownerId = (map['ownerId'] as String?) ?? (map['id'] as String?) ?? '';
+        } else if (settings.arguments is String) {
+          ownerId = settings.arguments as String;
+        }
+        return MaterialPageRoute(
+          builder: (_) => MarkingsScreen(
+            ownerType: ownerType,
+            ownerId: ownerId,
           ),
           settings: settings,
         );
