@@ -299,7 +299,7 @@ class DashboardHomeScreen extends ConsumerWidget {
                       child: OutlinedButton.icon(
                         onPressed: () async {
                           await Navigator.pushNamed(context, '/dog-preventative-care', arguments: {
-                            'ownerType': 'general_canine',
+                            'ownerType': 'animal',
                             'title': 'Canine Health & Vaccines',
                           });
                         },

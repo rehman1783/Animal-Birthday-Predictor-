@@ -54,6 +54,27 @@ void main() {
       expect(AppUuid.isValid(saved.ownerId), isTrue);
     });
 
+    test('saveDogPreventativeCareItem normalizes invalid owner_type to animal to satisfy postgres check constraint', () async {
+      final item = DogPreventativeCareItem(
+        id: '',
+        accountId: '',
+        ownerType: 'general_canine', // Non-standard owner type
+        ownerId: '',
+        treatmentType: 'worming',
+        title: '2-Week Worming',
+        dateGiven: null,
+        dateDue: DateTime.now(),
+        isCompleted: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final saved = await repo.saveDogPreventativeCareItem(item);
+      expect(saved.ownerType, equals('animal'));
+      expect(AppUuid.isValid(saved.id), isTrue);
+      expect(AppUuid.isValid(saved.ownerId), isTrue);
+    });
+
     test('Puppy CRUD handles invalid UUID lookups gracefully without crashing', () async {
       final notFound = await repo.getPuppyById('');
       expect(notFound, isNull);

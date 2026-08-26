@@ -192,6 +192,7 @@ class PuppyRepository {
   // --- DOG PREVENTATIVE CARE ---
   Future<List<DogPreventativeCareItem>> getDogPreventativeCare(String ownerType, String ownerId) async {
     final c = client;
+    final cleanOwnerType = (ownerType == 'puppy' || ownerType == 'animal') ? ownerType : 'animal';
     final cleanOwnerId = ownerId.trim().isEmpty
         ? '00000000-0000-0000-0000-000000000001'
         : (AppUuid.isValid(ownerId.trim()) ? ownerId.trim() : '00000000-0000-0000-0000-000000000001');
@@ -200,7 +201,7 @@ class PuppyRepository {
       try {
         final data = await c.from('dog_preventative_care')
             .select()
-            .eq('owner_type', ownerType)
+            .eq('owner_type', cleanOwnerType)
             .eq('owner_id', cleanOwnerId)
             .order('created_at', ascending: true);
         if (data is List) {
@@ -211,7 +212,7 @@ class PuppyRepository {
       }
     }
 
-    return _mockCare.where((item) => item.ownerType == ownerType && (item.ownerId == ownerId || item.ownerId == cleanOwnerId)).toList();
+    return _mockCare.where((item) => (item.ownerType == ownerType || item.ownerType == cleanOwnerType) && (item.ownerId == ownerId || item.ownerId == cleanOwnerId)).toList();
   }
 
   Future<DogPreventativeCareItem> saveDogPreventativeCareItem(DogPreventativeCareItem item) async {
@@ -219,10 +220,11 @@ class PuppyRepository {
     final user = c?.auth.currentUser;
     final accountId = user?.id ?? (AppUuid.isValid(item.accountId) ? item.accountId : AppUuid.generate());
     final validId = AppUuid.isValid(item.id) ? item.id : AppUuid.generate();
+    final validOwnerType = (item.ownerType == 'puppy' || item.ownerType == 'animal') ? item.ownerType : 'animal';
     final validOwnerId = AppUuid.isValid(item.ownerId)
         ? item.ownerId
         : (item.ownerId.trim().isEmpty ? '00000000-0000-0000-0000-000000000001' : AppUuid.generate());
-    final toSave = item.copyWith(id: validId, accountId: accountId, ownerId: validOwnerId);
+    final toSave = item.copyWith(id: validId, accountId: accountId, ownerType: validOwnerType, ownerId: validOwnerId);
 
     if (c != null && user != null && AppUuid.isValid(toSave.ownerId)) {
       try {
@@ -261,7 +263,12 @@ class PuppyRepository {
     required String ownerId,
     DateTime? dateOfBirth,
   }) async {
-    final existing = await getDogPreventativeCare(ownerType, ownerId);
+    final cleanOwnerType = (ownerType == 'puppy' || ownerType == 'animal') ? ownerType : 'animal';
+    final cleanOwnerId = ownerId.trim().isEmpty
+        ? '00000000-0000-0000-0000-000000000001'
+        : (AppUuid.isValid(ownerId.trim()) ? ownerId.trim() : '00000000-0000-0000-0000-000000000001');
+
+    final existing = await getDogPreventativeCare(cleanOwnerType, cleanOwnerId);
     if (existing.isNotEmpty) return existing;
 
     final dob = dateOfBirth ?? DateTime.now();
@@ -284,8 +291,8 @@ class PuppyRepository {
       final item = DogPreventativeCareItem(
         id: AppUuid.generate(),
         accountId: '',
-        ownerType: ownerType,
-        ownerId: ownerId,
+        ownerType: cleanOwnerType,
+        ownerId: cleanOwnerId,
         treatmentType: def.type,
         title: def.title,
         dateGiven: null,

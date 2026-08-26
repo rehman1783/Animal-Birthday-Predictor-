@@ -210,9 +210,11 @@ abstract class AppRouter {
         final validOwnerId = rawOwnerId.isNotEmpty && AppUuid.isValid(rawOwnerId)
             ? rawOwnerId
             : (rawOwnerId.isNotEmpty ? rawOwnerId : '00000000-0000-0000-0000-000000000001');
+        final rawOwnerType = (args['ownerType'] as String?)?.trim() ?? 'animal';
+        final validOwnerType = (rawOwnerType == 'puppy' || rawOwnerType == 'animal') ? rawOwnerType : 'animal';
         return MaterialPageRoute(
           builder: (_) => DogPreventativeCareScreen(
-            ownerType: (args['ownerType'] as String?) ?? 'puppy',
+            ownerType: validOwnerType,
             ownerId: validOwnerId,
             title: (args['title'] as String?) ?? 'Canine',
             dateOfBirth: args['dateOfBirth'] as DateTime?,
