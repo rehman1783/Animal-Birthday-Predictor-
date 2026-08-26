@@ -2,7 +2,7 @@ enum MovementStage {
   overdue('Overdue', 'Past expected due date'),
   foalingBarn('Foaling Barn (<14 Days)', 'Move to foaling box & 24/7 watch'),
   closePaddock('Close Paddock (15-30 Days)', 'Move to close monitoring paddock'),
-  upcoming('Mid Gestation (30+ Days)', 'Routine pasture & nutrition'),
+  upcoming('Upcoming (30+ Days)', 'Routine pasture & nutrition'),
   foaled('Foaled / Completed', 'Foaling completed');
 
   final String title;

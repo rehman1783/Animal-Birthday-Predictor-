@@ -568,7 +568,7 @@ class _MareDiaryCard extends StatelessWidget {
         break;
       case MovementStage.upcoming:
         stageColor = AppColors.success;
-        stageBadgeText = '📅 MID GESTATION (${rem}d)';
+        stageBadgeText = '📅 UPCOMING (${rem}d)';
         break;
       case MovementStage.foaled:
         stageColor = AppColors.primaryGold;
