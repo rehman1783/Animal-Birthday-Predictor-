@@ -34,6 +34,12 @@ abstract class AppColors {
   /// Error color (#E53935)
   static const Color error = Color(0xFFE53935);
 
+  /// Warning color (#F59E0B)
+  static const Color warning = Color(0xFFF59E0B);
+
+  /// Success color (#10B981)
+  static const Color success = Color(0xFF10B981);
+
   /// Gold Linear Gradient for CTA buttons
   static const LinearGradient goldGradient = LinearGradient(
     colors: [goldGradientStart, goldGradientEnd],

@@ -202,6 +202,75 @@ class DashboardHomeScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+
+                const SizedBox(height: 10.0),
+
+                // Dedicated Due Date & Stud Diary Highlight
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                    border: Border.all(color: AppColors.primaryGold, width: 1.2),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryGold.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.calendar_month_rounded, color: AppColors.primaryGold, size: 22),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('When Is My Foal Due?', style: AppTypography.featureTitle),
+                            const SizedBox(height: 2),
+                            Text('Instant Natural, AI & ET Gestation Predictor', style: AppTypography.finePrint.copyWith(color: AppColors.textMuted)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGold,
+                          foregroundColor: AppColors.background,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () => Navigator.pushNamed(context, '/due-date-calculator'),
+                        child: const Text('CALCULATE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 8.0),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.pushNamed(context, '/foaling-diary'),
+                        icon: const Icon(Icons.event_note_rounded, color: AppColors.primaryGold, size: 14),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('FOALING DIARY (STUD PLANNER)', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 11)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.primaryGold),
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
                 const SizedBox(height: 24.0),
 
                 // 3. CANINE SUITE (DAMS/BITCHES + PUPPY RECORDS)

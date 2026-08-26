@@ -36,6 +36,8 @@ import '../../features/puppy/presentation/screens/puppy_weight_tracker_screen.da
 import '../../features/puppy/presentation/screens/dog_preventative_care_screen.dart';
 import '../../features/faq/presentation/screens/faq_screen.dart';
 import '../../features/disclaimer/presentation/screens/disclaimer_screen.dart';
+import '../../features/foaling_diary/presentation/screens/foaling_diary_screen.dart';
+import '../../features/foaling_diary/presentation/screens/due_date_calculator_screen.dart';
 import '../utils/app_uuid.dart';
 
 abstract class AppRouter {
@@ -429,6 +431,8 @@ abstract class AppRouter {
       '/contacts': (context) => const ContactsDirectoryScreen(),
       '/faq': (context) => const FaqScreen(),
       '/disclaimer': (context) => const DisclaimerScreen(),
+      '/foaling-diary': (context) => const FoalingDiaryScreen(),
+      '/due-date-calculator': (context) => const DueDateCalculatorScreen(),
     };
   }
 }

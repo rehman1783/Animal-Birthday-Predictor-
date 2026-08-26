@@ -9,6 +9,7 @@ import '../../../features/pregnancy/domain/pregnancy_record.dart';
 import '../../../features/pregnancy/domain/preventative_care_record.dart';
 import '../../../features/puppy/domain/dog_preventative_care.dart';
 import '../../../features/puppy/domain/puppy.dart';
+import '../../../features/foaling_diary/domain/foaling_diary_entry.dart';
 
 class PdfCertificateService {
   static Future<Uint8List> generateFoalCertificate({
@@ -513,6 +514,235 @@ class PdfCertificateService {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  static Future<Uint8List> generateFoalingDiaryPdf({
+    required List<FoalingDiaryEntry> entries,
+    required String studName,
+    required String season,
+    required String filterTitle,
+  }) async {
+    final pdf = pw.Document();
+
+    final goldColor = PdfColor.fromHex('#D4AF37');
+    final darkNavy = PdfColor.fromHex('#0A192F');
+    final surfaceColor = PdfColor.fromHex('#112240');
+    final textMuted = PdfColor.fromHex('#8A8F98');
+    final alertRed = PdfColor.fromHex('#EF4444');
+    final alertAmber = PdfColor.fromHex('#F59E0B');
+    final pastureGreen = PdfColor.fromHex('#10B981');
+
+    final overdueCount = entries.where((e) => e.movementStage == MovementStage.overdue).length;
+    final barnCount = entries.where((e) => e.movementStage == MovementStage.foalingBarn).length;
+    final paddockCount = entries.where((e) => e.movementStage == MovementStage.closePaddock).length;
+    final upcomingCount = entries.where((e) => e.movementStage == MovementStage.upcoming).length;
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4.landscape,
+        margin: const pw.EdgeInsets.all(24),
+        header: (pw.Context context) {
+          return pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 12),
+            padding: const pw.EdgeInsets.only(bottom: 8),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 1)),
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'ANIMAL BIRTHDAY PREDICTOR (ABP) - OFFICIAL STUD FOALING DIARY',
+                      style: pw.TextStyle(
+                        fontSize: 14,
+                        fontWeight: pw.FontWeight.bold,
+                        color: darkNavy,
+                      ),
+                    ),
+                    pw.SizedBox(height: 2),
+                    pw.Text(
+                      'Stud / Farm: $studName  |  Breeding Season: $season  |  Filter: $filterTitle',
+                      style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+                    ),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                      'Generated: ${_formatDate(DateTime.now())}',
+                      style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+                    ),
+                    pw.Text(
+                      'Total Recorded Mares: ${entries.length}',
+                      style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: goldColor),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+        footer: (pw.Context context) {
+          return pw.Container(
+            margin: const pw.EdgeInsets.only(top: 8),
+            padding: const pw.EdgeInsets.only(top: 6),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300, width: 0.8)),
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'CONFIDENTIAL STUD MANAGEMENT RECORD - Equine gestation window: 320 to 365 days (Standard 340d)',
+                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey600),
+                ),
+                pw.Text(
+                  'Page ${context.pageNumber} of ${context.pagesCount}',
+                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey600),
+                ),
+              ],
+            ),
+          );
+        },
+        build: (pw.Context context) {
+          return [
+            // KPI Summary Strip
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              margin: const pw.EdgeInsets.only(bottom: 12),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.grey100,
+                borderRadius: pw.BorderRadius.circular(6),
+                border: pw.Border.all(color: PdfColors.grey300),
+              ),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                children: [
+                  _buildKpiBox('OVERDUE (>340d)', '$overdueCount Mares', overdueCount > 0 ? alertRed : PdfColors.grey700),
+                  _buildKpiBox('FOALING BARN (<14d)', '$barnCount Mares', barnCount > 0 ? alertAmber : PdfColors.grey700),
+                  _buildKpiBox('CLOSE PADDOCK (15-30d)', '$paddockCount Mares', PdfColors.purple800),
+                  _buildKpiBox('MID GESTATION (30+d)', '$upcomingCount Mares', pastureGreen),
+                ],
+              ),
+            ),
+
+            // Main Table
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+              columnWidths: const {
+                0: pw.FlexColumnWidth(2.2), // Mare & Chip
+                1: pw.FlexColumnWidth(1.8), // Stallion
+                2: pw.FlexColumnWidth(1.4), // Method / ET
+                3: pw.FlexColumnWidth(1.1), // Cover Date
+                4: pw.FlexColumnWidth(1.2), // Expected Due
+                5: pw.FlexColumnWidth(1.3), // Safe Window
+                6: pw.FlexColumnWidth(1.0), // Countdown
+                7: pw.FlexColumnWidth(1.5), // Paddock / Location
+                8: pw.FlexColumnWidth(1.5), // Stage / Action
+              },
+              children: [
+                // Header Row
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    _buildTableHeader('Mare Name / ID'),
+                    _buildTableHeader('Sire / Stallion'),
+                    _buildTableHeader('Breeding Method'),
+                    _buildTableHeader('Cover Date'),
+                    _buildTableHeader('Due Date (340d)'),
+                    _buildTableHeader('Window (320-365d)'),
+                    _buildTableHeader('Days Left'),
+                    _buildTableHeader('Paddock / Barn'),
+                    _buildTableHeader('Movement Stage'),
+                  ],
+                ),
+
+                // Data Rows
+                ...entries.map((entry) {
+                  final rem = entry.daysRemaining;
+                  String daysText = rem < 0 ? '+${rem.abs()}d OVERDUE' : '${rem}d';
+                  if (entry.isFoaled) daysText = 'FOALED';
+
+                  String methodDesc = entry.breedingMethod.toUpperCase();
+                  if (entry.isEmbryoTransfer) {
+                    methodDesc = 'ET (Recip: ${entry.recipientMareName ?? "Yes"})';
+                  }
+
+                  String stageAction = entry.movementStage.title;
+                  PdfColor stageColor = PdfColors.black;
+                  if (entry.movementStage == MovementStage.overdue) {
+                    stageColor = alertRed;
+                    stageAction = 'OVERDUE (24/7 Watch)';
+                  } else if (entry.movementStage == MovementStage.foalingBarn) {
+                    stageColor = alertAmber;
+                    stageAction = 'FOALING BOX (<14d)';
+                  } else if (entry.movementStage == MovementStage.closePaddock) {
+                    stageColor = PdfColors.purple800;
+                    stageAction = 'CLOSE PADDOCK (<30d)';
+                  }
+
+                  return pw.TableRow(
+                    children: [
+                      _buildTableCell('${entry.mareName}\n${entry.microchipNo ?? ""}', isBold: true),
+                      _buildTableCell(entry.stallionName),
+                      _buildTableCell(methodDesc),
+                      _buildTableCell(_formatDate(entry.serviceDate)),
+                      _buildTableCell(_formatDate(entry.foalingDueDate), isBold: true),
+                      _buildTableCell('${_formatDate(entry.minDueDate)} - ${_formatDate(entry.maxDueDate)}'),
+                      _buildTableCell(daysText, color: entry.movementStage == MovementStage.overdue ? alertRed : null, isBold: true),
+                      _buildTableCell(entry.currentPaddock),
+                      _buildTableCell(stageAction, color: stageColor, isBold: true),
+                    ],
+                  );
+                }),
+              ],
+            ),
+          ];
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  static pw.Widget _buildKpiBox(String title, String value, PdfColor color) {
+    return pw.Column(
+      children: [
+        pw.Text(title, style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
+        pw.SizedBox(height: 2),
+        pw.Text(value, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: color)),
+      ],
+    );
+  }
+
+  static pw.Widget _buildTableHeader(String text) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      alignment: pw.Alignment.centerLeft,
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+      ),
+    );
+  }
+
+  static pw.Widget _buildTableCell(String text, {bool isBold = false, PdfColor? color}) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      alignment: pw.Alignment.centerLeft,
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontSize: 7.5,
+          fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          color: color ?? PdfColors.black,
+        ),
       ),
     );
   }

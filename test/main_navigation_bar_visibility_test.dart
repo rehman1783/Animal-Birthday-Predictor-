@@ -48,6 +48,7 @@ void main() {
       // Tap on Puppy Registry StatCard
       final puppyRegistryCard = find.text('Puppy Records');
       expect(puppyRegistryCard, findsOneWidget);
+      await tester.ensureVisible(puppyRegistryCard);
       await tester.tap(puppyRegistryCard);
       await tester.pumpAndSettle();
 

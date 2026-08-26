@@ -62,6 +62,8 @@ import 'package:animal_birthday_predictor/features/profile/presentation/screens/
 import 'package:animal_birthday_predictor/features/profile/presentation/screens/delete_account_screen.dart';
 import 'package:animal_birthday_predictor/features/faq/presentation/screens/faq_screen.dart';
 import 'package:animal_birthday_predictor/features/disclaimer/presentation/screens/disclaimer_screen.dart';
+import 'package:animal_birthday_predictor/features/foaling_diary/presentation/screens/foaling_diary_screen.dart';
+import 'package:animal_birthday_predictor/features/foaling_diary/presentation/screens/due_date_calculator_screen.dart';
 
 class FakeResponsiveAuthRepository extends AuthRepository {
   @override
@@ -862,6 +864,42 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.text('Disclaimer & Legal Notice'), findsOneWidget);
+      });
+
+      // 34. FoalingDiaryScreen
+      testWidgets('FoalingDiaryScreen renders without overflow on $sizeName', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: getOverrides(),
+            child: const MaterialApp(home: FoalingDiaryScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Foaling Diary & Stud Planner'), findsOneWidget);
+      });
+
+      // 35. DueDateCalculatorScreen
+      testWidgets('DueDateCalculatorScreen renders without overflow on $sizeName', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: getOverrides(),
+            child: const MaterialApp(home: DueDateCalculatorScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('When Is My Foal Due?'), findsWidgets);
       });
     }
   });
