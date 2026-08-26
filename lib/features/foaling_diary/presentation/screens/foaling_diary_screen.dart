@@ -129,6 +129,44 @@ class _FoalingDiaryScreenState extends ConsumerState<FoalingDiaryScreen> {
     );
   }
 
+  void _confirmDeleteEntry(FoalingDiaryEntry entry) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.primaryGold),
+        ),
+        title: Text('Remove from Foaling Diary?', style: AppTypography.featureTitle.copyWith(fontSize: 16)),
+        content: Text(
+          'Are you sure you want to remove "${entry.mareName}" from the Foaling Diary roster?',
+          style: AppTypography.inputText,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () {
+              ref.read(foalingDiaryProvider.notifier).deleteEntry(entry.id);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Removed "${entry.mareName}" from diary.'),
+                  backgroundColor: AppColors.primaryGold,
+                ),
+              );
+            },
+            child: const Text('Remove', style: TextStyle(color: AppColors.background, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final diaryAsync = ref.watch(foalingDiaryProvider);
@@ -461,6 +499,7 @@ class _FoalingDiaryScreenState extends ConsumerState<FoalingDiaryScreen> {
                       ...filtered.map((entry) => _MareDiaryCard(
                             entry: entry,
                             onChangePaddock: () => _showPaddockDialog(entry),
+                            onDelete: () => _confirmDeleteEntry(entry),
                           )),
 
                     const SizedBox(height: 32),
@@ -537,10 +576,12 @@ class _KpiChip extends StatelessWidget {
 class _MareDiaryCard extends StatelessWidget {
   final FoalingDiaryEntry entry;
   final VoidCallback onChangePaddock;
+  final VoidCallback? onDelete;
 
   const _MareDiaryCard({
     required this.entry,
     required this.onChangePaddock,
+    this.onDelete,
   });
 
   String _formatDate(DateTime dt) {
@@ -592,7 +633,7 @@ class _MareDiaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Row: Mare Name & Stage Badge
+          // Top Row: Mare Name, Stage Badge, & Delete Button
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -612,7 +653,7 @@ class _MareDiaryCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Flexible(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -634,6 +675,17 @@ class _MareDiaryCard extends StatelessWidget {
                   ),
                 ),
               ),
+              if (onDelete != null) ...[
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: onDelete,
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+                  ),
+                ),
+              ],
             ],
           ),
 

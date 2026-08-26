@@ -25,6 +25,7 @@ class FoalingDiaryRepository {
     if (c != null && user != null) {
       final List<FoalingDiaryEntry> results = [];
       final Set<String> processedIds = {};
+      final Set<String> processedMareNames = {};
 
       // 1. Fetch entries from foaling_diary_entries table
       try {
@@ -40,6 +41,9 @@ class FoalingDiaryRepository {
             results.add(entry);
             processedIds.add(entry.id);
             if (entry.mareId.isNotEmpty) processedIds.add(entry.mareId);
+            if (entry.mareName.isNotEmpty) {
+              processedMareNames.add(entry.mareName.toLowerCase().trim());
+            }
           }
         }
       } catch (e) {
@@ -80,21 +84,27 @@ class FoalingDiaryRepository {
             try {
               final rowMap = row as Map<String, dynamic>;
               final animal = rowMap['animals'] as Map<String, dynamic>?;
-              final species = animal?['species']?.toString().toLowerCase();
 
+              // Skip orphaned pregnancy records where animal no longer exists
+              if (animal == null) continue;
+
+              final species = animal['species']?.toString().toLowerCase();
               // Only include Equine (horse) pregnancies in Foaling Diary
-              if (species != null && species != 'horse') continue;
+              if (species != 'horse') continue;
 
               final pregId = rowMap['id']?.toString() ?? '';
-              final carrierId = animal?['id']?.toString() ?? rowMap['carrier_animal_id']?.toString() ?? '';
+              final carrierId = animal['id']?.toString() ?? rowMap['carrier_animal_id']?.toString() ?? '';
+              final mareName = animal['name']?.toString() ?? 'Recorded Mare';
+              final normalizedMareName = mareName.toLowerCase().trim();
 
-              // Skip if already in diary from dedicated entries
-              if (processedIds.contains(pregId) || (carrierId.isNotEmpty && processedIds.contains(carrierId))) {
+              // Skip if already in diary from dedicated entries or duplicate
+              if (processedIds.contains(pregId) ||
+                  (carrierId.isNotEmpty && processedIds.contains(carrierId)) ||
+                  processedMareNames.contains(normalizedMareName)) {
                 continue;
               }
 
-              final mareName = animal?['name']?.toString() ?? 'Recorded Mare';
-              final microchip = animal?['microchip_no']?.toString();
+              final microchip = animal['microchip_no']?.toString();
               final breeding = rowMap['breeding_records'] as Map<String, dynamic>?;
               final stallionName = breeding?['stallion_name']?.toString() ?? 'Recorded Stallion';
               final breedingType = breeding?['method']?.toString() ?? 'natural';
@@ -133,6 +143,8 @@ class FoalingDiaryRepository {
 
               results.add(entry);
               processedIds.add(pregId);
+              if (carrierId.isNotEmpty) processedIds.add(carrierId);
+              processedMareNames.add(normalizedMareName);
             } catch (innerErr) {
               debugPrint('Error mapping pregnancy row to foaling entry: $innerErr');
             }
@@ -222,5 +234,23 @@ class FoalingDiaryRepository {
       final updated = _mockEntries[idx].copyWith(isFoaled: true);
       _mockEntries[idx] = updated;
     }
+  }
+
+  Future<void> deleteEntry(String id) async {
+    final c = client;
+    final user = c?.auth.currentUser;
+
+    if (c != null && user != null && AppUuid.isValid(id)) {
+      try {
+        await c.from('foaling_diary_entries').delete().eq('id', id).eq('user_id', user.id);
+      } catch (e) {
+        debugPrint('Supabase deleteEntry in foaling_diary_entries error: $e');
+      }
+      try {
+        await c.from('pregnancy_records').delete().eq('id', id).eq('account_id', user.id);
+      } catch (_) {}
+    }
+
+    _mockEntries.removeWhere((e) => e.id == id);
   }
 }

@@ -54,6 +54,15 @@ class FoalingDiaryNotifier extends StateNotifier<AsyncValue<List<FoalingDiaryEnt
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> deleteEntry(String id) async {
+    try {
+      await _repo.deleteEntry(id);
+      await loadEntries();
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
 }
 
 final foalingDiaryProvider = StateNotifierProvider<FoalingDiaryNotifier, AsyncValue<List<FoalingDiaryEntry>>>((ref) {
