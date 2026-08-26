@@ -35,15 +35,26 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
   void initState() {
     super.initState();
 
-    // Pulsing golden aura animation
+    // Grand entrance crest pulse animation
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+
+    _pulseAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 0.85, end: 1.10).chain(CurveTween(curve: Curves.easeOutBack)),
+        weight: 45,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.10, end: 0.97).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 30,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 0.97, end: 1.0).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 25,
+      ),
+    ]).animate(_pulseController);
 
     // Confetti explosion animation
     _confettiController = AnimationController(
@@ -52,6 +63,7 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
     );
 
     _generateConfetti();
+    _pulseController.forward();
     _confettiController.forward();
   }
 
@@ -86,6 +98,8 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
 
   void _triggerCelebrationAgain() {
     _generateConfetti();
+    _pulseController.reset();
+    _pulseController.forward();
     _confettiController.reset();
     _confettiController.forward();
   }
@@ -136,28 +150,31 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
                     // Top Milestone Tag
                     Center(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                         decoration: BoxDecoration(
                           color: AppColors.primaryGold.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: AppColors.primaryGold, width: 1),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star, color: AppColors.primaryGold, size: 14),
-                            const SizedBox(width: 6),
-                            Text(
-                              'BREEDING MILESTONE ACHIEVED',
-                              style: AppTypography.finePrint.copyWith(
-                                color: AppColors.primaryGold,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.star, color: AppColors.primaryGold, size: 13),
+                              const SizedBox(width: 5),
+                              Text(
+                                'BREEDING MILESTONE ACHIEVED',
+                                style: AppTypography.finePrint.copyWith(
+                                  color: AppColors.primaryGold,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.1,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.star, color: AppColors.primaryGold, size: 14),
-                          ],
+                              const SizedBox(width: 5),
+                              const Icon(Icons.star, color: AppColors.primaryGold, size: 13),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -276,15 +293,17 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
                             children: [
                               const Icon(Icons.timer_outlined, color: Color(0xFF10B981), size: 18),
                               const SizedBox(width: 8),
-                              Text(
-                                isCanine
-                                    ? 'FIRST 24-HOUR CRITICAL WHELPING CHECKLIST'
-                                    : 'THE 1-2-3 FOALING RULE (FIRST HOURS)',
-                                style: const TextStyle(
-                                  color: Color(0xFF10B981),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12.5,
-                                  letterSpacing: 0.5,
+                              Expanded(
+                                child: Text(
+                                  isCanine
+                                      ? 'FIRST 24-HOUR CRITICAL WHELPING CHECKLIST'
+                                      : 'THE 1-2-3 FOALING RULE (FIRST HOURS)',
+                                  style: const TextStyle(
+                                    color: Color(0xFF10B981),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    letterSpacing: 0.5,
+                                  ),
                                 ),
                               ),
                             ],

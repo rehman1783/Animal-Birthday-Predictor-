@@ -70,15 +70,16 @@ class ScanDueBlock extends StatelessWidget {
             spacing: 8,
             runSpacing: 6,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 6,
+                runSpacing: 4,
                 children: [
                   Text(
                     '${scanNumber == 1 ? "1st" : scanNumber == 2 ? "2nd" : "3rd"} Pregnancy Scan',
                     style: AppTypography.displayHeadline.copyWith(fontSize: 15),
                   ),
-                  if (scanNumber == 1 && isTwinsSuspected) ...[
-                    const SizedBox(width: 8),
+                  if (scanNumber == 1 && isTwinsSuspected)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
@@ -98,7 +99,6 @@ class ScanDueBlock extends StatelessWidget {
                         ],
                       ),
                     ),
-                  ],
                 ],
               ),
               Container(
@@ -302,11 +302,13 @@ class ScanDueBlock extends StatelessWidget {
                                   children: [
                                     const Icon(Icons.alarm, color: Color(0xFFF59E0B), size: 14),
                                     const SizedBox(width: 6),
-                                    Text(
-                                      'URGENT RE-SCAN REQUIRED (Day 16-18)',
-                                      style: AppTypography.finePrint.copyWith(
-                                        color: const Color(0xFFF59E0B),
-                                        fontWeight: FontWeight.bold,
+                                    Expanded(
+                                      child: Text(
+                                        'URGENT RE-SCAN REQUIRED (Day 16-18)',
+                                        style: AppTypography.finePrint.copyWith(
+                                          color: const Color(0xFFF59E0B),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   ],
