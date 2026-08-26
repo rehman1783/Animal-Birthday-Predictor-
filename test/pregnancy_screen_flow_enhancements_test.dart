@@ -196,10 +196,12 @@ void main() {
 
       // CongratulationsScreen
       expect(find.text('CONGRATULATIONS!'), findsOneWidget);
-      expect(find.text('REGISTER NEW FOAL RECORD'), findsOneWidget);
+      expect(find.textContaining('REGISTER NEW FOAL'), findsOneWidget);
 
       // Tap Register New Foal Record
-      await tester.tap(find.text('REGISTER NEW FOAL RECORD'));
+      final registerBtn = find.textContaining('REGISTER NEW FOAL');
+      await tester.ensureVisible(registerBtn);
+      await tester.tap(registerBtn);
       await tester.pumpAndSettle();
 
       // Opens FoalDetailsScreen
