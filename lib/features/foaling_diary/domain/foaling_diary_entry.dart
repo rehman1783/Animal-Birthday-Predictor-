@@ -1,7 +1,10 @@
 enum MovementStage {
   overdue('Overdue', 'Past expected due date'),
   foalingBarn('Foaling Barn (<14 Days)', 'Move to foaling box & 24/7 watch'),
-  closePaddock('Close Paddock (15-30 Days)', 'Move to close monitoring paddock'),
+  closePaddock(
+    'Close Paddock (15-30 Days)',
+    'Move to close monitoring paddock',
+  ),
   upcoming('Upcoming (30+ Days)', 'Routine pasture & nutrition'),
   foaled('Foaled / Completed', 'Foaling completed');
 
@@ -58,7 +61,11 @@ class FoalingDiaryEntry {
   int get daysRemaining {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final target = DateTime(foalingDueDate.year, foalingDueDate.month, foalingDueDate.day);
+    final target = DateTime(
+      foalingDueDate.year,
+      foalingDueDate.month,
+      foalingDueDate.day,
+    );
     return target.difference(today).inDays;
   }
 
@@ -143,10 +150,18 @@ class FoalingDiaryEntry {
   }
 
   factory FoalingDiaryEntry.fromJson(Map<String, dynamic> json) {
-    final service = DateTime.tryParse(json['service_date']?.toString() ?? '') ?? DateTime.now();
-    final due = DateTime.tryParse(json['foaling_due_date']?.toString() ?? '') ?? service.add(const Duration(days: 340));
-    final minDue = DateTime.tryParse(json['min_due_date']?.toString() ?? '') ?? service.add(const Duration(days: 320));
-    final maxDue = DateTime.tryParse(json['max_due_date']?.toString() ?? '') ?? service.add(const Duration(days: 365));
+    final service =
+        DateTime.tryParse(json['service_date']?.toString() ?? '') ??
+        DateTime.now();
+    final due =
+        DateTime.tryParse(json['foaling_due_date']?.toString() ?? '') ??
+        service.add(const Duration(days: 340));
+    final minDue =
+        DateTime.tryParse(json['min_due_date']?.toString() ?? '') ??
+        service.add(const Duration(days: 320));
+    final maxDue =
+        DateTime.tryParse(json['max_due_date']?.toString() ?? '') ??
+        service.add(const Duration(days: 365));
 
     return FoalingDiaryEntry(
       id: json['id'] as String? ?? '',
@@ -162,7 +177,8 @@ class FoalingDiaryEntry {
       foalingDueDate: due,
       minDueDate: minDue,
       maxDueDate: maxDue,
-      currentPaddock: json['current_paddock'] as String? ?? 'Main Broodmare Pasture',
+      currentPaddock:
+          json['current_paddock'] as String? ?? 'Main Broodmare Pasture',
       scan1Confirmed: json['scan1_confirmed'] as bool? ?? false,
       scan2Confirmed: json['scan2_confirmed'] as bool? ?? false,
       scan3Confirmed: json['scan3_confirmed'] as bool? ?? false,
