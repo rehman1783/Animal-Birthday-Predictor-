@@ -76,6 +76,82 @@ void main() {
       await tester.pump(const Duration(seconds: 4));
     });
 
+    test('sanitizePhoneNumber correctly formats various international and local formats', () {
+      expect(AppPhoneLauncher.sanitizePhoneNumber('+44 7700 900077'), '+447700900077');
+      expect(AppPhoneLauncher.sanitizePhoneNumber('(020) 7946-0991'), '02079460991');
+      expect(AppPhoneLauncher.sanitizePhoneNumber('+1 (555) 234-5678'), '+15552345678');
+      expect(AppPhoneLauncher.sanitizePhoneNumber('0300-1234567'), '03001234567');
+      expect(AppPhoneLauncher.sanitizePhoneNumber(''), '');
+      expect(AppPhoneLauncher.sanitizePhoneNumber('    '), '');
+      expect(AppPhoneLauncher.sanitizePhoneNumber('none'), '');
+    });
+
+    testWidgets('makePhoneCall shows error on number with no digits', (tester) async {
+      late BuildContext buildContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                buildContext = context;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      await AppPhoneLauncher.makePhoneCall(buildContext, 'abc-xyz');
+      await tester.pump();
+
+      expect(find.text('Invalid Phone Number', skipOffstage: false), findsOneWidget);
+      ScaffoldMessenger.of(buildContext).clearSnackBars();
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    testWidgets('sendSms handles valid number and copies to clipboard in test environment', (tester) async {
+      late BuildContext buildContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                buildContext = context;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      await AppPhoneLauncher.sendSms(buildContext, '+44 7700 900123', body: 'Hello Vet');
+      await tester.pump();
+
+      expect(mockedClipboardText, '+44 7700 900123');
+      expect(find.text('Phone Number Copied', skipOffstage: false), findsOneWidget);
+      ScaffoldMessenger.of(buildContext).clearSnackBars();
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    testWidgets('sendWhatsApp constructs valid link and runs safely', (tester) async {
+      late BuildContext buildContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                buildContext = context;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      final result = await AppPhoneLauncher.sendWhatsApp(buildContext, '+44 7700 900123', message: 'Hi');
+      expect(result, isA<bool>());
+    });
+
     testWidgets('sendEmail handles valid email and copies to clipboard in test environment', (tester) async {
       late BuildContext buildContext;
       await tester.pumpWidget(

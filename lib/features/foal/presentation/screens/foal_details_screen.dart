@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/utils/app_phone_launcher.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
@@ -897,6 +898,29 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                             controller: _buyerNameController,
                             prefixIcon: Icons.person_outline,
                           ),
+                          const SizedBox(height: 10),
+                          CustomTextField(
+                            label: 'Buyer Phone Number (Optional)',
+                            hintText: 'e.g. +44 7700 900123',
+                            controller: _buyerPhoneController,
+                            keyboardType: TextInputType.phone,
+                            prefixIcon: Icons.phone_outlined,
+                          ),
+                          if (_buyerPhoneController.text.trim().isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: OutlinedButton.icon(
+                                onPressed: () => AppPhoneLauncher.makePhoneCall(context, _buyerPhoneController.text),
+                                icon: const Icon(Icons.call, size: 14, color: AppColors.primaryGold),
+                                label: const Text('Call Buyer', style: TextStyle(color: AppColors.primaryGold, fontSize: 11)),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: AppColors.primaryGold),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

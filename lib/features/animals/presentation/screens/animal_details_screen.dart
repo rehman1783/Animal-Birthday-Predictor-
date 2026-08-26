@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/utils/app_phone_launcher.dart';
 import '../../../../core/utils/app_uuid.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
@@ -755,6 +756,21 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone_outlined,
                   ),
+                  if (_ownerPhoneController.text.trim().isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: OutlinedButton.icon(
+                        onPressed: () => AppPhoneLauncher.makePhoneCall(context, _ownerPhoneController.text),
+                        icon: const Icon(Icons.call, size: 14, color: AppColors.primaryGold),
+                        label: const Text('Call Owner', style: TextStyle(color: AppColors.primaryGold, fontSize: 11)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.primaryGold),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 28.0),
 
                   // 4. Action Shortcuts (Physical Markings & Preventative Care)
