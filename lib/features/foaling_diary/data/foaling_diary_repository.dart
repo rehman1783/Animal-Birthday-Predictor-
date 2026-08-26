@@ -4,158 +4,158 @@ import '../../../../core/utils/app_uuid.dart';
 import '../domain/foaling_diary_entry.dart';
 
 class FoalingDiaryRepository {
-  final SupabaseClient? client;
+  final SupabaseClient? _supabase;
+  final List<FoalingDiaryEntry> _mockEntries = [];
 
-  FoalingDiaryRepository({this.client});
+  FoalingDiaryRepository({SupabaseClient? client}) : _supabase = client;
 
-  static final List<FoalingDiaryEntry> _mockEntries = [
-    // 1. Immediate Foaling Barn (Due in 5 days)
-    FoalingDiaryEntry(
-      id: '00000000-0000-0000-0000-000000000101',
-      mareId: '00000000-0000-0000-0000-000000000011',
-      mareName: 'Royal Empress',
-      microchipNo: '985141001298451',
-      stallionName: 'Northern Dancer Legacy',
-      isEmbryoTransfer: false,
-      breedingMethod: 'chilled',
-      serviceDate: DateTime.now().subtract(const Duration(days: 335)),
-      foalingDueDate: DateTime.now().add(const Duration(days: 5)),
-      minDueDate: DateTime.now().subtract(const Duration(days: 15)),
-      maxDueDate: DateTime.now().add(const Duration(days: 30)),
-      currentPaddock: 'Foaling Barn - Box 1',
-      scan1Confirmed: true,
-      scan2Confirmed: true,
-      scan3Confirmed: true,
-      twinDetected: false,
-      isFoaled: false,
-      notes: 'Waxing observed on udder tips. Milk calcium 240ppm. Move to 24hr camera monitoring.',
-    ),
-
-    // 2. Immediate Foaling Barn (Due in 9 days - Embryo Transfer Recipient)
-    FoalingDiaryEntry(
-      id: '00000000-0000-0000-0000-000000000102',
-      mareId: '00000000-0000-0000-0000-000000000012',
-      mareName: 'Bella Recipient 44',
-      microchipNo: '985141004581290',
-      stallionName: 'Chacco-Blue Champion',
-      isEmbryoTransfer: true,
-      donorMareName: 'Starlight Diva (Grand Prix)',
-      recipientMareName: 'Bella Recipient 44',
-      breedingMethod: 'et',
-      serviceDate: DateTime.now().subtract(const Duration(days: 325)),
-      foalingDueDate: DateTime.now().add(const Duration(days: 9)),
-      minDueDate: DateTime.now().subtract(const Duration(days: 11)),
-      maxDueDate: DateTime.now().add(const Duration(days: 34)),
-      currentPaddock: 'Foaling Barn - Box 3',
-      scan1Confirmed: true,
-      scan2Confirmed: true,
-      scan3Confirmed: true,
-      twinDetected: false,
-      isFoaled: false,
-      notes: 'Embryo Transfer pregnancy. Recipient mare relaxed. Foaling alarm belt fitted.',
-    ),
-
-    // 3. Close Paddock (Due in 21 days)
-    FoalingDiaryEntry(
-      id: '00000000-0000-0000-0000-000000000103',
-      mareId: '00000000-0000-0000-0000-000000000013',
-      mareName: 'Golden Sovereign',
-      microchipNo: '985141007812349',
-      stallionName: 'Galileo Supreme',
-      isEmbryoTransfer: false,
-      breedingMethod: 'natural',
-      serviceDate: DateTime.now().subtract(const Duration(days: 319)),
-      foalingDueDate: DateTime.now().add(const Duration(days: 21)),
-      minDueDate: DateTime.now().add(const Duration(days: 1)),
-      maxDueDate: DateTime.now().add(const Duration(days: 46)),
-      currentPaddock: 'Close Monitoring Paddock A',
-      scan1Confirmed: true,
-      scan2Confirmed: true,
-      scan3Confirmed: true,
-      twinDetected: false,
-      isFoaled: false,
-      notes: 'Moved from Hill pasture to Close Paddock A. Daily evening udder inspections active.',
-    ),
-
-    // 4. Close Paddock (Due in 28 days)
-    FoalingDiaryEntry(
-      id: '00000000-0000-0000-0000-000000000104',
-      mareId: '00000000-0000-0000-0000-000000000014',
-      mareName: 'Velvet Midnight',
-      microchipNo: '985141009941203',
-      stallionName: 'Dubawi Gold',
-      isEmbryoTransfer: false,
-      breedingMethod: 'frozen',
-      serviceDate: DateTime.now().subtract(const Duration(days: 312)),
-      foalingDueDate: DateTime.now().add(const Duration(days: 28)),
-      minDueDate: DateTime.now().add(const Duration(days: 8)),
-      maxDueDate: DateTime.now().add(const Duration(days: 53)),
-      currentPaddock: 'Close Monitoring Paddock B',
-      scan1Confirmed: true,
-      scan2Confirmed: true,
-      scan3Confirmed: true,
-      twinDetected: false,
-      isFoaled: false,
-      notes: 'Pre-foaling 5-in-1 vaccine administered on Day 300. Body condition score 6.5.',
-    ),
-
-    // 5. Overdue Mare (Due -3 days)
-    FoalingDiaryEntry(
-      id: '00000000-0000-0000-0000-000000000105',
-      mareId: '00000000-0000-0000-0000-000000000015',
-      mareName: 'Sapphire Mirage',
-      microchipNo: '985141003319082',
-      stallionName: 'Frankel Express',
-      isEmbryoTransfer: false,
-      breedingMethod: 'natural',
-      serviceDate: DateTime.now().subtract(const Duration(days: 343)),
-      foalingDueDate: DateTime.now().subtract(const Duration(days: 3)),
-      minDueDate: DateTime.now().subtract(const Duration(days: 23)),
-      maxDueDate: DateTime.now().add(const Duration(days: 22)),
-      currentPaddock: 'Foaling Barn - Box 2',
-      scan1Confirmed: true,
-      scan2Confirmed: true,
-      scan3Confirmed: true,
-      twinDetected: false,
-      isFoaled: false,
-      notes: 'Day 343 gestation. Vet examined placenta thickness; normal. Milk drop imminent.',
-    ),
-
-    // 6. Mid-Gestation (Due in 75 days)
-    FoalingDiaryEntry(
-      id: '00000000-0000-0000-0000-000000000106',
-      mareId: '00000000-0000-0000-0000-000000000016',
-      mareName: 'Silver Cascade',
-      microchipNo: '985141005523190',
-      stallionName: 'Kingman Prince',
-      isEmbryoTransfer: false,
-      breedingMethod: 'chilled',
-      serviceDate: DateTime.now().subtract(const Duration(days: 265)),
-      foalingDueDate: DateTime.now().add(const Duration(days: 75)),
-      minDueDate: DateTime.now().add(const Duration(days: 55)),
-      maxDueDate: DateTime.now().add(const Duration(days: 100)),
-      currentPaddock: 'Main North Broodmare Pasture',
-      scan1Confirmed: true,
-      scan2Confirmed: true,
-      scan3Confirmed: true,
-      twinDetected: false,
-      isFoaled: false,
-      notes: '45-day certificate issued. Scheduled for move to Close Paddock next month.',
-    ),
-  ];
+  SupabaseClient? get client {
+    if (_supabase != null) return _supabase;
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<List<FoalingDiaryEntry>> getFoalingDiaryEntries() async {
     final c = client;
-    if (c != null) {
+    final user = c?.auth.currentUser;
+
+    if (c != null && user != null) {
+      final List<FoalingDiaryEntry> results = [];
+      final Set<String> processedIds = {};
+
+      // 1. Fetch entries from foaling_diary_entries table
       try {
-        final data = await c.from('foaling_diary_entries').select().order('foaling_due_date', ascending: true);
-        if (data is List && data.isNotEmpty) {
-          return data.map((json) => FoalingDiaryEntry.fromJson(json as Map<String, dynamic>)).toList();
+        final data = await c
+            .from('foaling_diary_entries')
+            .select()
+            .eq('user_id', user.id)
+            .order('foaling_due_date', ascending: true);
+
+        if (data is List) {
+          for (final json in data) {
+            final entry = FoalingDiaryEntry.fromJson(json as Map<String, dynamic>);
+            results.add(entry);
+            processedIds.add(entry.id);
+            if (entry.mareId.isNotEmpty) processedIds.add(entry.mareId);
+          }
         }
       } catch (e) {
-        debugPrint('Supabase getFoalingDiaryEntries error: $e');
+        debugPrint('Supabase getFoalingDiaryEntries table query error: $e');
       }
+
+      // 2. Also retrieve any active equine pregnancy records recorded in the breeding suite
+      try {
+        final pregData = await c
+            .from('pregnancy_records')
+            .select('''
+              id,
+              breeding_record_id,
+              carrier_animal_id,
+              foaling_due_date,
+              earliest_foaling_date,
+              latest_foaling_date,
+              is_embryo_transfer,
+              donor_dam_name,
+              recipient_mare_name,
+              scan1_confirmed,
+              scan2_confirmed,
+              scan3_confirmed,
+              twins_suspected,
+              current_paddock,
+              notes,
+              is_foaled,
+              animals!carrier_animal_id (
+                id,
+                name,
+                microchip_no,
+                species
+              ),
+              breeding_records (
+                id,
+                stallion_name,
+                breeding_type,
+                service_date
+              )
+            ''')
+            .eq('account_id', user.id);
+
+        if (pregData is List) {
+          for (final row in pregData) {
+            try {
+              final rowMap = row as Map<String, dynamic>;
+              final animal = rowMap['animals'] as Map<String, dynamic>?;
+              final species = animal?['species']?.toString().toLowerCase();
+
+              // Only include Equine (horse) pregnancies in Foaling Diary
+              if (species != null && species != 'horse') continue;
+
+              final pregId = rowMap['id']?.toString() ?? '';
+              final carrierId = animal?['id']?.toString() ?? rowMap['carrier_animal_id']?.toString() ?? '';
+
+              // Skip if already in diary from dedicated entries
+              if (processedIds.contains(pregId) || (carrierId.isNotEmpty && processedIds.contains(carrierId))) {
+                continue;
+              }
+
+              final mareName = animal?['name']?.toString() ?? 'Recorded Mare';
+              final microchip = animal?['microchip_no']?.toString();
+              final breeding = rowMap['breeding_records'] as Map<String, dynamic>?;
+              final stallionName = breeding?['stallion_name']?.toString() ?? 'Recorded Stallion';
+              final breedingType = breeding?['breeding_type']?.toString() ?? 'natural';
+
+              final serviceDateStr = breeding?['service_date']?.toString();
+              final serviceDate = serviceDateStr != null ? DateTime.tryParse(serviceDateStr) ?? DateTime.now() : DateTime.now();
+
+              final dueDateStr = rowMap['foaling_due_date']?.toString();
+              final foalingDueDate = dueDateStr != null ? DateTime.tryParse(dueDateStr) ?? serviceDate.add(const Duration(days: 340)) : serviceDate.add(const Duration(days: 340));
+
+              final minDateStr = rowMap['earliest_foaling_date']?.toString();
+              final minDueDate = minDateStr != null ? DateTime.tryParse(minDateStr) ?? serviceDate.add(const Duration(days: 320)) : serviceDate.add(const Duration(days: 320));
+
+              final maxDateStr = rowMap['latest_foaling_date']?.toString();
+              final maxDueDate = maxDateStr != null ? DateTime.tryParse(maxDateStr) ?? serviceDate.add(const Duration(days: 365)) : serviceDate.add(const Duration(days: 365));
+
+              final entry = FoalingDiaryEntry(
+                id: pregId,
+                mareId: carrierId,
+                mareName: mareName,
+                microchipNo: microchip,
+                stallionName: stallionName,
+                isEmbryoTransfer: rowMap['is_embryo_transfer'] == true,
+                donorMareName: rowMap['donor_dam_name']?.toString(),
+                recipientMareName: rowMap['recipient_mare_name']?.toString(),
+                breedingMethod: breedingType,
+                serviceDate: serviceDate,
+                foalingDueDate: foalingDueDate,
+                minDueDate: minDueDate,
+                maxDueDate: maxDueDate,
+                currentPaddock: rowMap['current_paddock']?.toString() ?? 'Main Broodmare Pasture',
+                scan1Confirmed: rowMap['scan1_confirmed'] == true,
+                scan2Confirmed: rowMap['scan2_confirmed'] == true,
+                scan3Confirmed: rowMap['scan3_confirmed'] == true,
+                twinDetected: rowMap['twins_suspected'] == true,
+                isFoaled: rowMap['is_foaled'] == true,
+                notes: rowMap['notes']?.toString() ?? '',
+              );
+
+              results.add(entry);
+              processedIds.add(pregId);
+            } catch (innerErr) {
+              debugPrint('Error mapping pregnancy row to foaling entry: $innerErr');
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Supabase auto-merge pregnancy records for diary error: $e');
+      }
+
+      results.sort((a, b) => a.foalingDueDate.compareTo(b.foalingDueDate));
+      return results;
     }
+
     return List.unmodifiable(_mockEntries);
   }
 
@@ -164,9 +164,14 @@ class FoalingDiaryRepository {
     final toSave = entry.copyWith(id: validId);
 
     final c = client;
-    if (c != null && AppUuid.isValid(toSave.id)) {
+    final user = c?.auth.currentUser;
+
+    if (c != null && user != null && AppUuid.isValid(toSave.id)) {
       try {
-        final data = await c.from('foaling_diary_entries').upsert(toSave.toJson()).select();
+        final payload = toSave.toJson();
+        payload['user_id'] = user.id;
+
+        final data = await c.from('foaling_diary_entries').upsert(payload).select();
         if (data is List && data.isNotEmpty) {
           return FoalingDiaryEntry.fromJson(data.first as Map<String, dynamic>);
         }
@@ -186,18 +191,46 @@ class FoalingDiaryRepository {
   }
 
   Future<void> updatePaddockLocation(String id, String newPaddock) async {
+    final c = client;
+    final user = c?.auth.currentUser;
+
+    if (c != null && user != null && AppUuid.isValid(id)) {
+      try {
+        await c.from('foaling_diary_entries').update({'current_paddock': newPaddock}).eq('id', id).eq('user_id', user.id);
+      } catch (e) {
+        debugPrint('Supabase updatePaddockLocation in foaling_diary_entries error: $e');
+      }
+      try {
+        await c.from('pregnancy_records').update({'current_paddock': newPaddock}).eq('id', id).eq('account_id', user.id);
+      } catch (_) {}
+    }
+
     final idx = _mockEntries.indexWhere((e) => e.id == id);
     if (idx >= 0) {
       final updated = _mockEntries[idx].copyWith(currentPaddock: newPaddock);
-      await saveFoalingDiaryEntry(updated);
+      _mockEntries[idx] = updated;
     }
   }
 
   Future<void> markAsFoaled(String id) async {
+    final c = client;
+    final user = c?.auth.currentUser;
+
+    if (c != null && user != null && AppUuid.isValid(id)) {
+      try {
+        await c.from('foaling_diary_entries').update({'is_foaled': true}).eq('id', id).eq('user_id', user.id);
+      } catch (e) {
+        debugPrint('Supabase markAsFoaled in foaling_diary_entries error: $e');
+      }
+      try {
+        await c.from('pregnancy_records').update({'is_foaled': true}).eq('id', id).eq('account_id', user.id);
+      } catch (_) {}
+    }
+
     final idx = _mockEntries.indexWhere((e) => e.id == id);
     if (idx >= 0) {
       final updated = _mockEntries[idx].copyWith(isFoaled: true);
-      await saveFoalingDiaryEntry(updated);
+      _mockEntries[idx] = updated;
     }
   }
 }

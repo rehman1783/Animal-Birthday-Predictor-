@@ -74,19 +74,20 @@ void main() {
     });
   });
 
-  group('Foaling Diary Repository Tests', () {
+  group('Foaling Diary Repository Tests (Strict User Data - No Dummy Data)', () {
     late FoalingDiaryRepository repo;
 
     setUp(() {
       repo = FoalingDiaryRepository();
     });
 
-    test('getFoalingDiaryEntries returns multi-mare stud dataset', () async {
+    test('getFoalingDiaryEntries starts strictly empty with 0 dummy records', () async {
       final entries = await repo.getFoalingDiaryEntries();
-      expect(entries.length, greaterThanOrEqualTo(5));
+      expect(entries.isEmpty, isTrue);
+      expect(entries.length, equals(0));
     });
 
-    test('saveFoalingDiaryEntry and updatePaddockLocation modify entries', () async {
+    test('saveFoalingDiaryEntry and updatePaddockLocation modify user entries', () async {
       final entry = FoalingDiaryEntry(
         id: '00000000-0000-0000-0000-000000000999',
         mareId: '00000000-0000-0000-0000-000000000099',
@@ -111,8 +112,19 @@ void main() {
 
   group('Foaling Diary PDF Generation Test', () {
     test('generateFoalingDiaryPdf returns valid non-empty byte document', () async {
-      final repo = FoalingDiaryRepository();
-      final entries = await repo.getFoalingDiaryEntries();
+      final entries = [
+        FoalingDiaryEntry(
+          id: '00000000-0000-0000-0000-000000000999',
+          mareId: '00000000-0000-0000-0000-000000000099',
+          mareName: 'User Champion Mare',
+          stallionName: 'User Stud Sire',
+          serviceDate: DateTime.now().subtract(const Duration(days: 300)),
+          foalingDueDate: DateTime.now().add(const Duration(days: 40)),
+          minDueDate: DateTime.now().add(const Duration(days: 20)),
+          maxDueDate: DateTime.now().add(const Duration(days: 65)),
+          currentPaddock: 'Paddock 1',
+        ),
+      ];
 
       final pdfBytes = await PdfCertificateService.generateFoalingDiaryPdf(
         entries: entries,
@@ -127,7 +139,7 @@ void main() {
   });
 
   group('Foaling Diary Screen Widget Tests', () {
-    testWidgets('FoalingDiaryScreen renders metrics, search input, and mare cards', (tester) async {
+    testWidgets('FoalingDiaryScreen renders empty state when user has no saved mares', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
@@ -139,24 +151,55 @@ void main() {
 
       expect(find.text('Foaling Diary & Stud Planner'), findsOneWidget);
       expect(find.text('Stud Gestation & Movement Manager'), findsOneWidget);
-      expect(find.text('Overdue'), findsWidgets);
-      expect(find.text('Foaling Barn'), findsWidgets);
-      expect(find.text('Close Paddock'), findsWidgets);
-      expect(find.text('Upcoming'), findsWidgets);
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('WHEN IS MY FOAL DUE?'), findsOneWidget);
+      expect(find.text('No Mares in Foaling Diary Yet'), findsOneWidget);
+      expect(find.text('CALCULATE FOAL DUE DATE'), findsOneWidget);
     });
 
-    testWidgets('FoalingDiaryScreen search filters mares by name', (tester) async {
+    testWidgets('FoalingDiaryScreen renders and filters user saved mares', (tester) async {
+      final testRepo = FoalingDiaryRepository();
+      await testRepo.saveFoalingDiaryEntry(
+        FoalingDiaryEntry(
+          id: '00000000-0000-0000-0000-000000000001',
+          mareId: '00000000-0000-0000-0000-000000000011',
+          mareName: 'Royal Empress',
+          stallionName: 'Northern Dancer',
+          serviceDate: DateTime.now().subtract(const Duration(days: 320)),
+          foalingDueDate: DateTime.now().add(const Duration(days: 20)),
+          minDueDate: DateTime.now(),
+          maxDueDate: DateTime.now().add(const Duration(days: 45)),
+          currentPaddock: 'Close Paddock A',
+        ),
+      );
+      await testRepo.saveFoalingDiaryEntry(
+        FoalingDiaryEntry(
+          id: '00000000-0000-0000-0000-000000000002',
+          mareId: '00000000-0000-0000-0000-000000000012',
+          mareName: 'Silver Cascade',
+          stallionName: 'Kingman Prince',
+          serviceDate: DateTime.now().subtract(const Duration(days: 260)),
+          foalingDueDate: DateTime.now().add(const Duration(days: 80)),
+          minDueDate: DateTime.now().add(const Duration(days: 60)),
+          maxDueDate: DateTime.now().add(const Duration(days: 105)),
+          currentPaddock: 'North Pasture',
+        ),
+      );
+
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            foalingDiaryRepositoryProvider.overrideWithValue(testRepo),
+          ],
+          child: const MaterialApp(
             home: FoalingDiaryScreen(),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
+      expect(find.text('Royal Empress'), findsOneWidget);
+      expect(find.text('Silver Cascade'), findsOneWidget);
+
+      // Filter with search
       await tester.enterText(find.byType(TextField), 'Royal Empress');
       await tester.pumpAndSettle();
 

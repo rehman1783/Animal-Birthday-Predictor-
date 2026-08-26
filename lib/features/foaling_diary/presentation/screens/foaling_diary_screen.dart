@@ -392,7 +392,49 @@ class _FoalingDiaryScreenState extends ConsumerState<FoalingDiaryScreen> {
                     const SizedBox(height: 10),
 
                     // Mare Entries List
-                    if (filtered.isEmpty)
+                    if (allEntries.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(28),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                          border: Border.all(color: AppColors.inputBorder),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryGold.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.event_note_rounded, color: AppColors.primaryGold, size: 36),
+                            ),
+                            const SizedBox(height: 14),
+                            const Text('No Mares in Foaling Diary Yet', style: AppTypography.featureTitle),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Calculate expected due dates with "When Is My Foal Due?" or record active mare breedings to automatically track gestation and paddock movements.',
+                              style: AppTypography.finePrint,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 18),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryGold,
+                                foregroundColor: AppColors.background,
+                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              icon: const Icon(Icons.calculate_rounded, size: 18),
+                              label: const Text('CALCULATE FOAL DUE DATE', style: TextStyle(fontWeight: FontWeight.bold)),
+                              onPressed: () => Navigator.pushNamed(context, '/due-date-calculator'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (filtered.isEmpty)
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(32),
@@ -403,7 +445,7 @@ class _FoalingDiaryScreenState extends ConsumerState<FoalingDiaryScreen> {
                         ),
                         child: Column(
                           children: [
-                            const Icon(Icons.pets_rounded, color: AppColors.textMuted, size: 44),
+                            const Icon(Icons.search_off_rounded, color: AppColors.textMuted, size: 40),
                             const SizedBox(height: 10),
                             const Text('No mares found matching criteria', style: AppTypography.featureTitle),
                             const SizedBox(height: 4),
