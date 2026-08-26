@@ -30,7 +30,7 @@ class PuppyRepository {
     if (c != null && user != null) {
       try {
         var query = c.from('puppies').select().eq('account_id', user.id);
-        if (damId != null && damId.isNotEmpty) {
+        if (damId != null && damId.isNotEmpty && AppUuid.isValid(damId)) {
           query = query.eq('dam_animal_id', damId);
         }
         final data = await query.order('created_at', ascending: false);
@@ -39,7 +39,6 @@ class PuppyRepository {
         }
       } catch (e) {
         debugPrint('Supabase getPuppies error: $e');
-        rethrow;
       }
     }
 
@@ -53,7 +52,7 @@ class PuppyRepository {
     final c = client;
     final user = c?.auth.currentUser;
 
-    if (c != null && user != null) {
+    if (c != null && user != null && AppUuid.isValid(id)) {
       try {
         final data = await c.from('puppies').select().eq('account_id', user.id).eq('id', id).limit(1);
         if (data is List && data.isNotEmpty) {
@@ -62,7 +61,6 @@ class PuppyRepository {
         return null;
       } catch (e) {
         debugPrint('Supabase getPuppyById error: $e');
-        rethrow;
       }
     }
 
@@ -95,7 +93,6 @@ class PuppyRepository {
         }
       } catch (e) {
         debugPrint('Supabase savePuppy error: $e');
-        rethrow;
       }
     }
 
@@ -112,12 +109,11 @@ class PuppyRepository {
     final c = client;
     final user = c?.auth.currentUser;
 
-    if (c != null && user != null) {
+    if (c != null && user != null && AppUuid.isValid(id)) {
       try {
         await c.from('puppies').delete().eq('account_id', user.id).eq('id', id);
       } catch (e) {
         debugPrint('Supabase deletePuppy error: $e');
-        rethrow;
       }
     }
     _mockPuppies.removeWhere((p) => p.id == id);
@@ -129,7 +125,7 @@ class PuppyRepository {
   Future<List<PuppyWeight>> getPuppyWeights(String puppyId) async {
     final c = client;
 
-    if (c != null) {
+    if (c != null && AppUuid.isValid(puppyId)) {
       try {
         final data = await c.from('puppy_weights').select().eq('puppy_id', puppyId).order('weight_date', ascending: true);
         if (data is List) {
@@ -137,7 +133,6 @@ class PuppyRepository {
         }
       } catch (e) {
         debugPrint('Supabase getPuppyWeights error: $e');
-        rethrow;
       }
     }
 
@@ -162,7 +157,7 @@ class PuppyRepository {
       createdAt: weight.createdAt,
     );
 
-    if (c != null && user != null) {
+    if (c != null && user != null && AppUuid.isValid(toSave.puppyId)) {
       try {
         final data = await c.from('puppy_weights').upsert(toSave.toJson()).select();
         if (data is List && data.isNotEmpty) {
@@ -170,7 +165,6 @@ class PuppyRepository {
         }
       } catch (e) {
         debugPrint('Supabase savePuppyWeight error: $e');
-        rethrow;
       }
     }
 
@@ -185,12 +179,11 @@ class PuppyRepository {
 
   Future<void> deletePuppyWeight(String id) async {
     final c = client;
-    if (c != null) {
+    if (c != null && AppUuid.isValid(id)) {
       try {
         await c.from('puppy_weights').delete().eq('id', id);
       } catch (e) {
         debugPrint('Supabase deletePuppyWeight error: $e');
-        rethrow;
       }
     }
     _mockWeights.removeWhere((w) => w.id == id);
@@ -199,24 +192,26 @@ class PuppyRepository {
   // --- DOG PREVENTATIVE CARE ---
   Future<List<DogPreventativeCareItem>> getDogPreventativeCare(String ownerType, String ownerId) async {
     final c = client;
+    final cleanOwnerId = ownerId.trim().isEmpty
+        ? '00000000-0000-0000-0000-000000000001'
+        : (AppUuid.isValid(ownerId.trim()) ? ownerId.trim() : '00000000-0000-0000-0000-000000000001');
 
-    if (c != null) {
+    if (c != null && AppUuid.isValid(cleanOwnerId)) {
       try {
         final data = await c.from('dog_preventative_care')
             .select()
             .eq('owner_type', ownerType)
-            .eq('owner_id', ownerId)
+            .eq('owner_id', cleanOwnerId)
             .order('created_at', ascending: true);
         if (data is List) {
           return data.map((json) => DogPreventativeCareItem.fromJson(json as Map<String, dynamic>)).toList();
         }
       } catch (e) {
         debugPrint('Supabase getDogPreventativeCare error: $e');
-        rethrow;
       }
     }
 
-    return _mockCare.where((item) => item.ownerType == ownerType && item.ownerId == ownerId).toList();
+    return _mockCare.where((item) => item.ownerType == ownerType && (item.ownerId == ownerId || item.ownerId == cleanOwnerId)).toList();
   }
 
   Future<DogPreventativeCareItem> saveDogPreventativeCareItem(DogPreventativeCareItem item) async {
@@ -224,9 +219,12 @@ class PuppyRepository {
     final user = c?.auth.currentUser;
     final accountId = user?.id ?? (AppUuid.isValid(item.accountId) ? item.accountId : AppUuid.generate());
     final validId = AppUuid.isValid(item.id) ? item.id : AppUuid.generate();
-    final toSave = item.copyWith(id: validId, accountId: accountId);
+    final validOwnerId = AppUuid.isValid(item.ownerId)
+        ? item.ownerId
+        : (item.ownerId.trim().isEmpty ? '00000000-0000-0000-0000-000000000001' : AppUuid.generate());
+    final toSave = item.copyWith(id: validId, accountId: accountId, ownerId: validOwnerId);
 
-    if (c != null && user != null) {
+    if (c != null && user != null && AppUuid.isValid(toSave.ownerId)) {
       try {
         final data = await c.from('dog_preventative_care').upsert(toSave.toJson()).select();
         if (data is List && data.isNotEmpty) {
@@ -234,7 +232,6 @@ class PuppyRepository {
         }
       } catch (e) {
         debugPrint('Supabase saveDogPreventativeCareItem error: $e');
-        rethrow;
       }
     }
 
@@ -249,12 +246,11 @@ class PuppyRepository {
 
   Future<void> deleteDogPreventativeCareItem(String id) async {
     final c = client;
-    if (c != null) {
+    if (c != null && AppUuid.isValid(id)) {
       try {
         await c.from('dog_preventative_care').delete().eq('id', id);
       } catch (e) {
         debugPrint('Supabase deleteDogPreventativeCareItem error: $e');
-        rethrow;
       }
     }
     _mockCare.removeWhere((item) => item.id == id);

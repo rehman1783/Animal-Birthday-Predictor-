@@ -83,7 +83,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap Pick Saved on Stallion section
-    final pickStallionBtn = find.text('Pick Saved');
+    final pickStallionBtn = find.text('Pick Saved Stallion');
     expect(pickStallionBtn, findsOneWidget);
     await tester.ensureVisible(pickStallionBtn);
     await tester.tap(pickStallionBtn);

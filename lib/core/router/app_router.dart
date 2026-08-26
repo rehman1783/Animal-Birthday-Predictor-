@@ -34,6 +34,7 @@ import '../../features/puppy/presentation/screens/puppy_details_screen.dart';
 import '../../features/puppy/presentation/screens/puppy_list_screen.dart';
 import '../../features/puppy/presentation/screens/puppy_weight_tracker_screen.dart';
 import '../../features/puppy/presentation/screens/dog_preventative_care_screen.dart';
+import '../utils/app_uuid.dart';
 
 abstract class AppRouter {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -205,10 +206,14 @@ abstract class AppRouter {
 
       case '/dog-preventative-care':
         final args = settings.arguments is Map ? settings.arguments as Map : {};
+        final rawOwnerId = (args['ownerId'] as String?)?.trim() ?? '';
+        final validOwnerId = rawOwnerId.isNotEmpty && AppUuid.isValid(rawOwnerId)
+            ? rawOwnerId
+            : (rawOwnerId.isNotEmpty ? rawOwnerId : '00000000-0000-0000-0000-000000000001');
         return MaterialPageRoute(
           builder: (_) => DogPreventativeCareScreen(
             ownerType: (args['ownerType'] as String?) ?? 'puppy',
-            ownerId: (args['ownerId'] as String?) ?? '',
+            ownerId: validOwnerId,
             title: (args['title'] as String?) ?? 'Canine',
             dateOfBirth: args['dateOfBirth'] as DateTime?,
           ),
