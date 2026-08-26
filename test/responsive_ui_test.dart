@@ -60,6 +60,8 @@ import 'package:animal_birthday_predictor/features/certificates/presentation/scr
 import 'package:animal_birthday_predictor/features/profile/presentation/screens/profile_screen.dart';
 import 'package:animal_birthday_predictor/features/profile/presentation/screens/settings_screen.dart';
 import 'package:animal_birthday_predictor/features/profile/presentation/screens/delete_account_screen.dart';
+import 'package:animal_birthday_predictor/features/faq/presentation/screens/faq_screen.dart';
+import 'package:animal_birthday_predictor/features/disclaimer/presentation/screens/disclaimer_screen.dart';
 
 class FakeResponsiveAuthRepository extends AuthRepository {
   @override
@@ -824,6 +826,42 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.text('Change Password'), findsWidgets);
+      });
+
+      // 32. FaqScreen
+      testWidgets('FaqScreen renders without overflow on $sizeName', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: getOverrides(),
+            child: const MaterialApp(home: FaqScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Frequently Asked Questions'), findsOneWidget);
+      });
+
+      // 33. DisclaimerScreen
+      testWidgets('DisclaimerScreen renders without overflow on $sizeName', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: getOverrides(),
+            child: const MaterialApp(home: DisclaimerScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Disclaimer & Legal Notice'), findsOneWidget);
       });
     }
   });

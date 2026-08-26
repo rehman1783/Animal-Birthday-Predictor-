@@ -34,6 +34,8 @@ import '../../features/puppy/presentation/screens/puppy_details_screen.dart';
 import '../../features/puppy/presentation/screens/puppy_list_screen.dart';
 import '../../features/puppy/presentation/screens/puppy_weight_tracker_screen.dart';
 import '../../features/puppy/presentation/screens/dog_preventative_care_screen.dart';
+import '../../features/faq/presentation/screens/faq_screen.dart';
+import '../../features/disclaimer/presentation/screens/disclaimer_screen.dart';
 import '../utils/app_uuid.dart';
 
 abstract class AppRouter {
@@ -425,6 +427,8 @@ abstract class AppRouter {
       '/settings': (context) => const SettingsScreen(),
       '/delete-account': (context) => const DeleteAccountScreen(),
       '/contacts': (context) => const ContactsDirectoryScreen(),
+      '/faq': (context) => const FaqScreen(),
+      '/disclaimer': (context) => const DisclaimerScreen(),
     };
   }
 }

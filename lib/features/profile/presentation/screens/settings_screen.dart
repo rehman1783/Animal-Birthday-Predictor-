@@ -133,7 +133,31 @@ class SettingsScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // Section 3: App Information
+              // Section 3: Help & Legal
+              _SettingsGroup(
+                title: 'Help, FAQ & Legal',
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.help_outline_rounded, color: AppColors.primaryGold, size: 22),
+                    title: const Text('Frequently Asked Questions', style: AppTypography.inputText),
+                    subtitle: const Text('Gestation models, 45-day scans, puppy care & sync', style: AppTypography.finePrint),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => Navigator.pushNamed(context, '/faq'),
+                  ),
+                  const Divider(color: AppColors.inputBorder, height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.gavel_outlined, color: AppColors.primaryGold, size: 22),
+                    title: const Text('Medical & Legal Disclaimer', style: AppTypography.inputText),
+                    subtitle: const Text('Veterinary notice, gestation limits & liability terms', style: AppTypography.finePrint),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => Navigator.pushNamed(context, '/disclaimer'),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Section 4: App Information
               const _SettingsGroup(
                 title: 'System Information',
                 children: [

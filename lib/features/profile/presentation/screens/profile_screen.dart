@@ -111,6 +111,31 @@ class ProfileScreen extends ConsumerWidget {
 
               const SizedBox(height: 24),
 
+              // Support & Legal
+              _ProfileInfoSection(
+                title: 'Help, FAQ & Legal',
+                items: [
+                  _InfoTile(
+                    icon: Icons.help_outline_rounded,
+                    label: 'Frequently Asked Questions',
+                    value: 'Browse guides, calculations & answers',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/faq');
+                    },
+                  ),
+                  _InfoTile(
+                    icon: Icons.gavel_outlined,
+                    label: 'Terms & Medical Disclaimer',
+                    value: 'Veterinary notice & breeding terms',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/disclaimer');
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
               // Danger Zone: Account Deletion
               Container(
                 decoration: BoxDecoration(
