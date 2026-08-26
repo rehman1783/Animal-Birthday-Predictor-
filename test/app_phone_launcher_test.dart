@@ -21,11 +21,24 @@ void main() {
       }
       return null;
     });
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('plugins.flutter.io/url_launcher'), (MethodCall methodCall) async {
+      if (methodCall.method == 'canLaunch') {
+        return false;
+      }
+      if (methodCall.method == 'launch') {
+        return false;
+      }
+      return false;
+    });
   });
 
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('plugins.flutter.io/url_launcher'), null);
   });
 
   group('AppPhoneLauncher Tests', () {
