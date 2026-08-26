@@ -224,6 +224,37 @@ class MarePregnancyCard extends ConsumerWidget {
                     ],
                   ),
                 ),
+
+                // Twin Warning Alert Badge
+                if (pregnancy?.twinsSuspected == true) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFEF4444), width: 1),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 16),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            pregnancy?.twinRescanDate != null
+                                ? 'TWIN ALERT: Re-scan scheduled for ${_formatDate(pregnancy!.twinRescanDate)}'
+                                : 'TWIN ALERT: Urgent Day 16-18 re-scan required',
+                            style: const TextStyle(
+                              color: Color(0xFFEF4444),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

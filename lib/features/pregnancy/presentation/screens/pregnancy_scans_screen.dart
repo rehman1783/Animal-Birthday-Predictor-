@@ -34,6 +34,8 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
   bool _scan1Confirmed = false;
   bool _scan2Confirmed = false;
   bool _scan3Confirmed = false;
+  bool _twinsSuspected = false;
+  DateTime? _twinRescanDate;
   String? _scan1Image;
   String? _scan2Image;
   String? _scan3Image;
@@ -61,6 +63,8 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
         _scan1Confirmed = r.scan1Confirmed;
         _scan2Confirmed = r.scan2Confirmed;
         _scan3Confirmed = r.scan3Confirmed;
+        _twinsSuspected = r.twinsSuspected;
+        _twinRescanDate = r.twinRescanDate;
         _scan1Image = r.scan1ImageUrl;
         _scan2Image = r.scan2ImageUrl;
         _scan3Image = r.scan3ImageUrl;
@@ -101,6 +105,8 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
       final updated = current.copyWith(
         scan1Confirmed: _scan1Confirmed,
         scan1ImageUrl: _scan1Image,
+        twinsSuspected: _twinsSuspected,
+        twinRescanDate: _twinRescanDate,
         scan2Confirmed: _scan2Confirmed,
         scan2ImageUrl: _scan2Image,
         scan3Confirmed: _scan3Confirmed,
@@ -119,16 +125,12 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
         AppFeedbackSnackbar.showSuccess(
           context,
           title: 'Scans Saved',
-          message: 'Ultrasound scans & vet info saved successfully!',
+          message: 'Pregnancy scans and veterinarian info updated successfully!',
         );
       }
     } catch (e) {
       if (mounted) {
-        AppFeedbackSnackbar.showError(
-          context,
-          title: 'Save Failed',
-          error: e,
-        );
+        AppFeedbackSnackbar.showError(context, title: 'Save Failed', error: e);
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -168,7 +170,19 @@ class _PregnancyScansScreenState extends ConsumerState<PregnancyScansScreen> {
                       isConfirmed: _scan1Confirmed,
                       imageUrl: _scan1Image,
                       helperGuidance: 'Day 14-16. Checks pregnancy & twin detection.',
+                      isTwinsSuspected: _twinsSuspected,
+                      twinRescanDate: _twinRescanDate,
                       onToggleConfirmed: (val) => setState(() => _scan1Confirmed = val ?? false),
+                      onToggleTwins: (val) {
+                        setState(() {
+                          _twinsSuspected = val ?? false;
+                          if (_twinsSuspected && _twinRescanDate == null) {
+                            final base = _record?.scan1DueDate ?? DateTime.now();
+                            _twinRescanDate = base.add(const Duration(days: 2));
+                          }
+                        });
+                      },
+                      onSelectTwinRescanDate: (date) => setState(() => _twinRescanDate = date),
                       onImageSelected: (url) => setState(() => _scan1Image = url),
                     ),
 

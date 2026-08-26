@@ -46,6 +46,8 @@ class _VeterinarianPregnancyScansScreenState
   bool _scan1Confirmed = false;
   bool _scan2Confirmed = false;
   bool _scan3Confirmed = false;
+  bool _twinsSuspected = false;
+  DateTime? _twinRescanDate;
   String? _scan1Image;
   String? _scan2Image;
   String? _scan3Image;
@@ -66,6 +68,8 @@ class _VeterinarianPregnancyScansScreenState
       return _scan1Confirmed ||
           _scan2Confirmed ||
           _scan3Confirmed ||
+          _twinsSuspected ||
+          _twinRescanDate != null ||
           _scan1Image != null ||
           _scan2Image != null ||
           _scan3Image != null ||
@@ -74,6 +78,8 @@ class _VeterinarianPregnancyScansScreenState
     }
     final r = _record!;
     return _scan1Confirmed != r.scan1Confirmed ||
+        _twinsSuspected != r.twinsSuspected ||
+        _twinRescanDate != r.twinRescanDate ||
         (_scan1Image ?? '') != (r.scan1ImageUrl ?? '') ||
         _scan2Confirmed != r.scan2Confirmed ||
         (_scan2Image ?? '') != (r.scan2ImageUrl ?? '') ||
@@ -117,6 +123,8 @@ class _VeterinarianPregnancyScansScreenState
         updated = current.copyWith(
           scan1Confirmed: _scan1Confirmed,
           scan1ImageUrl: _scan1Image,
+          twinsSuspected: _twinsSuspected,
+          twinRescanDate: _twinRescanDate,
           updatedAt: DateTime.now(),
         );
       } else if (scanNumber == 2) {
@@ -183,6 +191,8 @@ class _VeterinarianPregnancyScansScreenState
           _scan1Confirmed = r.scan1Confirmed;
           _scan2Confirmed = r.scan2Confirmed;
           _scan3Confirmed = r.scan3Confirmed;
+          _twinsSuspected = r.twinsSuspected;
+          _twinRescanDate = r.twinRescanDate;
           _scan1Image = r.scan1ImageUrl;
           _scan2Image = r.scan2ImageUrl;
           _scan3Image = r.scan3ImageUrl;
@@ -315,6 +325,8 @@ class _VeterinarianPregnancyScansScreenState
       final updated = current.copyWith(
         scan1Confirmed: _scan1Confirmed,
         scan1ImageUrl: _scan1Image,
+        twinsSuspected: _twinsSuspected,
+        twinRescanDate: _twinRescanDate,
         scan2Confirmed: _scan2Confirmed,
         scan2ImageUrl: _scan2Image,
         scan3Confirmed: _scan3Confirmed,
@@ -752,8 +764,22 @@ class _VeterinarianPregnancyScansScreenState
                         imageUrl: _scan1Image,
                         helperGuidance:
                             'Day 14-16. Checks pregnancy vesicle (98% accuracy) & twin detection prior to fixation at Day 16.',
+                        isTwinsSuspected: _twinsSuspected,
+                        twinRescanDate: _twinRescanDate,
                         onToggleConfirmed: (val) =>
                             setState(() => _scan1Confirmed = val ?? false),
+                        onToggleTwins: (val) {
+                          setState(() {
+                            _twinsSuspected = val ?? false;
+                            if (_twinsSuspected && _twinRescanDate == null) {
+                              final base = _record?.scan1DueDate ?? DateTime.now();
+                              _twinRescanDate = base.add(const Duration(days: 2));
+                            }
+                          });
+                        },
+                        onSelectTwinRescanDate: (date) =>
+                            setState(() => _twinRescanDate = date),
+                        onCallVet: _callVet,
                         onImageSelected: (url) =>
                             setState(() => _scan1Image = url),
                         onSaveScan: () => _handleSaveScan(1),

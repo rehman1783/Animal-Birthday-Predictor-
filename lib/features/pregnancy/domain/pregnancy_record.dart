@@ -6,6 +6,8 @@ class PregnancyRecord {
   final DateTime? scan1DueDate;
   final bool scan1Confirmed;
   final String? scan1ImageUrl;
+  final bool twinsSuspected;
+  final DateTime? twinRescanDate;
   final DateTime? scan2DueDate;
   final bool scan2Confirmed;
   final String? scan2ImageUrl;
@@ -26,6 +28,8 @@ class PregnancyRecord {
     this.scan1DueDate,
     this.scan1Confirmed = false,
     this.scan1ImageUrl,
+    this.twinsSuspected = false,
+    this.twinRescanDate,
     this.scan2DueDate,
     this.scan2Confirmed = false,
     this.scan2ImageUrl,
@@ -48,6 +52,8 @@ class PregnancyRecord {
       'scan_1_due_date': scan1DueDate?.toIso8601String().split('T').first,
       'scan_1_confirmed': scan1Confirmed,
       'scan_1_image_url': scan1ImageUrl,
+      'twins_suspected': twinsSuspected,
+      'twin_rescan_date': twinRescanDate?.toIso8601String().split('T').first,
       'scan_2_due_date': scan2DueDate?.toIso8601String().split('T').first,
       'scan_2_confirmed': scan2Confirmed,
       'scan_2_image_url': scan2ImageUrl,
@@ -73,6 +79,10 @@ class PregnancyRecord {
           : null,
       scan1Confirmed: json['scan_1_confirmed'] == true || json['scan_1_confirmed']?.toString() == 'true',
       scan1ImageUrl: json['scan_1_image_url']?.toString(),
+      twinsSuspected: json['twins_suspected'] == true || json['twins_suspected']?.toString() == 'true',
+      twinRescanDate: json['twin_rescan_date'] != null
+          ? DateTime.tryParse(json['twin_rescan_date'].toString())
+          : null,
       scan2DueDate: json['scan_2_due_date'] != null
           ? DateTime.tryParse(json['scan_2_due_date'].toString())
           : null,
@@ -105,6 +115,8 @@ class PregnancyRecord {
     DateTime? scan1DueDate,
     bool? scan1Confirmed,
     String? scan1ImageUrl,
+    bool? twinsSuspected,
+    DateTime? twinRescanDate,
     DateTime? scan2DueDate,
     bool? scan2Confirmed,
     String? scan2ImageUrl,
@@ -125,6 +137,8 @@ class PregnancyRecord {
       scan1DueDate: scan1DueDate ?? this.scan1DueDate,
       scan1Confirmed: scan1Confirmed ?? this.scan1Confirmed,
       scan1ImageUrl: scan1ImageUrl ?? this.scan1ImageUrl,
+      twinsSuspected: twinsSuspected ?? this.twinsSuspected,
+      twinRescanDate: twinRescanDate ?? this.twinRescanDate,
       scan2DueDate: scan2DueDate ?? this.scan2DueDate,
       scan2Confirmed: scan2Confirmed ?? this.scan2Confirmed,
       scan2ImageUrl: scan2ImageUrl ?? this.scan2ImageUrl,

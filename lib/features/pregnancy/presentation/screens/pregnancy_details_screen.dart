@@ -45,6 +45,8 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
   bool _scan1Confirmed = false;
   bool _scan2Confirmed = false;
   bool _scan3Confirmed = false;
+  bool _twinsSuspected = false;
+  DateTime? _twinRescanDate;
   String? _scan1Image;
   String? _scan2Image;
   String? _scan3Image;
@@ -78,6 +80,8 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
           _scan1Confirmed = r.scan1Confirmed;
           _scan2Confirmed = r.scan2Confirmed;
           _scan3Confirmed = r.scan3Confirmed;
+          _twinsSuspected = r.twinsSuspected;
+          _twinRescanDate = r.twinRescanDate;
           _scan1Image = r.scan1ImageUrl;
           _scan2Image = r.scan2ImageUrl;
           _scan3Image = r.scan3ImageUrl;
@@ -122,21 +126,25 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('CANCEL', style: TextStyle(color: AppColors.textMuted)),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('DELETE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       final repo = ref.read(pregnancyRepositoryProvider);
       await repo.deletePregnancyRecord(_record!.id);
       ref.invalidate(pregnancyRecordForCarrierProvider(widget.carrierAnimalId));
+
       if (mounted) {
         AppFeedbackSnackbar.showSuccess(
           context,
@@ -157,6 +165,8 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
       final updated = _record!.copyWith(
         scan1Confirmed: _scan1Confirmed,
         scan1ImageUrl: _scan1Image,
+        twinsSuspected: _twinsSuspected,
+        twinRescanDate: _twinRescanDate,
         scan2Confirmed: _scan2Confirmed,
         scan2ImageUrl: _scan2Image,
         scan3Confirmed: _scan3Confirmed,
@@ -194,6 +204,8 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
       return _scan1Confirmed ||
           _scan2Confirmed ||
           _scan3Confirmed ||
+          _twinsSuspected ||
+          _twinRescanDate != null ||
           _scan1Image != null ||
           _scan2Image != null ||
           _scan3Image != null ||
@@ -202,6 +214,8 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
     }
     final r = _record!;
     return _scan1Confirmed != r.scan1Confirmed ||
+        _twinsSuspected != r.twinsSuspected ||
+        _twinRescanDate != r.twinRescanDate ||
         (_scan1Image ?? '') != (r.scan1ImageUrl ?? '') ||
         _scan2Confirmed != r.scan2Confirmed ||
         (_scan2Image ?? '') != (r.scan2ImageUrl ?? '') ||
@@ -486,7 +500,19 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
                       isConfirmed: _scan1Confirmed,
                       imageUrl: _scan1Image,
                       helperGuidance: 'Recommended Day 14-16. Checks for pregnancy & detects dangerous twin pregnancies.',
+                      isTwinsSuspected: _twinsSuspected,
+                      twinRescanDate: _twinRescanDate,
                       onToggleConfirmed: (val) => setState(() => _scan1Confirmed = val ?? false),
+                      onToggleTwins: (val) {
+                        setState(() {
+                          _twinsSuspected = val ?? false;
+                          if (_twinsSuspected && _twinRescanDate == null) {
+                            final base = _record?.scan1DueDate ?? DateTime.now();
+                            _twinRescanDate = base.add(const Duration(days: 2));
+                          }
+                        });
+                      },
+                      onSelectTwinRescanDate: (date) => setState(() => _twinRescanDate = date),
                       onImageSelected: (url) => setState(() => _scan1Image = url),
                     ),
 
