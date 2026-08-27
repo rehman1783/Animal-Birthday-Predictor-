@@ -845,7 +845,14 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Gelded Date: ${_formatDate(_geldedDate)}', style: const TextStyle(color: AppColors.primaryGold)),
+                                  Expanded(
+                                    child: Text(
+                                      'Gelded Date: ${_formatDate(_geldedDate)}',
+                                      style: const TextStyle(color: AppColors.primaryGold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
                                   const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.primaryGold),
                                 ],
                               ),
