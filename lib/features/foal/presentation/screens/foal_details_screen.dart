@@ -15,7 +15,9 @@ import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../animals/domain/animal.dart';
+import '../../../animals/domain/markings.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
+import '../../../animals/presentation/providers/mare_provider.dart';
 import '../../../animals/presentation/widgets/select_or_add_animal_modal.dart';
 import '../../../contacts/presentation/widgets/select_or_add_contact_modal.dart';
 import '../../domain/foal_record.dart';
@@ -38,9 +40,12 @@ class FoalDetailsScreen extends ConsumerStatefulWidget {
   ConsumerState<FoalDetailsScreen> createState() => _FoalDetailsScreenState();
 }
 
-class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
+class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  late TabController _tabController;
 
+  // Clinical & Identity Controllers
   late TextEditingController _nameController;
   late TextEditingController _stallionController;
   late TextEditingController _breedController;
@@ -57,6 +62,14 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
   late TextEditingController _salePriceController;
   DateTime? _saleDate;
 
+  // Markings Controllers
+  final _headNotesController = TextEditingController();
+  String? _existingMarkingsId;
+  String? _headViewImage;
+  String? _leftSideImage;
+  String? _rightSideImage;
+  Markings? _initialMarkings;
+
   Animal? _selectedMare;
   Animal? _selectedRecipient;
 
@@ -71,6 +84,8 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+
     final f = widget.foal;
     _nameController = TextEditingController(text: f?.foalName ?? '');
     _stallionController = TextEditingController(text: f?.stallion ?? widget.initialStallion ?? '');
@@ -96,6 +111,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
 
     if (f != null) {
       _loadLinkedAnimals(f);
+      _loadMarkings(f.id);
     } else if (widget.initialMareId != null && widget.initialMareId!.isNotEmpty) {
       _loadInitialMare(widget.initialMareId!);
     }
@@ -130,8 +146,26 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
     } catch (_) {}
   }
 
+  Future<void> _loadMarkings(String foalId) async {
+    try {
+      final repo = ref.read(mareRepositoryProvider);
+      final m = await repo.getMarkings('foal', foalId);
+      if (m != null && mounted) {
+        setState(() {
+          _initialMarkings = m;
+          _existingMarkingsId = m.id;
+          _headViewImage = m.headViewImageUrl;
+          _leftSideImage = m.leftSideImageUrl;
+          _rightSideImage = m.rightSideImageUrl;
+          _headNotesController.text = m.headViewNotes ?? '';
+        });
+      }
+    } catch (_) {}
+  }
+
   @override
   void dispose() {
+    _tabController.dispose();
     _nameController.dispose();
     _stallionController.dispose();
     _breedController.dispose();
@@ -144,6 +178,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
     _buyerPhoneController.dispose();
     _buyerAddressController.dispose();
     _salePriceController.dispose();
+    _headNotesController.dispose();
     super.dispose();
   }
 
@@ -254,54 +289,75 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
 
   Future<void> _handleSave() async {
     if (_selectedMare == null) {
+      _tabController.animateTo(0);
       AppFeedbackSnackbar.showError(
         context,
-        title: 'Mare Required',
-        error: 'Please select or register the Dam Mare (* required).',
+        title: 'Dam (Mare) Required',
+        error: 'Please select the Mother / Dam (Mare) before saving the foal record.',
       );
       return;
     }
 
     if (!_formKey.currentState!.validate()) {
+      _tabController.animateTo(0);
       return;
     }
 
     setState(() => _isSaving = true);
+
     try {
       final repo = ref.read(foalRepositoryProvider);
-      final foalId = widget.foal?.id.isNotEmpty == true
-          ? widget.foal!.id
-          : AppUuid.generate();
+      final mareRepo = ref.read(mareRepositoryProvider);
 
       final record = FoalRecord(
-        id: foalId,
+        id: widget.foal?.id ?? AppUuid.generate(),
         accountId: widget.foal?.accountId ?? '',
         mareAnimalId: _selectedMare!.id,
         recipientAnimalId: _selectedRecipient?.id,
-        foalName: _nameController.text.trim(),
+        foalName: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
         dateOfBirth: _dateOfBirth,
-        stallion: _stallionController.text.trim(),
-        breed: _breedController.text.trim(),
+        stallion: _stallionController.text.trim().isNotEmpty ? _stallionController.text.trim() : null,
+        breed: _breedController.text.trim().isNotEmpty ? _breedController.text.trim() : null,
         sex: _sex,
-        iggValue: _iggController.text.trim(),
-        foalMicrochipNo: _microchipController.text.trim(),
-        dna: _dnaController.text.trim(),
+        iggValue: _iggController.text.trim().isNotEmpty ? _iggController.text.trim() : null,
+        foalMicrochipNo: _microchipController.text.trim().isNotEmpty ? _microchipController.text.trim() : null,
+        dna: _dnaController.text.trim().isNotEmpty ? _dnaController.text.trim() : null,
         gelded: _gelded,
         geldedDate: _gelded ? _geldedDate : null,
-        studBookAssociation: _studBookController.text.trim(),
-        notes: _notesController.text.trim(),
+        studBookAssociation: _studBookController.text.trim().isNotEmpty ? _studBookController.text.trim() : null,
+        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
         status: _status,
         photoUrl: _photoUrl,
-        buyerName: _status != 'keep' ? _buyerNameController.text.trim() : null,
-        buyerPhone: _status != 'keep' ? _buyerPhoneController.text.trim() : null,
-        buyerAddress: _status != 'keep' ? _buyerAddressController.text.trim() : null,
+        buyerName: _status != 'keep' && _buyerNameController.text.trim().isNotEmpty ? _buyerNameController.text.trim() : null,
+        buyerPhone: _status != 'keep' && _buyerPhoneController.text.trim().isNotEmpty ? _buyerPhoneController.text.trim() : null,
+        buyerAddress: _status != 'keep' && _buyerAddressController.text.trim().isNotEmpty ? _buyerAddressController.text.trim() : null,
         saleDate: _status != 'keep' ? _saleDate : null,
-        salePrice: _status != 'keep' ? _salePriceController.text.trim() : null,
+        salePrice: _status != 'keep' && _salePriceController.text.trim().isNotEmpty ? _salePriceController.text.trim() : null,
         createdAt: widget.foal?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
       final saved = await repo.saveFoal(record);
+
+      // Persist Markings if any image or note is provided
+      if (_headViewImage != null || _leftSideImage != null || _rightSideImage != null || _headNotesController.text.trim().isNotEmpty) {
+        final markings = Markings(
+          id: _existingMarkingsId ?? AppUuid.generate(),
+          ownerType: 'foal',
+          ownerId: saved.id,
+          leftSideImageUrl: _leftSideImage,
+          rightSideImageUrl: _rightSideImage,
+          headViewImageUrl: _headViewImage,
+          headViewNotes: _headNotesController.text.trim().isNotEmpty ? _headNotesController.text.trim() : null,
+          createdAt: _initialMarkings?.createdAt ?? DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final savedMarkings = await mareRepo.saveMarkings(markings);
+        _initialMarkings = savedMarkings;
+        _existingMarkingsId = savedMarkings.id;
+        ref.invalidate(markingsForOwnerProvider((ownerType: 'foal', ownerId: saved.id)));
+      }
+
       ref.invalidate(foalsListProvider);
 
       if (mounted) {
@@ -327,12 +383,20 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
 
   bool get _hasUnsavedChanges {
     final f = widget.foal;
+    final m = _initialMarkings;
+
+    final markingsChanged = _headViewImage != m?.headViewImageUrl ||
+        _leftSideImage != m?.leftSideImageUrl ||
+        _rightSideImage != m?.rightSideImageUrl ||
+        _headNotesController.text.trim() != (m?.headViewNotes?.trim() ?? '');
+
     if (f == null) {
       return _nameController.text.trim().isNotEmpty ||
           _stallionController.text.trim().isNotEmpty ||
           _breedController.text.trim().isNotEmpty ||
           _selectedMare != null ||
-          _photoUrl != null;
+          _photoUrl != null ||
+          markingsChanged;
     }
 
     final isDobChanged = (_dateOfBirth == null && f.dateOfBirth != null) ||
@@ -383,7 +447,8 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
         _gelded != initialGelded ||
         isGeldedDateChanged ||
         currentStatus != initialStatus ||
-        _photoUrl != f.photoUrl;
+        _photoUrl != f.photoUrl ||
+        markingsChanged;
   }
 
   @override
@@ -450,661 +515,810 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen> {
                 onPressed: _confirmDeleteFoal,
               ),
           ],
-        ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.horizontalPadding,
-            vertical: 16.0,
-          ),
-          child: ResponsiveBody(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 1. Foal Photo Header
-                  AppImagePicker(
-                    label: 'FOAL PHOTO (CAMERA / GALLERY) (Optional)',
-                    initialImageUrl: _photoUrl,
-                    onImageSelected: (url) => setState(() => _photoUrl = url),
-                  ),
-                  const SizedBox(height: 24.0),
-
-                  // 2. Core Identity Card
-                  const SectionDividerLabel(label: 'FOAL IDENTITY'),
-                  const SizedBox(height: 14.0),
-
-                  CustomTextField(
-                    label: 'Foal Name (Optional)',
-                    hintText: 'e.g. Royal Starlight',
-                    controller: _nameController,
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Date of Birth
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Date of Birth *', style: AppTypography.inputLabel),
-                      const SizedBox(height: 6),
-                      GestureDetector(
-                        onTap: () => _pickDate(isGelded: false),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: AppColors.inputField,
-                            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                            border: Border.all(color: AppColors.primaryGold),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _formatDate(_dateOfBirth),
-                                style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
-                              ),
-                              const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primaryGold),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Sex / Gender Switcher (Filly / Colt)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Sex *', style: AppTypography.inputLabel),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => setState(() => _sex = 'filly'),
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: _sex == 'filly' ? AppColors.primaryGold : AppColors.inputField,
-                                foregroundColor: _sex == 'filly' ? AppColors.background : AppColors.textPrimary,
-                                side: const BorderSide(color: AppColors.primaryGold),
-                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    HorseshoeIcon(
-                                      size: 14,
-                                      color: _sex == 'filly' ? AppColors.background : AppColors.primaryGold,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Text('FILLY (FEMALE)', style: TextStyle(fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => setState(() => _sex = 'colt'),
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: _sex == 'colt' ? AppColors.primaryGold : AppColors.inputField,
-                                foregroundColor: _sex == 'colt' ? AppColors.background : AppColors.textPrimary,
-                                side: const BorderSide(color: AppColors.primaryGold),
-                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    HorseshoeIcon(
-                                      size: 14,
-                                      color: _sex == 'colt' ? AppColors.background : AppColors.primaryGold,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Text('COLT (MALE)', style: TextStyle(fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Foal Status Selector
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Foal Status', style: AppTypography.inputLabel),
-                      const SizedBox(height: 8),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            {'id': 'keep', 'label': 'Healthy / Retained'},
-                            {'id': 'available', 'label': 'Available'},
-                            {'id': 'reserved', 'label': 'Reserved'},
-                            {'id': 'sold', 'label': 'Sold / Transferred'},
-                            {'id': 'weaned', 'label': 'Weaned'},
-                            {'id': 'training', 'label': 'In Training'},
-                            {'id': 'deceased', 'label': 'Deceased / Stillborn'},
-                          ].map((st) {
-                            final isSel = _status.toLowerCase() == st['id']!.toLowerCase();
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: ChoiceChip(
-                                label: Text(st['label']!),
-                                selected: isSel,
-                                selectedColor: AppColors.primaryGold,
-                                backgroundColor: AppColors.inputField,
-                                labelStyle: TextStyle(
-                                  color: isSel ? AppColors.background : AppColors.textPrimary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                onSelected: (_) => setState(() => _status = st['id']!),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          label: 'Breed (Optional)',
-                          hintText: 'e.g. Thoroughbred',
-                          controller: _breedController,
-                        ),
-                      ),
-                      const SizedBox(width: 12.0),
-                      Expanded(
-                        child: CustomTextField(
-                          label: 'IGG Value (Optional)',
-                          hintText: 'e.g. >800 mg/dL (Normal)',
-                          controller: _iggController,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24.0),
-
-                  // 3. Lineage Pickers (Dam Mare & Recipient Mare)
-                  const SectionDividerLabel(label: 'PARENTAGE & BREEDING LINEAGE'),
-                  const SizedBox(height: 14.0),
-
-                  // Dam Mare Picker (Required)
-                  GestureDetector(
-                    onTap: () async {
-                      final chosen = await SelectOrAddAnimalModal.show(
-                        context,
-                        title: 'Select Dam (Mother)',
-                        species: 'horse',
-                        currentSelectedId: _selectedMare?.id,
-                      );
-                      if (chosen != null) setState(() => _selectedMare = chosen);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                        border: Border.all(
-                          color: _selectedMare != null ? AppColors.primaryGold : AppColors.surface,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          AppThumbnailAvatar(
-                            imagePath: _selectedMare?.photoUrl,
-                            species: 'horse',
-                            customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
-                            size: 40,
-                            iconSize: 20,
-                            isCircle: true,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _selectedMare != null ? 'Dam: ${_selectedMare!.name}' : 'Select Dam Mare *',
-                                  style: AppTypography.displayHeadline.copyWith(
-                                    fontSize: 16,
-                                    color: _selectedMare != null ? AppColors.primaryGold : AppColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _selectedMare != null
-                                      ? 'Microchip: ${_selectedMare!.microchipNo ?? "N/A"} • ${_selectedMare!.breed ?? "Equine"}'
-                                      : 'Tap to select registered mother mare',
-                                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.primaryGold, size: 16),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12.0),
-
-                  CustomTextField(
-                    label: 'Sire / Stallion (Father) (Optional)',
-                    hintText: 'e.g. Northern Dancer',
-                    controller: _stallionController,
-                  ),
-                  const SizedBox(height: 12.0),
-
-                  // Recipient Mare Picker (Optional if Embryo Transfer)
-                  GestureDetector(
-                    onTap: () async {
-                      final chosen = await SelectOrAddAnimalModal.show(
-                        context,
-                        title: 'Select Recipient Mare (Optional)',
-                        species: 'horse',
-                        currentSelectedId: _selectedRecipient?.id,
-                      );
-                      if (chosen != null) setState(() => _selectedRecipient = chosen);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                        border: Border.all(color: AppColors.surface),
-                      ),
-                      child: Row(
-                        children: [
-                          AppThumbnailAvatar(
-                            imagePath: _selectedRecipient?.photoUrl,
-                            species: 'horse',
-                            customFallback: const HorseshoeIcon(size: 24, color: AppColors.primaryGold),
-                            size: 40,
-                            iconSize: 20,
-                            isCircle: true,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _selectedRecipient != null ? 'Recipient: ${_selectedRecipient!.name}' : 'Recipient Mare (Optional)',
-                                  style: AppTypography.displayHeadline.copyWith(
-                                    fontSize: 15,
-                                    color: _selectedRecipient != null ? AppColors.primaryGold : AppColors.textSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _selectedRecipient != null
-                                      ? 'Microchip: ${_selectedRecipient!.microchipNo ?? "N/A"}'
-                                      : 'Only if carried by a surrogate recipient mare',
-                                  style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (_selectedRecipient != null)
-                            IconButton(
-                              icon: const Icon(Icons.clear, size: 18, color: AppColors.textMuted),
-                              onPressed: () => setState(() => _selectedRecipient = null),
-                            )
-                          else
-                            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24.0),
-
-                  // 4. Identifiers & Status
-                  const SectionDividerLabel(label: 'IDENTIFICATION & BREEDER STATUS'),
-                  const SizedBox(height: 14.0),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          label: 'Foal Microchip No. (Optional)',
-                          hintText: '15-digit ISO microchip',
-                          controller: _microchipController,
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
-                      const SizedBox(width: 12.0),
-                      Expanded(
-                        child: CustomTextField(
-                          label: 'DNA Profile (Optional)',
-                          hintText: 'e.g. DNA-8921',
-                          controller: _dnaController,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  CustomTextField(
-                    label: 'Stud Book / Breeding Association (Optional)',
-                    hintText: 'e.g. Australian Stud Book / AQHA',
-                    controller: _studBookController,
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Gelded Status
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _gelded,
-                              onChanged: (val) => setState(() => _gelded = val ?? false),
-                              activeColor: AppColors.primaryGold,
-                              checkColor: AppColors.background,
-                              side: const BorderSide(color: AppColors.primaryGold),
-                            ),
-                            const Expanded(
-                              child: Text('Gelded (Castrated)', style: TextStyle(color: AppColors.textPrimary)),
-                            ),
-                          ],
-                        ),
-                        if (_gelded) ...[
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            onTap: () => _pickDate(isGelded: true),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: AppColors.inputField,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'Gelded Date: ${_formatDate(_geldedDate)}',
-                                      style: const TextStyle(color: AppColors.primaryGold),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.primaryGold),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Status Selector (Sold / Keep / Transferred)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Foal Status *', style: AppTypography.inputLabel),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          ChoiceChip(
-                            label: const Text('KEEP', style: TextStyle(fontWeight: FontWeight.bold)),
-                            selected: _status == 'keep',
-                            selectedColor: AppColors.primaryGold,
-                            backgroundColor: AppColors.surface,
-                            labelStyle: TextStyle(
-                              color: _status == 'keep' ? AppColors.background : AppColors.textPrimary,
-                            ),
-                            onSelected: (_) => setState(() => _status = 'keep'),
-                          ),
-                          ChoiceChip(
-                            label: const Text('SOLD', style: TextStyle(fontWeight: FontWeight.bold)),
-                            selected: _status == 'sold',
-                            selectedColor: AppColors.primaryGold,
-                            backgroundColor: AppColors.surface,
-                            labelStyle: TextStyle(
-                              color: _status == 'sold' ? AppColors.background : AppColors.textPrimary,
-                            ),
-                            onSelected: (_) => setState(() => _status = 'sold'),
-                          ),
-                          ChoiceChip(
-                            label: const Text('TRANSFERRED', style: TextStyle(fontWeight: FontWeight.bold)),
-                            selected: _status == 'transferred',
-                            selectedColor: AppColors.primaryGold,
-                            backgroundColor: AppColors.surface,
-                            labelStyle: TextStyle(
-                              color: _status == 'transferred' ? AppColors.background : AppColors.textPrimary,
-                            ),
-                            onSelected: (_) => setState(() => _status = 'transferred'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14.0),
-
-                  // Dynamic Buyer / New Owner Section (Only if Sold or Transferred)
-                  if (_status == 'sold' || _status == 'transferred') ...[
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                        border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            alignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              Text(
-                                _status == 'sold' ? 'SOLD TO (OPTIONAL)' : 'TRANSFERRED TO (OPTIONAL)',
-                                style: AppTypography.sectionLabel,
-                              ),
-                              TextButton.icon(
-                                onPressed: _pickBuyerFromContacts,
-                                icon: const Icon(Icons.contacts_outlined, size: 16, color: AppColors.primaryGold),
-                                label: const Text('From Contacts', style: TextStyle(color: AppColors.primaryGold, fontSize: 12)),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          CustomTextField(
-                            label: 'New Owner / Buyer Name (Optional)',
-                            hintText: 'e.g. James & Linda Sterling',
-                            controller: _buyerNameController,
-                            prefixIcon: Icons.person_outline,
-                          ),
-                          const SizedBox(height: 10),
-                          CustomTextField(
-                            label: 'Buyer Phone Number (Optional)',
-                            hintText: 'e.g. +44 7700 900123',
-                            controller: _buyerPhoneController,
-                            keyboardType: TextInputType.phone,
-                            prefixIcon: Icons.phone_outlined,
-                          ),
-                          if (_buyerPhoneController.text.trim().isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: OutlinedButton.icon(
-                                onPressed: () => AppPhoneLauncher.makePhoneCall(context, _buyerPhoneController.text),
-                                icon: const Icon(Icons.call, size: 14, color: AppColors.primaryGold),
-                                label: const Text('Call Buyer', style: TextStyle(color: AppColors.primaryGold, fontSize: 11)),
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: AppColors.primaryGold),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 14.0),
-                  ],
-
-                  CustomTextField(
-                    label: 'Breeder Notes (Optional)',
-                    hintText: 'Temperament, growth notes, conformation observations...',
-                    controller: _notesController,
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 24.0),
-
-                  // 5. Foal Actions (Markings, Health, Certificate)
-                  if (isEditing && foalId.isNotEmpty) ...[
-                    const SectionDividerLabel(label: 'FOAL CARE & DOCUMENTS'),
-                    const SizedBox(height: 14.0),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/markings',
-                                arguments: {'ownerType': 'foal', 'ownerId': foalId},
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                            child: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.photo_library_outlined, color: AppColors.primaryGold, size: 14),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'MARKINGS',
-                                    style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/preventative-care',
-                                arguments: {
-                                  'ownerType': 'foal',
-                                  'ownerId': foalId,
-                                  'title': widget.foal?.foalName ?? 'Foal',
-                                  'damMareId': widget.foal?.mareAnimalId,
-                                },
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                            child: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.healing_outlined, color: AppColors.primaryGold, size: 14),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'HEALTH',
-                                    style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/certificate',
-                                arguments: {'foal': widget.foal, 'dam': _selectedMare},
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.primaryGold),
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                            child: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.card_membership_outlined, color: AppColors.primaryGold, size: 14),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'CERTIFICATE',
-                                    style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24.0),
-                  ],
-
-                  // Save CTA
-                  GradientCtaButton(
-                    text: _isSaving ? 'SAVING FOAL RECORD...' : (isEditing ? 'UPDATE FOAL RECORD' : 'SAVE FOAL RECORD'),
-                    onPressed: _isSaving ? null : _handleSave,
-                  ),
-                  const SizedBox(height: 24.0),
-                ],
+          bottom: TabBar(
+            controller: _tabController,
+            indicatorColor: AppColors.primaryGold,
+            indicatorWeight: 3.0,
+            labelColor: AppColors.primaryGold,
+            unselectedLabelColor: AppColors.textMuted,
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+            tabs: const [
+              Tab(
+                icon: Icon(Icons.medical_information_outlined, size: 20),
+                text: 'CLINICAL BIRTH LOG',
               ),
+              Tab(
+                icon: Icon(Icons.photo_camera_back_outlined, size: 20),
+                text: 'VISUAL MARKINGS REGISTRY',
+              ),
+            ],
+          ),
+        ),
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // TAB 1: CLINICAL BIRTH LOG & IDENTITY
+                _buildClinicalBirthLogTab(isEditing: isEditing, foalId: foalId),
+
+                // TAB 2: VISUAL MARKINGS REGISTRY (3-POINT MARKINGS)
+                _buildVisualMarkingsRegistryTab(),
+              ],
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TAB 1: CLINICAL BIRTH LOG & IDENTITY
+  // ---------------------------------------------------------------------------
+  Widget _buildClinicalBirthLogTab({required bool isEditing, required String foalId}) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.horizontalPadding,
+        vertical: 16.0,
+      ),
+      child: ResponsiveBody(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. Foal Photo Header
+            AppImagePicker(
+              label: 'FOAL PROFILE PHOTO (CAMERA / GALLERY)',
+              initialImageUrl: _photoUrl,
+              onImageSelected: (url) => setState(() => _photoUrl = url),
+            ),
+            const SizedBox(height: 20.0),
+
+            // 2. Core Identity Card
+            const SectionDividerLabel(label: 'FOAL IDENTITY'),
+            const SizedBox(height: 12.0),
+
+            CustomTextField(
+              label: 'Foal Name (Optional)',
+              hintText: 'e.g. Royal Starlight',
+              controller: _nameController,
+            ),
+            const SizedBox(height: 14.0),
+
+            // Date of Birth
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Date of Birth *', style: AppTypography.inputLabel),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () => _pickDate(isGelded: false),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: AppColors.inputField,
+                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                      border: Border.all(color: AppColors.primaryGold),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDate(_dateOfBirth),
+                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                        ),
+                        const Icon(Icons.calendar_today_rounded, color: AppColors.primaryGold, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14.0),
+
+            // Sex Selection (Filly / Colt)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Sex / Gender *', style: AppTypography.inputLabel),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _sex = 'filly'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: _sex == 'filly' ? AppColors.primaryGold.withValues(alpha: 0.15) : AppColors.surface,
+                            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                            border: Border.all(
+                              color: _sex == 'filly' ? AppColors.primaryGold : AppColors.surface,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.female,
+                                color: _sex == 'filly' ? AppColors.primaryGold : AppColors.textMuted,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'FILLY (FEMALE)',
+                                    style: TextStyle(
+                                      color: _sex == 'filly' ? AppColors.primaryGold : AppColors.textMuted,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _sex = 'colt'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: _sex == 'colt' ? AppColors.primaryGold.withValues(alpha: 0.15) : AppColors.surface,
+                            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                            border: Border.all(
+                              color: _sex == 'colt' ? AppColors.primaryGold : AppColors.surface,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.male,
+                                color: _sex == 'colt' ? AppColors.primaryGold : AppColors.textMuted,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'COLT (MALE)',
+                                    style: TextStyle(
+                                      color: _sex == 'colt' ? AppColors.primaryGold : AppColors.textMuted,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 20.0),
+
+            // Parentage & Lineage Card
+            const SectionDividerLabel(label: 'PARENTAGE & BREEDING LINEAGE'),
+            const SizedBox(height: 12.0),
+
+            // Select Dam (Mare)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Mother / Dam (Mare) *', style: AppTypography.inputLabel),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await SelectOrAddAnimalModal.show(
+                      context,
+                      species: 'horse',
+                      title: 'Select Dam (Mare)',
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _selectedMare = picked;
+                        if (_breedController.text.isEmpty && picked.breed != null) {
+                          _breedController.text = picked.breed!;
+                        }
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                      border: Border.all(
+                        color: _selectedMare != null ? AppColors.primaryGold : AppColors.inputBorder,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        if (_selectedMare != null) ...[
+                          AppThumbnailAvatar(
+                            imagePath: _selectedMare!.photoUrl,
+                            species: 'horse',
+                            size: 36,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _selectedMare!.name,
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                if (_selectedMare!.breed?.isNotEmpty == true)
+                                  Text(
+                                    _selectedMare!.breed!,
+                                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.edit_outlined, color: AppColors.primaryGold, size: 18),
+                        ] else ...[
+                          const HorseshoeIcon(size: 20, color: AppColors.primaryGold),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Text(
+                              'Tap to select Dam (Mare)...',
+                              style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14.0),
+
+            // Select Recipient Mare (Optional ET)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Recipient Mare (If Embryo Transfer)', style: AppTypography.inputLabel),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await SelectOrAddAnimalModal.show(
+                      context,
+                      species: 'horse',
+                      title: 'Select Recipient Mare',
+                    );
+                    if (picked != null) {
+                      setState(() => _selectedRecipient = picked);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                      border: Border.all(color: AppColors.inputBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        if (_selectedRecipient != null) ...[
+                          AppThumbnailAvatar(
+                            imagePath: _selectedRecipient!.photoUrl,
+                            species: 'horse',
+                            size: 36,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _selectedRecipient!.name,
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const Text(
+                                  'Surrogate Carrier',
+                                  style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.clear, size: 18, color: AppColors.textMuted),
+                            onPressed: () => setState(() => _selectedRecipient = null),
+                          ),
+                        ] else ...[
+                          const Icon(Icons.add_circle_outline, color: AppColors.textMuted, size: 20),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Text(
+                              'None (Natural / Donor Mare Carried)',
+                              style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14.0),
+
+            CustomTextField(
+              label: 'Father / Sire (Stallion)',
+              hintText: 'e.g. Thunderbolt Pegasus',
+              controller: _stallionController,
+            ),
+            const SizedBox(height: 14.0),
+
+            CustomTextField(
+              label: 'Breed',
+              hintText: 'e.g. Warmblood / Arabian Cross',
+              controller: _breedController,
+            ),
+            const SizedBox(height: 24.0),
+
+            // 3. Clinical & Registration Log Card
+            const SectionDividerLabel(label: 'CLINICAL & GENETIC REGISTRY'),
+            const SizedBox(height: 12.0),
+
+            CustomTextField(
+              label: 'IgG Antibody Test Result (mg/dL)',
+              hintText: 'e.g. Pass (>800 mg/dL)',
+              controller: _iggController,
+              prefixIcon: Icons.biotech_outlined,
+            ),
+            const SizedBox(height: 14.0),
+
+            CustomTextField(
+              label: 'Foal Microchip Number (Optional)',
+              hintText: 'e.g. 985141002938472',
+              controller: _microchipController,
+              prefixIcon: Icons.qr_code_scanner_rounded,
+            ),
+            const SizedBox(height: 14.0),
+
+            CustomTextField(
+              label: 'DNA Test / Profile Number (Optional)',
+              hintText: 'e.g. DNA-FL-88219',
+              controller: _dnaController,
+              prefixIcon: Icons.fingerprint,
+            ),
+            const SizedBox(height: 14.0),
+
+            CustomTextField(
+              label: 'Stud Book Association / Reg # (Optional)',
+              hintText: 'e.g. AHSA-2026-9921 / KWPN',
+              controller: _studBookController,
+              prefixIcon: Icons.verified_outlined,
+            ),
+            const SizedBox(height: 16.0),
+
+            // Gelded (castrated) Toggle & Date
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                border: Border.all(
+                  color: _gelded ? AppColors.primaryGold : AppColors.inputBorder,
+                  width: _gelded ? 1.2 : 1.0,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Gelded (castrated)',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Indicate if this colt has been gelded',
+                              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _gelded,
+                        activeColor: AppColors.primaryGold,
+                        onChanged: (val) {
+                          setState(() {
+                            _gelded = val;
+                            if (_gelded && _geldedDate == null) {
+                              _geldedDate = DateTime.now();
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  if (_gelded) ...[
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () => _pickDate(isGelded: true),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.inputField,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Gelded Date: ${_formatDate(_geldedDate)}',
+                                style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.primaryGold),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 24.0),
+
+            // 4. Status Selector & Ownership
+            const SectionDividerLabel(label: 'OFFSPRING STATUS & OWNERSHIP'),
+            const SizedBox(height: 12.0),
+
+            const Text('Foal Status', style: AppTypography.inputLabel),
+            const SizedBox(height: 8.0),
+
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('Healthy / Retained', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                  selected: _status == 'keep',
+                  selectedColor: AppColors.primaryGold,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: TextStyle(
+                    color: _status == 'keep' ? AppColors.background : AppColors.textPrimary,
+                  ),
+                  onSelected: (_) => setState(() => _status = 'keep'),
+                ),
+                ChoiceChip(
+                  label: const Text('Available', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                  selected: _status == 'available',
+                  selectedColor: AppColors.primaryGold,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: TextStyle(
+                    color: _status == 'available' ? AppColors.background : AppColors.textPrimary,
+                  ),
+                  onSelected: (_) => setState(() => _status = 'available'),
+                ),
+                ChoiceChip(
+                  label: const Text('Reserved', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                  selected: _status == 'reserved',
+                  selectedColor: AppColors.primaryGold,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: TextStyle(
+                    color: _status == 'reserved' ? AppColors.background : AppColors.textPrimary,
+                  ),
+                  onSelected: (_) => setState(() => _status = 'reserved'),
+                ),
+                ChoiceChip(
+                  label: const Text('Sold', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                  selected: _status == 'sold',
+                  selectedColor: AppColors.primaryGold,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: TextStyle(
+                    color: _status == 'sold' ? AppColors.background : AppColors.textPrimary,
+                  ),
+                  onSelected: (_) => setState(() => _status = 'sold'),
+                ),
+                ChoiceChip(
+                  label: const Text('Transferred', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                  selected: _status == 'transferred',
+                  selectedColor: AppColors.primaryGold,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: TextStyle(
+                    color: _status == 'transferred' ? AppColors.background : AppColors.textPrimary,
+                  ),
+                  onSelected: (_) => setState(() => _status = 'transferred'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14.0),
+
+            // Dynamic Buyer / New Owner Section (If Sold or Transferred)
+            if (_status == 'sold' || _status == 'transferred') ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                  border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _status == 'sold' ? 'BUYER RECORDS' : 'TRANSFER RECORDS',
+                          style: AppTypography.sectionLabel,
+                        ),
+                        TextButton.icon(
+                          onPressed: _pickBuyerFromContacts,
+                          icon: const Icon(Icons.contacts_outlined, size: 16, color: AppColors.primaryGold),
+                          label: const Text('From Contacts', style: TextStyle(color: AppColors.primaryGold, fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    CustomTextField(
+                      label: 'Buyer / New Owner Name',
+                      hintText: 'e.g. James & Linda Sterling',
+                      controller: _buyerNameController,
+                      prefixIcon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: 10),
+                    CustomTextField(
+                      label: 'Buyer Phone Number',
+                      hintText: 'e.g. +44 7700 900123',
+                      controller: _buyerPhoneController,
+                      keyboardType: TextInputType.phone,
+                      prefixIcon: Icons.phone_outlined,
+                    ),
+                    if (_buyerPhoneController.text.trim().isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: OutlinedButton.icon(
+                          onPressed: () => AppPhoneLauncher.makePhoneCall(context, _buyerPhoneController.text),
+                          icon: const Icon(Icons.call, size: 14, color: AppColors.primaryGold),
+                          label: const Text('Call Buyer', style: TextStyle(color: AppColors.primaryGold, fontSize: 11)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.primaryGold),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14.0),
+            ],
+
+            CustomTextField(
+              label: 'Breeder Observations & Notes (Optional)',
+              hintText: 'Temperament, conformation notes, milk consumption...',
+              controller: _notesController,
+              maxLines: 3,
+            ),
+            const SizedBox(height: 20.0),
+
+            // Action Shortcuts (Preventative Care & PDF Certificate)
+            if (isEditing && foalId.isNotEmpty) ...[
+              const SectionDividerLabel(label: 'DOCUMENTS & CARE'),
+              const SizedBox(height: 12.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/preventative-care',
+                          arguments: {
+                            'ownerType': 'foal',
+                            'ownerId': foalId,
+                            'title': '${_nameController.text.isNotEmpty ? _nameController.text : "Foal"} - Preventative Care',
+                          },
+                        );
+                      },
+                      icon: const Icon(Icons.health_and_safety_outlined, size: 16, color: AppColors.primaryGold),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('VACCINES & CARE', style: TextStyle(color: AppColors.primaryGold, fontSize: 11)),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primaryGold),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/certificate',
+                          arguments: {
+                            'animalName': _nameController.text.isNotEmpty ? _nameController.text : 'Foal',
+                            'damName': _selectedMare?.name,
+                            'sireName': _stallionController.text.isNotEmpty ? _stallionController.text : null,
+                            'breed': _breedController.text.isNotEmpty ? _breedController.text : null,
+                            'dateOfBirth': _dateOfBirth,
+                            'sex': _sex,
+                            'microchipNo': _microchipController.text.isNotEmpty ? _microchipController.text : null,
+                            'dna': _dnaController.text.isNotEmpty ? _dnaController.text : null,
+                            'studBook': _studBookController.text.isNotEmpty ? _studBookController.text : null,
+                            'photoUrl': _photoUrl,
+                          },
+                        );
+                      },
+                      icon: const Icon(Icons.workspace_premium_outlined, size: 16, color: AppColors.primaryGold),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('PDF CERTIFICATE', style: TextStyle(color: AppColors.primaryGold, fontSize: 11)),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primaryGold),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20.0),
+            ],
+
+            // Save CTA
+            GradientCtaButton(
+              text: _isSaving ? 'SAVING RECORD...' : (isEditing ? 'UPDATE FOAL RECORD' : 'SAVE NEW FOAL RECORD'),
+              onPressed: _isSaving ? null : _handleSave,
+            ),
+            const SizedBox(height: 24.0),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TAB 2: VISUAL MARKINGS REGISTRY (3-POINT VISUAL PHOTO REGISTRY)
+  // ---------------------------------------------------------------------------
+  Widget _buildVisualMarkingsRegistryTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.horizontalPadding,
+        vertical: 16.0,
+      ),
+      child: ResponsiveBody(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Info Header Banner
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.camera_alt_outlined, color: AppColors.primaryGold, size: 22),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '3-POINT VISUAL MARKINGS REGISTRY',
+                          style: TextStyle(
+                            color: AppColors.primaryGold,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.5,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Standard equine visual identification: Head View (star, strip, snip), Left Profile, and Right Profile.',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20.0),
+
+            // 1. Head View (Face & Markings)
+            const SectionDividerLabel(label: '1. HEAD VIEW (FACE, STAR, STRIP, SNIP)'),
+            const SizedBox(height: 10.0),
+            AppImagePicker(
+              label: 'UPLOAD HEAD VIEW PHOTO',
+              initialImageUrl: _headViewImage,
+              onImageSelected: (url) => setState(() => _headViewImage = url),
+            ),
+            const SizedBox(height: 20.0),
+
+            // 2. Left Side View
+            const SectionDividerLabel(label: '2. LEFT SIDE PROFILE (SOCKS & BODY)'),
+            const SizedBox(height: 10.0),
+            AppImagePicker(
+              label: 'UPLOAD LEFT SIDE PHOTO',
+              initialImageUrl: _leftSideImage,
+              onImageSelected: (url) => setState(() => _leftSideImage = url),
+            ),
+            const SizedBox(height: 20.0),
+
+            // 3. Right Side View
+            const SectionDividerLabel(label: '3. RIGHT SIDE PROFILE (SOCKS & BODY)'),
+            const SizedBox(height: 10.0),
+            AppImagePicker(
+              label: 'UPLOAD RIGHT SIDE PHOTO',
+              initialImageUrl: _rightSideImage,
+              onImageSelected: (url) => setState(() => _rightSideImage = url),
+            ),
+            const SizedBox(height: 20.0),
+
+            // Facial & Body Markings Detailed Description
+            const SectionDividerLabel(label: 'MARKINGS DESCRIPTION & NOTES'),
+            const SizedBox(height: 10.0),
+            CustomTextField(
+              label: 'Facial & Leg Markings Description',
+              hintText: 'e.g. Star on forehead, white sock on near-hind, blaze extending to left nostril...',
+              controller: _headNotesController,
+              maxLines: 4,
+            ),
+            const SizedBox(height: 24.0),
+
+            // Save CTA
+            GradientCtaButton(
+              text: _isSaving ? 'SAVING MARKINGS...' : 'SAVE MARKINGS REGISTRY',
+              onPressed: _isSaving ? null : _handleSave,
+            ),
+            const SizedBox(height: 24.0),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -28,6 +28,7 @@ import 'package:animal_birthday_predictor/features/pregnancy/presentation/screen
 import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/pregnancy_module_screen.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/pregnancy_details_screen.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/breeding_details_screen.dart';
+import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/equine_breeding_wizard_screen.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/presentation/screens/preventative_care_screen.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/data/pregnancy_repository.dart';
 import 'package:animal_birthday_predictor/features/pregnancy/data/preventative_care_repository.dart';
@@ -900,6 +901,24 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.text('When Is My Foal Due?'), findsWidgets);
+      });
+
+      // 36. EquineBreedingWizardScreen
+      testWidgets('EquineBreedingWizardScreen renders without overflow on $sizeName', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: getOverrides(),
+            child: const MaterialApp(home: EquineBreedingWizardScreen(initialMareId: 'a1')),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('EQUINE BREEDING WIZARD'), findsOneWidget);
       });
     }
   });

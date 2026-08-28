@@ -16,6 +16,7 @@ import '../../features/animals/presentation/screens/markings_screen.dart';
 import '../../features/pregnancy/domain/breeding_record.dart';
 import '../../features/pregnancy/domain/pregnancy_record.dart';
 import '../../features/pregnancy/presentation/screens/breeding_details_screen.dart';
+import '../../features/pregnancy/presentation/screens/equine_breeding_wizard_screen.dart';
 import '../../features/pregnancy/presentation/screens/pregnancy_details_screen.dart';
 import '../../features/pregnancy/presentation/screens/veterinarian_pregnancy_scans_screen.dart';
 import '../../features/pregnancy/presentation/screens/advanced_pregnancy_info_screen.dart';
@@ -239,6 +240,23 @@ abstract class AppRouter {
         }
         return MaterialPageRoute(
           builder: (_) => BreedingDetailsScreen(initialMareId: mareId),
+          settings: settings,
+        );
+
+      case '/equine-wizard':
+      case '/breeding-wizard':
+      case '/equine-breeding-wizard':
+        String? mareId;
+        if (settings.arguments is String) {
+          mareId = settings.arguments as String;
+        } else if (settings.arguments is Animal) {
+          mareId = (settings.arguments as Animal).id;
+        } else if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          mareId = (map['mareId'] as String?) ?? (map['carrierAnimalId'] as String?) ?? (map['id'] as String?);
+        }
+        return MaterialPageRoute(
+          builder: (_) => EquineBreedingWizardScreen(initialMareId: mareId),
           settings: settings,
         );
 

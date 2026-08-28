@@ -166,9 +166,9 @@ class DashboardHomeScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: GradientCtaButton(
-                        text: '+ Record Breeding',
+                        text: '✨ 6-Step Breeding Wizard',
                         onPressed: () async {
-                          await Navigator.pushNamed(context, '/breeding-details');
+                          await Navigator.pushNamed(context, '/equine-breeding-wizard');
                           ref.invalidate(animalsListProvider(null));
                           ref.invalidate(animalsListProvider('horse'));
                         },
