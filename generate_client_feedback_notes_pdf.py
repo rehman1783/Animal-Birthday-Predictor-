@@ -1,5 +1,6 @@
 import os
 import sys
+from PIL import Image as PILImage
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -48,9 +49,9 @@ class NumberedCanvas(canvas.Canvas):
             
             self.setFont("Helvetica", 8.5)
             self.setFillColor(text_gray)
-            self.drawString(230, 752, "Milestones 2 & 3 Deliverables & Client Feedback Technical Review")
+            self.drawString(230, 752, "Milestones 2 & 3 Client Review & Implementation Notes")
             
-            self.drawRightString(612 - 54, 752, "Doc Ref: ABP-MS2-MS3-REVIEW")
+            self.drawRightString(612 - 54, 752, "Doc Ref: ABP-CLIENT-REVIEW-FINAL")
             
             self.setStrokeColor(gold_accent)
             self.setLineWidth(0.8)
@@ -67,12 +68,72 @@ class NumberedCanvas(canvas.Canvas):
         
         self.setFont("Helvetica", 8.5)
         self.setFillColor(text_gray)
-        self.drawString(185, 30, "— Technical Deliverables Review & Implementation Notes")
+        self.drawString(185, 30, "— Production Implementation Notes & Visual Verification")
         
         page_str = f"Page {self._pageNumber} of {page_count}"
         self.drawRightString(612 - 54, 30, page_str)
         
         self.restoreState()
+
+
+def create_screenshot_card(img_path, title, subtitle, badge="VERIFIED", width=230, max_height=300):
+    """
+    Creates an uncropped, proportionally scaled visual card for the PDF.
+    """
+    gold = colors.HexColor("#D4AF37")
+    slate_dark = colors.HexColor("#0A192F")
+    slate_bg = colors.HexColor("#F8FAFC")
+    border_col = colors.HexColor("#CBD5E1")
+    text_muted = colors.HexColor("#64748B")
+
+    with PILImage.open(img_path) as pimg:
+        orig_w, orig_h = pimg.size
+        aspect = orig_h / orig_w
+        calc_w = width
+        calc_h = calc_w * aspect
+        if calc_h > max_height:
+            calc_h = max_height
+            calc_w = calc_h / aspect
+        
+        rl_img = Image(img_path, width=calc_w, height=calc_h)
+
+    title_p = Paragraph(f"<b>{title}</b>", ParagraphStyle(
+        'CardTitle', fontName='Helvetica-Bold', fontSize=8.5, leading=11, textColor=slate_dark
+    ))
+    subtitle_p = Paragraph(f"<font color='#64748B'>{subtitle}</font>", ParagraphStyle(
+        'CardSubtitle', fontName='Helvetica', fontSize=7.5, leading=9.5, textColor=text_muted
+    ))
+    badge_p = Paragraph(f"<font color='#059669'><b>[{badge}]</b></font>", ParagraphStyle(
+        'CardBadge', fontName='Helvetica-Bold', fontSize=7.5, leading=9.5, alignment=2
+    ))
+
+    header_table = Table([[title_p, badge_p]], colWidths=[width - 60, 60])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ('TOPPADDING', (0,0), (-1,-1), 0),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+    ]))
+
+    card_content = [
+        header_table,
+        subtitle_p,
+        Spacer(1, 4),
+        rl_img
+    ]
+
+    card_table = Table([[card_content]], colWidths=[width + 12])
+    card_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), slate_bg),
+        ('BOX', (0, 0), (-1, -1), 0.8, gold),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    return card_table
 
 
 def generate_pdf():
@@ -89,7 +150,6 @@ def generate_pdf():
 
     styles = getSampleStyleSheet()
 
-    # Custom Color Palette
     c_navy_dark = colors.HexColor("#0A192F")
     c_navy_light = colors.HexColor("#1E3A8A")
     c_gold = colors.HexColor("#D4AF37")
@@ -98,540 +158,288 @@ def generate_pdf():
     c_slate_light = colors.HexColor("#F8FAFC")
     c_border = colors.HexColor("#E2E8F0")
     c_text_main = colors.HexColor("#334155")
-    c_text_muted = colors.HexColor("#64748B")
     c_green = colors.HexColor("#059669")
 
     # Typography Styles
     title_style = ParagraphStyle(
-        'DocTitle',
+        'CoverTitle',
         fontName='Helvetica-Bold',
-        fontSize=18,
-        leading=22,
+        fontSize=20,
+        leading=24,
         textColor=c_navy_dark,
         spaceAfter=4
     )
-    
     subtitle_style = ParagraphStyle(
-        'DocSubtitle',
-        fontName='Helvetica-Bold',
-        fontSize=10,
+        'CoverSubtitle',
+        fontName='Helvetica',
+        fontSize=10.5,
         leading=14,
         textColor=c_gold_dark,
-        spaceAfter=12
+        spaceAfter=10
     )
-
     h1_style = ParagraphStyle(
-        'H1',
+        'SectionH1',
         fontName='Helvetica-Bold',
-        fontSize=12,
+        fontSize=13,
         leading=16,
         textColor=c_navy_dark,
-        spaceBefore=12,
+        spaceBefore=14,
         spaceAfter=6,
         keepWithNext=True
     )
-
     h2_style = ParagraphStyle(
-        'H2',
+        'SectionH2',
         fontName='Helvetica-Bold',
-        fontSize=9.8,
-        leading=13.5,
-        textColor=c_slate_dark,
-        spaceBefore=9,
+        fontSize=10,
+        leading=13,
+        textColor=c_navy_light,
+        spaceBefore=10,
         spaceAfter=4,
         keepWithNext=True
     )
-
     body_style = ParagraphStyle(
-        'Body',
+        'BodyDark',
         fontName='Helvetica',
         fontSize=8.5,
-        leading=12.5,
+        leading=12,
         textColor=c_text_main,
-        spaceAfter=4
+        spaceAfter=5
     )
-
-    body_bold = ParagraphStyle(
-        'BodyBold',
-        fontName='Helvetica-Bold',
-        fontSize=8.5,
-        leading=12.5,
-        textColor=c_slate_dark,
-        spaceAfter=4
-    )
-
-    bullet_style = ParagraphStyle(
-        'Bullet',
-        fontName='Helvetica',
-        fontSize=8.5,
-        leading=12.5,
-        textColor=c_text_main,
-        leftIndent=14,
-        firstLineIndent=-10,
-        spaceAfter=3
-    )
-
     table_header_style = ParagraphStyle(
         'TableHeader',
         fontName='Helvetica-Bold',
         fontSize=8,
-        leading=10.5,
+        leading=10,
         textColor=colors.white
     )
-
     table_cell_style = ParagraphStyle(
         'TableCell',
         fontName='Helvetica',
-        fontSize=7.8,
-        leading=10.5,
+        fontSize=7.5,
+        leading=10,
         textColor=c_text_main
     )
-
     table_cell_bold = ParagraphStyle(
         'TableCellBold',
         fontName='Helvetica-Bold',
-        fontSize=7.8,
-        leading=10.5,
-        textColor=c_slate_dark
+        fontSize=7.5,
+        leading=10,
+        textColor=c_navy_dark
     )
-
     table_cell_green = ParagraphStyle(
         'TableCellGreen',
         fontName='Helvetica-Bold',
-        fontSize=7.8,
-        leading=10.5,
+        fontSize=7.5,
+        leading=10,
         textColor=c_green
-    )
-
-    gallery_caption_style = ParagraphStyle(
-        'GalleryCaption',
-        fontName='Helvetica-Bold',
-        fontSize=8.5,
-        leading=11,
-        textColor=c_navy_dark,
-        alignment=1, # Center
-        spaceAfter=6
     )
 
     story = []
 
     # =========================================================================
-    # HEADER BANNER & METADATA
+    # HEADER BANNER
     # =========================================================================
-    story.append(Paragraph("ANIMAL BIRTHDAY PREDICTOR (ABP)", title_style))
-    story.append(Paragraph("MILESTONES 2 & 3 DELIVERABLES VERIFICATION & CLIENT FEEDBACK TECHNICAL REVIEW", subtitle_style))
-    
-    meta_table_data = [
+    header_table_data = [
         [
-            Paragraph("<b>Target Platforms:</b> Android, iOS, Web, Windows PC", body_style),
-            Paragraph("<b>Database Backend:</b> Supabase PostgreSQL 15+ with RLS", body_style)
+            Paragraph("<b>ANIMAL BIRTHDAY PREDICTOR (ABP)</b>", title_style),
+            Paragraph("<b>DOCUMENT CLASSIFICATION</b><br/>Production Release Notes", ParagraphStyle('MetaRight', fontName='Helvetica', fontSize=7.5, leading=10, alignment=2, textColor=c_navy_dark))
         ],
         [
-            Paragraph("<b>Milestone Scope:</b> Milestone 2 & Milestone 3 Complete", body_style),
-            Paragraph("<b>Architecture:</b> Clean Architecture & Riverpod 2.5", body_style)
-        ],
-        [
-            Paragraph("<b>Quality Assurance:</b> 321 Automated Tests Passing (0 Failures)", body_style),
-            Paragraph("<b>Status:</b> All Deliverables Implemented & Verified", body_style)
+            Paragraph("Milestones 2 & 3 Deliverables, Client Feedback Review & Production Notes", subtitle_style),
+            Paragraph("<b>Status:</b> <font color='#059669'><b>100% IMPLEMENTED</b></font><br/><b>Suite:</b> 321 / 321 Automated Tests OK", ParagraphStyle('MetaRightSub', fontName='Helvetica', fontSize=7.5, leading=10, alignment=2, textColor=c_text_main))
         ]
     ]
-    meta_table = Table(meta_table_data, colWidths=[250, 254])
-    meta_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), c_slate_light),
-        ('BOX', (0, 0), (-1, -1), 0.8, c_border),
-        ('INNERGRID', (0, 0), (-1, -1), 0.4, c_border),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+    header_table = Table(header_table_data, colWidths=[340, 164])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ('TOPPADDING', (0,0), (-1,-1), 0),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
     ]))
-    story.append(meta_table)
-    story.append(Spacer(1, 8))
+    story.append(header_table)
+    story.append(HRFlowable(width="100%", thickness=1.5, color=c_gold, spaceBefore=4, spaceAfter=10))
 
     # =========================================================================
-    # 1. EXECUTIVE SUMMARY
+    # EXECUTIVE SUMMARY & CORE DIRECTIVES
     # =========================================================================
-    story.append(Paragraph("1. Executive Summary & Purpose", h1_style))
+    story.append(Paragraph("1. Executive Summary & Client Directives Overview", h1_style))
+    story.append(HRFlowable(width="100%", thickness=0.8, color=c_border, spaceBefore=1, spaceAfter=6))
     story.append(Paragraph(
-        "This document provides the complete deliverable review and technical synthesis for <b>Milestone 2</b> and "
-        "<b>Milestone 3</b> of the <b>Animal Birthday Predictor (ABP)</b> platform, addressing each specific point of feedback "
-        "provided by the client. The core calculations, biological gestation algorithms, multi-tenant Supabase PostgreSQL "
-        "architecture, and clinical features have been rigorously developed and verified across <b>321 automated test suites</b>. "
-        "This review establishes what is already fully implemented, what technical architectural patterns are enforced, and "
-        "our definitive commitments regarding the user flow and application structure.",
+        "This document provides complete technical, architectural, and visual verification for all deliverables across <b>Milestone 2</b> (Gestation, Scans & Care), <b>Milestone 3</b> (Foals, Puppies, PDF Generation & QA), and all specific <b>Client Review & Feedback Items</b>.",
+        body_style
+    ))
+    story.append(Paragraph(
+        "Every client feedback point has been fully engineered into the codebase, backed by automated database resilience fallbacks, user-friendly error formatting, smart 2-step keyboard dismissal, precise unsaved changes dirty-state tracking, and comprehensive automated test suites (321 passing tests).",
         body_style
     ))
     story.append(Spacer(1, 4))
 
-    # =========================================================================
-    # 2. MILESTONE 2 & 3 DELIVERABLES BREAKDOWN TABLE
-    # =========================================================================
-    story.append(Paragraph("2. Completed Deliverables Breakdown (Milestone 2 & Milestone 3)", h1_style))
-    
-    deliv_data = [
+    # Core Requirements Matrix Table
+    req_data = [
         [
-            Paragraph("<b>Milestone Scope</b>", table_header_style),
-            Paragraph("<b>Deliverable / Feature Area</b>", table_header_style),
-            Paragraph("<b>Status</b>", table_header_style),
-            Paragraph("<b>Technical Verification Summary</b>", table_header_style)
-        ],
-        # Milestone 2 Deliverables
-        [
-            Paragraph("<b>MILESTONE 2</b><br/>Gestation & Clinical Management", table_cell_bold),
-            Paragraph("<b>Pregnancy Module & Details View</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Central dashboard tracking active pregnancies, countdowns, and carrier mares.", table_cell_style)
+            Paragraph("<b>Client Feedback & Requirement Item</b>", table_header_style),
+            Paragraph("<b>Technical Resolution & Implementation</b>", table_header_style),
+            Paragraph("<b>Verification Status</b>", table_header_style)
         ],
         [
-            Paragraph("<b>MILESTONE 2</b>", table_cell_bold),
-            Paragraph("<b>Three Pregnancy Scans (Day 14, 28, 45)</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Automated scan due dates, twin warnings on Scan 1, and confirmation toggles.", table_cell_style)
+            Paragraph("<b>Universal PostgREST & Supabase Error Resolution</b>", table_cell_bold),
+            Paragraph("Refactored ErrorHandler to extract exact Postgres details. Added automatic payload fallback in Pregnancy, Animal, Mare, and Foal repositories.", table_cell_style),
+            Paragraph("<font color='#059669'><b>RESOLVED (0 Errors)</b></font>", table_cell_green)
         ],
         [
-            Paragraph("<b>MILESTONE 2</b>", table_cell_bold),
-            Paragraph("<b>Advanced Pregnancy Info & Caslick</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Caslick surgery date/status, Fetal Sex scan date, FFS result (Filly/Colt).", table_cell_style)
+            Paragraph("<b>Keyboard Auto-Dismissal on Back Navigation</b>", table_cell_bold),
+            Paragraph("Engineered two-step back navigation via <code>dismissKeyboardIfOpen(context)</code>. Soft keyboard closes first before page exit or modal prompt.", table_cell_style),
+            Paragraph("<font color='#059669'><b>100% OPERATIONAL</b></font>", table_cell_green)
         ],
         [
-            Paragraph("<b>MILESTONE 2</b>", table_cell_bold),
-            Paragraph("<b>Preventative Care & 9 Vaccines</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("9 equine vaccines, deworming, dental, and farrier with click-to-call dialer.", table_cell_style)
+            Paragraph("<b>Zero False-Positive Unsaved Changes Dialogs</b>", table_cell_bold),
+            Paragraph("Refined form dirty checks on Foal, Puppy, Breeding, Wizard, and Care screens. Dialog only shows when fields are actually modified.", table_cell_style),
+            Paragraph("<font color='#059669'><b>100% VERIFIED</b></font>", table_cell_green)
         ],
         [
-            Paragraph("<b>MILESTONE 2</b>", table_cell_bold),
-            Paragraph("<b>Record Detail Menu & Edit Existing</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Complete record detail view with inline editing and scan confirmation persistence.", table_cell_style)
+            Paragraph("<b>6-Step Equine Breeding Wizard</b>", table_cell_bold),
+            Paragraph("Full step wizard with donor mare, stallion, recipient carrier (ET), preventative care, emergency vet/farrier, and projected foaling due date.", table_cell_style),
+            Paragraph("<font color='#059669'><b>COMPLETE</b></font>", table_cell_green)
         ],
         [
-            Paragraph("<b>MILESTONE 2</b>", table_cell_bold),
-            Paragraph("<b>Recipient Photo & Multi-Image Support</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Hardware camera & gallery capture with Android image rendering fix.", table_cell_style)
+            Paragraph("<b>3-Stage Ultrasound Vet Scans with Twin Warning</b>", table_cell_bold),
+            Paragraph("Day 14-16, Day 28-30, and Day 45 scans with dedicated save CTAs, confirmation badges, twin detection banners, and ultrasound uploads.", table_cell_style),
+            Paragraph("<font color='#059669'><b>COMPLETE</b></font>", table_cell_green)
         ],
         [
-            Paragraph("<b>MILESTONE 2</b>", table_cell_bold),
-            Paragraph("<b>Complete CRUD & Workflow Testing</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Full horse workflow tested from Mare selection to due date calculation.", table_cell_style)
-        ],
-        # Milestone 3 Deliverables
-        [
-            Paragraph("<b>MILESTONE 3</b><br/>Foals, Puppies & Production Build", table_cell_bold),
-            Paragraph("<b>Foal Module & Sub-Tabs Registration</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Clinical Birth Log + Visual Markings Registry sub-tabs, IgG, Microchip, DNA, Gelded toggle.", table_cell_style)
+            Paragraph("<b>Foal & Puppy Pediatric Suites & Birth Logs</b>", table_cell_bold),
+            Paragraph("Full foal management with buyer records, puppy registry with dual-date health protocols (Given & Due), weight charts, and birth counters.", table_cell_style),
+            Paragraph("<font color='#059669'><b>COMPLETE</b></font>", table_cell_green)
         ],
         [
-            Paragraph("<b>MILESTONE 3</b>", table_cell_bold),
-            Paragraph("<b>Foal Summary & Status Management</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Offspring tracking by status (Keep, Sold, Transferred) & buyer contact records.", table_cell_style)
-        ],
-        [
-            Paragraph("<b>MILESTONE 3</b>", table_cell_bold),
-            Paragraph("<b>Markings Upload (Head, Left, Right)</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("3-point visual photo registry (Head View, Left Side, Right Side) + facial notes.", table_cell_style)
-        ],
-        [
-            Paragraph("<b>MILESTONE 3</b>", table_cell_bold),
-            Paragraph("<b>Foal Care & Canine Pediatric Suite</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Canine litters, puppy collar tag identification, and historical weight tracker.", table_cell_style)
-        ],
-        [
-            Paragraph("<b>MILESTONE 3</b>", table_cell_bold),
-            Paragraph("<b>Vector PDF Pedigree Certificates</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("A4 official certificates with gold borders, lineage, vaccines, print & native share.", table_cell_style)
-        ],
-        [
-            Paragraph("<b>MILESTONE 3</b>", table_cell_bold),
-            Paragraph("<b>Delete Workflows & Confirmation Dialogs</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("Unsaved changes interception on back-press + GDPR Account Deletion RPC.", table_cell_style)
-        ],
-        [
-            Paragraph("<b>MILESTONE 3</b>", table_cell_bold),
-            Paragraph("<b>QA, Responsive Testing & Clean Build</b>", table_cell_style),
-            Paragraph("<font color='#059669'><b>COMPLETED [OK]</b></font>", table_cell_green),
-            Paragraph("321 automated tests passed, zero UI render overflows across all form factors.", table_cell_style)
+            Paragraph("<b>Official PDF Generation Engine</b>", table_cell_bold),
+            Paragraph("Generates Stud Foaling Diary PDF and Luxury Official Pedigree Certificates with QR codes, microchips, and health records.", table_cell_style),
+            Paragraph("<font color='#059669'><b>COMPLETE</b></font>", table_cell_green)
         ]
     ]
-
-    deliv_table = Table(deliv_data, colWidths=[85, 145, 80, 194])
-    deliv_table.setStyle(TableStyle([
+    req_table = Table(req_data, colWidths=[150, 260, 94])
+    req_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), c_navy_dark),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('GRID', (0, 0), (-1, -1), 0.4, c_border),
-        ('TOPPADDING', (0, 0), (-1, -1), 3),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
         ('LEFTPADDING', (0, 0), (-1, -1), 5),
         ('RIGHTPADDING', (0, 0), (-1, -1), 5),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, c_slate_light]),
     ]))
-    story.append(deliv_table)
-    story.append(Spacer(1, 8))
+    story.append(req_table)
+    story.append(Spacer(1, 10))
 
     # =========================================================================
-    # 3. DETAILED CLIENT FEEDBACK REVIEW & ARCHITECTURAL COMMITMENTS
+    # DETAILED ARCHITECTURAL RESOLUTION BREAKDOWN
+    # =========================================================================
+    story.append(Paragraph("2. Technical Implementations & Code Highlights", h1_style))
+    story.append(HRFlowable(width="100%", thickness=0.8, color=c_border, spaceBefore=1, spaceAfter=6))
+    
+    story.append(Paragraph("<b>A. Two-Step Keyboard Dismissal on Back Button Press:</b>", h2_style))
+    story.append(Paragraph(
+        "When an input field has active focus or the soft keyboard is open, tapping the AppBar back button or hardware back button instantly invokes <code>dismissKeyboardIfOpen(context)</code> in <code>lib/core/utils/keyboard_helper.dart</code>. The keyboard smoothly slides down without popping the page or showing modals prematurely. A second back press then checks unsaved changes or navigates back cleanly.",
+        body_style
+    ))
+
+    story.append(Paragraph("<b>B. Resilient Database Layer & Server Error Handling:</b>", h2_style))
+    story.append(Paragraph(
+        "To prevent 'Unable to load data from server' errors across the app, repository operations now include try-catch fallbacks that dynamically sanitize payloads if remote Supabase schema columns differ. Furthermore, <code>ErrorHandler.getUserFriendlyMessage()</code> extracts human-readable PostgreSQL constraint errors directly.",
+        body_style
+    ))
+
+    story.append(Paragraph("<b>C. Clean PopScope & Zero False-Positive Unsaved Changes Dialogs:</b>", h2_style))
+    story.append(Paragraph(
+        "Dirty-state tracking across <code>FoalDetailsScreen</code>, <code>PuppyDetailsScreen</code>, <code>BreedingDetailsScreen</code>, and <code>EquineBreedingWizardScreen</code> compares live values against immutable initial records (including pre-filled IDs from deep navigation). Unmodified forms exit instantly on back press.",
+        body_style
+    ))
+    story.append(Spacer(1, 10))
+
+    # =========================================================================
+    # COMPLETE VISUAL PROOF & SCREENSHOT EXHIBITS (29 UNALTERED ASSETS)
     # =========================================================================
     story.append(PageBreak())
-    story.append(Paragraph("3. Detailed Client Feedback Review & Architectural Commitments", h1_style))
-    story.append(HRFlowable(width="100%", thickness=1, color=c_gold, spaceBefore=2, spaceAfter=8))
-
-    # Point 1
-    story.append(Paragraph("Point 1: Dashboard / Homepage Structure (Species-First Landing)", h2_style))
+    story.append(Paragraph("3. Visual Proof & Implementation Exhibits (All 29 Visual Assets)", h1_style))
+    story.append(HRFlowable(width="100%", thickness=1.2, color=c_gold, spaceBefore=2, spaceAfter=8))
     story.append(Paragraph(
-        "<b>Client Request:</b> The dashboard/home screen must serve as the primary entry point where the user first selects "
-        "the animal species (Equine, Canine, Sheep/Ovine, Cat/Feline, Other) before entering the management workspace.<br/>"
-        "<b>Current Status:</b> The dedicated <code>SpeciesSelectionScreen</code> exists and is accessible. "
-        "All data models fully support species partitioning.<br/>"
-        "<b>Commitment & Implementation:</b> The Species Hub serves as the entry point for registrations. Once an animal type is chosen, "
-        "the application workspace dynamically scopes navigation tabs, forms, terminology, and preventative care protocols.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 2
-    story.append(Paragraph("Point 2: Equine Sequential Workflow (6-Step Linear Progression)", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> A chronological, step-by-step wizard for horse breeders: "
-        "Step 1: Mare Details → Step 2: Breeding Service Details → Step 3: Recipient Mare (if ET) → "
-        "Step 4: Preventative Care Vaccines → Step 5: Dentist & Farrier → Step 6: Birthday / Due Date Prediction Reveal.<br/>"
-        "<b>Current Status:</b> Fully built and verified in <code>EquineBreedingWizardScreen</code> with dedicated route <code>/equine-breeding-wizard</code>.<br/>"
-        "<b>Commitment & Implementation:</b> Connected all 6 steps into a sequential coordinator with 'Save & Continue' transitions, "
-        "instant ultrasound milestones (Day 14, 28, 45) and final foaling birthday prediction calculation.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 3
-    story.append(Paragraph("Point 3: Species-Specific Data & Field Isolation", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Strict species isolation—equine users must never see dog or sheep fields, and canine users "
-        "must only see canine-relevant terminology and litter records.<br/>"
-        "<b>Current Status:</b> Fully supported at both UI level and Supabase PostgreSQL schema level.<br/>"
-        "<b>Commitment:</b> Dynamic UI scoping ensures zero crossover. Equine screens strictly render horse fields (Microchip, DNA, Brand, Stud Book), "
-        "Canine screens strictly render litter details (Collar Tag, Birth Order, Birth Weight, Departure Weight), and Sheep screens render Ovine tags.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 4
-    story.append(Paragraph("Point 4: Equine Industry Terminology Enforcement", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Never use generic terms like 'Mother' or 'Father' for horses. Use <i>Dam, Sire, Mare, Stallion, Donor Mare, Recipient Mare</i>. "
-        "Client explicitly approves and insists on retaining <b>'Gelded (castrated)'</b>.<br/>"
-        "<b>Current Status:</b> Equine forms strictly use Dam/Sire/Mare/Stallion. The Foal Details view features the 'Gelded (castrated)' toggle and date picker.<br/>"
-        "<b>Commitment:</b> Enforce 100% compliance across all equine views, PDF certificates, and exported documents.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 5
-    story.append(Paragraph("Point 5: Preventative Care Prominence & Commercial Ad Slots", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Preventative care is critical for equine welfare. Keep it prominent, and provide sponsor banner slots for vaccine manufacturers.<br/>"
-        "<b>Current Status:</b> 9-vaccine protocol (Tetanus, Strangles, EHV 1/4, Rotavirus, Hendra, Influenza, EEE/WEE/WNV, Rabies, Dewormer) is fully active.<br/>"
-        "<b>Commitment:</b> Preventative Care is integrated into primary navigation and breeding wizard, with modular placeholder slots for commercial sponsor banners.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 6
-    story.append(Paragraph("Point 6: Foal Head Records & Birth Log (Two Clean Sub-Tabs)", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Foal records must capture Head View, Left Side, and Right Side markings, IgG antibody test results, and Stud Book association.<br/>"
-        "<b>Current Status:</b> <code>FoalDetailsScreen</code> is restructured into two dedicated sub-tabs: <i>Clinical Birth Log</i> and <i>Visual Markings Registry</i>.<br/>"
-        "<b>Commitment & Implementation:</b> Tab 1 captures full clinical birth logs (IgG, Microchip, DNA, Stud Book, Gelded toggle & date, Buyer contact details). "
-        "Tab 2 provides direct embedded 3-point visual image uploads (Head View, Left Side, Right Side) and facial markings description.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 7
-    story.append(Paragraph("Point 7: 'Save & Continue' Usability & Standalone Due Date Tool", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Support quick on-the-fly calculations without forcing users to register a mare, while also providing inline mare creation.<br/>"
-        "<b>Current Status:</b> <code>DueDateCalculatorScreen</code> provides instant standalone calculations. Inline Quick-Add Mare is active.<br/>"
-        "<b>Commitment:</b> Standalone Calculator is highlighted directly on the dashboard for rapid paddock use.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 8
-    story.append(Paragraph("Point 8: Multi-Tenant Database Scalability (1 to 500+ Horses)", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Confirm database performance and security when managing large breeding operations with hundreds of horses.<br/>"
-        "<b>Current Status:</b> Supabase PostgreSQL 15+ backend with strict Row-Level Security (RLS) enforcing <code>auth.uid() = account_id</code> on all tables.<br/>"
-        "<b>Commitment:</b> B-tree indexed queries on <code>(account_id, species, created_at)</code> ensure sub-50ms query response times even with 500+ animals per account.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 9
-    story.append(Paragraph("Point 9: Paddock Phone to PC Real-Time Photo Sync", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Photos taken on a mobile phone in the paddock must be immediately accessible when logging into the application on a desktop PC.<br/>"
-        "<b>Current Status:</b> Implemented via Supabase Storage. Image uploads generate secure public URLs stored in PostgreSQL and accessible cross-platform.<br/>"
-        "<b>Commitment:</b> Instant cloud synchronization ensures seamless real-time access across Android, iOS, Web, and Windows PC.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 10
-    story.append(Paragraph("Point 10: Official ABP Logo & Luxury Branding", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Ensure official ABP branding with gold luxury accents is visible throughout the application.<br/>"
-        "<b>Current Status:</b> Custom theme with Deep Navy (<code>#0A192F</code>) and Warm Gold (<code>#D4AF37</code>), vector horseshoe badge, and luxury PDF certificates.<br/>"
-        "<b>Commitment:</b> Maintain high-aesthetic brand consistency across all screens, splash pages, and printable documents.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 11
-    story.append(Paragraph("Point 11: Ongoing Technical Support & Maintenance", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Clarify ongoing software maintenance, OS updates, and operational support.<br/>"
-        "<b>Commitment:</b> Comprehensive post-launch SLA covering database uptime monitoring, Supabase backup verification, and Flutter SDK compatibility upgrades.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 12
-    story.append(Paragraph("Point 12: Legal Documents (Terms of Service & Privacy Policy)", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Accommodate solicitor-provided Terms & Conditions, Disclaimer, and Privacy Policy.<br/>"
-        "<b>Current Status:</b> In-app <code>DisclaimerScreen</code> and legal markdown viewers are built.<br/>"
-        "<b>Commitment:</b> Instant plug-and-play integration for final legal texts provided by the client's legal counsel.",
-        body_style
-    ))
-    story.append(Spacer(1, 4))
-
-    # Point 13
-    story.append(Paragraph("Point 13: Milestone Status & QA Verification", h2_style))
-    story.append(Paragraph(
-        "<b>Client Request:</b> Confirm the current production readiness and deliverable status.<br/>"
-        "<b>Current Status:</b> Milestones 1, 2, and 3 are 100% completed with <b>321 passing automated tests</b> and zero layout overflows.<br/>"
-        "<b>Commitment:</b> Full technical compliance with client specifications, ready for deployment staging.",
+        "The following gallery showcases all 29 uncropped visual exhibits from the <code>visual_assets/</code> directory, illustrating active feature implementations, responsive layouts, data persistence, and UI workflows:",
         body_style
     ))
     story.append(Spacer(1, 6))
 
-    # =========================================================================
-    # 4. QUALITY ASSURANCE & TECHNICAL CONCLUSION
-    # =========================================================================
-    story.append(PageBreak())
-    story.append(Paragraph("4. Quality Assurance & Technical Conclusion", h1_style))
-    story.append(HRFlowable(width="100%", thickness=1, color=c_gold, spaceBefore=2, spaceAfter=8))
+    # Visual assets mapping (Title, Subtitle, Badge, Filename)
+    visual_items = [
+        # Set 1: Equine Breeding Wizard
+        ("Equine Breeding Wizard — Step 1: Donor Mare Registry", "Selecting Donor Mare from User Registry", "WIZARD S1", "WhatsApp Image 2026-08-28 at 1.15.49 PM (2).jpeg"),
+        ("Equine Breeding Wizard — Step 1: Live Mare Selection", "Interactive radio selection with microchip data", "WIZARD S1", "WhatsApp Image 2026-08-28 at 1.15.49 PM.jpeg"),
+        ("Equine Breeding Wizard — Step 2: Insemination & Sire", "Cover date, Stallion info & Insemination method", "WIZARD S2", "WhatsApp Image 2026-08-28 at 1.15.49 PM (1).jpeg"),
+        ("Equine Breeding Wizard — Step 3: Recipient Mare (ET)", "Embryo transfer carrier designation", "WIZARD S3", "WhatsApp Image 2026-08-28 at 1.15.48 PM (1).jpeg"),
+        ("Equine Breeding Wizard — Step 4: Preventative Care", "Equine gestational vaccine protocols & dewomer", "WIZARD S4", "WhatsApp Image 2026-08-28 at 1.15.47 PM (2).jpeg"),
+        ("Equine Breeding Wizard — Step 5: Emergency Directory", "Pre-assigned Equine Veterinarian & Farrier", "WIZARD S5", "WhatsApp Image 2026-08-28 at 1.15.48 PM.jpeg"),
+        ("Equine Breeding Wizard — Step 6: Due Date & Scans", "Projected Foaling Date (341 Days) & Milestones", "WIZARD S6", "WhatsApp Image 2026-08-28 at 1.15.47 PM (1).jpeg"),
+        ("Breeding Details — Direct Mare & Stallion Form", "Standalone breeding entry with donor details", "BREEDING", "WhatsApp Image 2026-08-28 at 1.15.56 PM.jpeg"),
+        
+        # Set 2: Veterinarian Pregnancy Scans & Health
+        ("Pregnancy Scans — Overview & Progress Tracker", "3 / 3 Confirmed Scans with Carrier Mare details", "VET SCANS", "WhatsApp Image 2026-08-28 at 1.15.55 PM (2).jpeg"),
+        ("Pregnancy Scans — Scan 1 Confirmed & Ultrasound", "Day 14-16 vesicle verification & photo attachment", "SCAN 1", "WhatsApp Image 2026-08-28 at 1.15.55 PM (1).jpeg"),
+        ("Pregnancy Scans — Twin Warning & Detection", "Clinical twin detection banner & management", "TWIN CHECK", "WhatsApp Image 2026-08-28 at 1.15.55 PM.jpeg"),
+        ("Pregnancy Details — Active Due Date & Pending Scans", "Gestation countdown & early scan schedule", "GESTATION", "WhatsApp Image 2026-08-28 at 1.15.47 PM.jpeg"),
+        ("Advanced Pregnancy — Rhino (EHV-1) Protocols", "Months 5, 7, 9 vaccination & fetal sexing logs", "ADV PREG", "WhatsApp Image 2026-08-28 at 1.15.53 PM.jpeg"),
+        ("Horse Health — Deworming & Parasite Control", "Deworming schedule, custom date & brand logs", "HEALTH", "WhatsApp Image 2026-08-28 at 1.15.53 PM (1).jpeg"),
+        ("Physical Markings — 3-Angle Anatomical Guide", "Left, Right, and Head View markings & brands", "MARKINGS", "WhatsApp Image 2026-08-28 at 1.15.56 PM (1).jpeg"),
+        ("Horse Profile — Complete Clinical Overview", "Pedigree, Microchip, Gestation status & Quick Actions", "PROFILE", "WhatsApp Image 2026-08-28 at 1.15.59 PM.jpeg"),
 
-    qa_summary_text = (
-        "<b>Summary of Automated Verification:</b><br/>"
-        "• <b>321 Automated Unit, Widget & Flow Tests:</b> 100% Passing across 32 dedicated test suites in <code>test/</code>.<br/>"
-        "• <b>Multi-Resolution Responsiveness:</b> Verified across mobile (320x568, 375x812, 412x915), tablet (768x1024), and desktop (1280x800) "
-        "resolutions with zero UI render overflows.<br/>"
-        "• <b>Database Integrity:</b> All foreign keys, cascading deletions, polymorphic markings tables, and Supabase Row-Level Security (RLS) "
-        "policies verified for multi-tenant data privacy.<br/>"
-        "• <b>Vector PDF Document Engine:</b> High-resolution A4 Pedigree & Health Certificates generated with live in-app preview, "
-        "native OS printing, and cross-platform sharing."
-    )
-    story.append(Paragraph(qa_summary_text, body_style))
-    story.append(Spacer(1, 8))
+        # Set 3: Foals, Birth Logs & Certificates
+        ("Birth Log & Registry — Categorized Offspring", "Total, Colts, and Fillies categorized counts", "BIRTH LOG", "WhatsApp Image 2026-08-28 at 1.15.59 PM (2).jpeg"),
+        ("Official Equine Foal Certificate PDF", "Pedigree, Microchip, Markings & Health Record PDF", "PDF ENGINE", "WhatsApp Image 2026-08-28 at 1.15.52 PM.jpeg"),
+        ("Stud Foaling Diary — Gestation & Movement Log", "Broodmare movement, overdue tracking & foaling barn", "DIARY", "WhatsApp Image 2026-08-28 at 1.15.56 PM (2).jpeg"),
+        ("Official Stud Foaling Diary Printable PDF", "Official structured printable report generated live", "PDF ENGINE", "WhatsApp Image 2026-08-28 at 1.15.51 PM.jpeg"),
+        ("Congratulations Screen — 1-2-3 Foaling Rule", "Immediate post-foaling clinical guidelines", "CELEBRATE", "WhatsApp Image 2026-08-28 at 1.15.57 PM (1).jpeg"),
+        ("Due Date Calculator — 'When Is My Foal Due?'", "Fast multi-species gestation prediction tool", "CALCULATOR", "WhatsApp Image 2026-08-28 at 1.15.57 PM.jpeg"),
 
-    tech_table_data = [
-        [
-            Paragraph("<b>Deliverable Scope</b>", table_header_style),
-            Paragraph("<b>Verification Status</b>", table_header_style),
-            Paragraph("<b>Deployment Readiness</b>", table_header_style)
-        ],
-        [
-            Paragraph("<b>Milestone 2 (Gestation, Scans & Care)</b>", table_cell_bold),
-            Paragraph("<font color='#059669'><b>100% VERIFIED [OK]</b></font>", table_cell_green),
-            Paragraph("Production-Ready", table_cell_style)
-        ],
-        [
-            Paragraph("<b>Milestone 3 (Foals, Puppies, PDF & QA)</b>", table_cell_bold),
-            Paragraph("<font color='#059669'><b>100% VERIFIED [OK]</b></font>", table_cell_green),
-            Paragraph("Production-Ready", table_cell_style)
-        ],
-        [
-            Paragraph("<b>Client Feedback Restructure Plan</b>", table_cell_bold),
-            Paragraph("<font color='#059669'><b>100% IMPLEMENTED [OK]</b></font>", table_cell_green),
-            Paragraph("Production-Ready", table_cell_style)
-        ]
-    ]
-    tech_table = Table(tech_table_data, colWidths=[180, 160, 164])
-    tech_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), c_navy_dark),
-        ('GRID', (0, 0), (-1, -1), 0.4, c_border),
-        ('TOPPADDING', (0, 0), (-1, -1), 4.5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4.5),
-        ('LEFTPADDING', (0, 0), (-1, -1), 7),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 7),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, c_slate_light]),
-    ]))
-    story.append(tech_table)
-    story.append(Spacer(1, 14))
-
-    # =========================================================================
-    # 5. VISUAL PROOFS & SCREENSHOT GALLERY (DYNAMICALLY EMBEDDED)
-    # =========================================================================
-    screenshot_candidates = [
-        ("01_species_selection.png", "Figure 1: Species Selection Hub & Dynamic Scoping"),
-        ("02_pregnancy_scans.png", "Figure 2: Veterinarian Pregnancy 3-Scans Schedule (Day 14, 28, 45)"),
-        ("03_advanced_pregnancy_caslick.png", "Figure 3: Advanced Pregnancy Info, Fetal Sex & Caslick Records"),
-        ("04_preventative_care_vaccines.png", "Figure 4: Preventative Care & 9 Equine Vaccines Suite"),
-        ("05_foal_details_and_gelded.png", "Figure 5: Foal Details Screen — Clinical Birth Log & Gelded Status"),
-        ("06_foal_markings_registry.png", "Figure 6: Foal Details Screen — 3-Point Visual Markings Registry"),
-        ("07_standalone_due_date_calc.png", "Figure 7: Standalone Fast Due Date Calculator"),
-        ("08_puppy_pediatric_suite.png", "Figure 8: Canine Pediatric Suite & Puppy Weight Tracker"),
-        ("09_pedigree_certificate.png", "Figure 9: Official Luxury A4 Pedigree Certificate"),
-        ("10_test_suite_passed.png", "Figure 10: 321 Passing Automated Unit & Widget Tests"),
+        # Set 4: Registries, Dashboard & Help Center
+        ("Dashboard Home — Equine Suite & Live Stats", "Saved Mares, Foals, Quick CTAs & Navigation", "DASHBOARD", "WhatsApp Image 2026-08-28 at 1.15.50 PM (1).jpeg"),
+        ("Dashboard — Quick Actions & Breeding Shortcut", "Instant access to 6-Step Wizard & Foal Logging", "DASHBOARD", "WhatsApp Image 2026-08-28 at 1.15.58 PM (1).jpeg"),
+        ("Saved Animals Registry — Species & Filter Tabs", "Horses vs Dogs filtering with Mare sub-filters", "REGISTRY", "WhatsApp Image 2026-08-28 at 1.15.50 PM.jpeg"),
+        ("Saved Animals Registry — Horses & Mares Directory", "Direct access to profiles, health & edit screens", "REGISTRY", "WhatsApp Image 2026-08-28 at 1.15.59 PM (1).jpeg"),
+        ("Pregnancy & Breeding Tracker — Broodmare List", "Live Scan status badges & stallion lineage logs", "TRACKER", "WhatsApp Image 2026-08-28 at 1.15.58 PM (2).jpeg"),
+        ("FAQ & Help Center — Categorized Knowledge Base", "Searchable articles on gestation, scans & care", "HELP CENTER", "WhatsApp Image 2026-08-28 at 1.15.58 PM.jpeg"),
+        ("Disclaimer & Legal Notice — Breeder Terms", "Official calculation terms, limitations & legal notice", "LEGAL", "WhatsApp Image 2026-08-28 at 1.15.57 PM (2).jpeg"),
     ]
 
-    # Check for screenshots in doc_screenshots/ or root
-    found_screenshots = []
-    search_dirs = ["doc_screenshots", "."]
-    for filename, caption in screenshot_candidates:
-        for sdir in search_dirs:
-            p = os.path.join(sdir, filename)
-            if os.path.exists(p) and os.path.isfile(p):
-                found_screenshots.append((p, caption))
-                break
+    # Render images in 2-column paired layout
+    v_folder = "visual_assets"
+    for i in range(0, len(visual_items), 2):
+        pair = visual_items[i:i+2]
+        cards = []
+        for title, subtitle, badge, fname in pair:
+            fpath = os.path.join(v_folder, fname)
+            if os.path.exists(fpath):
+                card = create_screenshot_card(fpath, title, subtitle, badge=badge, width=234, max_height=300)
+                cards.append(card)
+            else:
+                cards.append(Paragraph(f"Missing asset: {fname}", body_style))
 
-    if found_screenshots:
-        story.append(PageBreak())
-        story.append(Paragraph("5. Visual Implementation & Verification Gallery", h1_style))
-        story.append(HRFlowable(width="100%", thickness=1, color=c_gold, spaceBefore=2, spaceAfter=8))
-        story.append(Paragraph(
-            "The following high-fidelity visual exhibits demonstrate active feature implementation across the ABP ecosystem:",
-            body_style
-        ))
-        story.append(Spacer(1, 8))
-
-        for img_path, caption in found_screenshots:
-            try:
-                # Add image with max width 480 and proportional height
-                img = Image(img_path, width=320, height=380)
-                img_table = Table([[img]], colWidths=[504])
-                img_table.setStyle(TableStyle([
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('BACKGROUND', (0, 0), (-1, -1), c_slate_light),
-                    ('BOX', (0, 0), (-1, -1), 1.0, c_gold),
-                    ('TOPPADDING', (0, 0), (-1, -1), 8),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ]))
-                story.append(img_table)
-                story.append(Spacer(1, 4))
-                story.append(Paragraph(caption, gallery_caption_style))
-                story.append(Spacer(1, 10))
-            except Exception as ex:
-                print(f"Notice: Could not load image {img_path}: {ex}")
+        if len(cards) == 2:
+            row_table = Table([[cards[0], cards[1]]], colWidths=[252, 252])
+            row_table.setStyle(TableStyle([
+                ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('LEFTPADDING', (0,0), (-1,-1), 0),
+                ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                ('TOPPADDING', (0,0), (-1,-1), 4),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+            ]))
+            story.append(KeepTogether([row_table, Spacer(1, 6)]))
+        elif len(cards) == 1:
+            row_table = Table([[cards[0]]], colWidths=[504])
+            row_table.setStyle(TableStyle([
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('TOPPADDING', (0,0), (-1,-1), 4),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+            ]))
+            story.append(KeepTogether([row_table, Spacer(1, 6)]))
 
     # Build PDF
     doc.build(story, canvasmaker=NumberedCanvas)
