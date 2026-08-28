@@ -6,8 +6,10 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/app_phone_launcher.dart';
 import '../../../../core/utils/app_uuid.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
+import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
@@ -272,42 +274,74 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
     }
   }
 
+  bool get _hasUnsavedChanges {
+    final isMareSelected = _selectedMare != null && _selectedMare?.id != widget.initialMareId;
+    final isStallionEntered = _stallionController.text.trim().isNotEmpty;
+    final isMethodChanged = _selectedMethod != 'natural';
+    final isRecipientChanged = _recipientCarries != false || _selectedRecipient != null;
+    return isMareSelected ||
+        isStallionEntered ||
+        isMethodChanged ||
+        isRecipientChanged;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
+        if (!_hasUnsavedChanges) {
+          Navigator.of(context).pop();
+          return;
+        }
+        final shouldSave = await showAppUnsavedChangesDialog(
+          context,
+          title: 'Exit Breeding Wizard?',
+          message: 'You have entered breeding details in this wizard. Do you want to save or discard before leaving?',
+        );
+        if (shouldSave == false) {
+          if (mounted) Navigator.of(context).pop();
+        } else if (shouldSave == true) {
+          await _finishWizard();
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.textPrimary),
-          onPressed: () => Navigator.maybePop(context),
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          title: const Text('EQUINE BREEDING WIZARD', style: AppTypography.sectionLabel),
+          centerTitle: true,
         ),
-        title: const Text('EQUINE BREEDING WIZARD', style: AppTypography.sectionLabel),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Step Progress Bar
-            _buildStepperHeader(),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Step Progress Bar
+              _buildStepperHeader(),
 
-            // Step Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.horizontalPadding,
-                  vertical: 16.0,
-                ),
-                child: ResponsiveBody(
-                  child: _buildCurrentStepContent(),
+              // Step Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.horizontalPadding,
+                    vertical: 16.0,
+                  ),
+                  child: ResponsiveBody(
+                    child: _buildCurrentStepContent(),
+                  ),
                 ),
               ),
-            ),
 
-            // Bottom Navigation Actions
-            _buildBottomControls(),
-          ],
+              // Bottom Navigation Actions
+              _buildBottomControls(),
+            ],
+          ),
         ),
       ),
     );

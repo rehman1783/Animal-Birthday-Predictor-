@@ -6,6 +6,7 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/app_phone_launcher.dart';
 import '../../../../core/utils/app_uuid.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
@@ -334,6 +335,7 @@ class _PuppyDetailsScreenState extends ConsumerState<PuppyDetailsScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
         if (!_hasUnsavedChanges) {
           Navigator.of(context).pop();
           return;

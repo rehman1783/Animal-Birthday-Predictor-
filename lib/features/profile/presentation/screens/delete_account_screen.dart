@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/responsive_body.dart';
@@ -144,20 +145,27 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
+        Navigator.of(context).pop();
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          title: Text(
+            'Delete Account',
+            style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+          ),
         ),
-        title: Text(
-          'Delete Account',
-          style: AppTypography.displayHeadline.copyWith(fontSize: 20),
-        ),
-      ),
       body: SafeArea(
         top: true,
         bottom: true,
@@ -375,7 +383,8 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
         ),
       ),
     ),
-  );
+  ),
+);
 }
 }
 

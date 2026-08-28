@@ -16,6 +16,7 @@ import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/utils/app_uuid.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../../animals/presentation/widgets/select_or_add_animal_modal.dart';
@@ -330,18 +331,23 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
   }
 
   bool get _hasUnsavedChanges {
-    if (_initialBreedingRecord == null && _initialMare == null) {
-      return _selectedMare != null ||
-          _stallionController.text.trim().isNotEmpty ||
-          _selectedRecipient != null;
-    }
     final b = _initialBreedingRecord;
+    if (b == null) {
+      final isMareChanged = _selectedMare?.id != _initialMare?.id;
+      final isStallionEntered = _stallionController.text.trim().isNotEmpty;
+      final isRecipientEntered = _selectedRecipient != null;
+      final isMethodChanged = _selectedMethod != 'natural';
+      final isRecipientCarriesChanged = _recipientCarries != false;
+      return isMareChanged || isStallionEntered || isRecipientEntered || isMethodChanged || isRecipientCarriesChanged;
+    }
     return _selectedMare?.id != _initialMare?.id ||
         _selectedRecipient?.id != _initialRecipient?.id ||
-        _stallionController.text.trim() != (b?.stallionName ?? '') ||
-        _selectedMethod != (b?.method ?? 'natural') ||
-        _recipientCarries != (b?.isEmbryoTransfer ?? false) ||
-        _coverDate != (b?.coverOrTransferDate ?? _coverDate);
+        _stallionController.text.trim() != (b.stallionName?.trim() ?? '') ||
+        _selectedMethod != b.method ||
+        _recipientCarries != (b.isEmbryoTransfer && b.recipientAnimalId != null) ||
+        (_coverDate.year != (b.coverOrTransferDate?.year ?? _coverDate.year) ||
+            _coverDate.month != (b.coverOrTransferDate?.month ?? _coverDate.month) ||
+            _coverDate.day != (b.coverOrTransferDate?.day ?? _coverDate.day));
   }
 
   @override
@@ -350,6 +356,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
         if (!_hasUnsavedChanges) {
           Navigator.of(context).pop();
           return;

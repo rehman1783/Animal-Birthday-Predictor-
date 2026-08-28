@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/app_loading_view.dart';
+import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
@@ -38,6 +40,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
 
   String? _infoId;
   String? _ultrasoundImage;
+  AdvancedPregnancyInfo? _initialInfo;
   bool _isSaving = false;
   bool _isLoaded = false;
   Object? _loadError;
@@ -58,6 +61,7 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
       final info = await repo.getAdvancedPregnancyInfo(widget.pregnancyRecordId);
       if (info != null && mounted) {
         setState(() {
+          _initialInfo = info;
           _infoId = info.id;
           _caslickDate = info.caslickDate;
           _caslickDone = info.caslickDone;
@@ -77,6 +81,26 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
         setState(() => _isLoaded = true);
       }
     }
+  }
+
+  bool get _hasUnsavedChanges {
+    final init = _initialInfo;
+    if (init == null) {
+      return _caslickDate != null ||
+          _caslickDone ||
+          _fetalSexDate != null ||
+          _fetalSexDone ||
+          _ffsResultDate != null ||
+          _ffsResult != null ||
+          _ultrasoundImage != null;
+    }
+    return _caslickDate != init.caslickDate ||
+        _caslickDone != init.caslickDone ||
+        _fetalSexDate != init.fetalSexScanDate ||
+        _fetalSexDone != init.fetalSexScanDone ||
+        _ffsResultDate != init.ffsResultDate ||
+        _ffsResult != init.ffsResult ||
+        _ultrasoundImage != init.ultrasoundImageUrl;
   }
 
   Future<void> _pickDate(String type) async {
@@ -161,32 +185,48 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
+        if (!_hasUnsavedChanges) {
+          Navigator.of(context).pop();
+          return;
+        }
+        final shouldSave = await showAppUnsavedChangesDialog(context);
+        if (shouldSave == true) {
+          await _handleSave();
+        } else if (shouldSave == false) {
+          if (mounted) Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.maybePop(context),
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          title: const Text('ADVANCED PREGNANCY INFO', style: AppTypography.sectionLabel),
+          centerTitle: true,
         ),
-        title: const Text('ADVANCED PREGNANCY INFO', style: AppTypography.sectionLabel),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: !_isLoaded
-            ? const AppLoadingView(message: 'Loading advanced pregnancy info...')
-            : _loadError != null
-                ? AppErrorView(
-                    error: _loadError,
-                    onRetry: _loadData,
-                  )
-                : SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-                child: ResponsiveBody(
-                  child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+        body: SafeArea(
+          child: !_isLoaded
+              ? const AppLoadingView(message: 'Loading advanced pregnancy info...')
+              : _loadError != null
+                  ? AppErrorView(
+                      error: _loadError,
+                      onRetry: _loadData,
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
+                      child: ResponsiveBody(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                     // Disclaimer Card
                     Container(
                       padding: const EdgeInsets.all(14),
@@ -392,8 +432,9 @@ class _AdvancedPregnancyInfoScreenState extends ConsumerState<AdvancedPregnancyI
                     const SizedBox(height: 24.0),
                   ],
                 ),
-                ),
               ),
+            ),
+        ),
       ),
     );
   }

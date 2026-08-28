@@ -14,6 +14,7 @@ import '../../../../core/widgets/species_icon.dart';
 import '../../../../core/widgets/app_thumbnail_avatar.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../domain/pregnancy_record.dart';
@@ -295,6 +296,7 @@ class _PregnancyDetailsScreenState extends ConsumerState<PregnancyDetailsScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
         if (!_hasUnsavedChanges) {
           Navigator.of(context).pop();
           return;

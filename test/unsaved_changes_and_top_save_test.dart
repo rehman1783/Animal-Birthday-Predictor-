@@ -220,7 +220,11 @@ void main() {
       await tester.enterText(find.byType(TextFormField).first, 'Thunderbolt');
       await tester.pumpAndSettle();
 
-      // Tap back button
+      // First tap back: dismisses keyboard / unfocuses input
+      await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+      await tester.pumpAndSettle();
+
+      // Second tap back with keyboard dismissed: triggers unsaved changes dialog
       await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
       await tester.pumpAndSettle();
 

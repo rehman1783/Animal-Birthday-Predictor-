@@ -12,6 +12,7 @@ import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
 import '../../../../core/utils/app_uuid.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../domain/markings.dart';
 import '../providers/mare_provider.dart';
 
@@ -133,6 +134,7 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
         if (!_hasUnsavedChanges) {
           Navigator.of(context).pop();
           return;

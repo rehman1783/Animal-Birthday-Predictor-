@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../domain/faq_item.dart';
 import '../../data/faq_data.dart';
@@ -44,20 +45,27 @@ class _FaqScreenState extends State<FaqScreen> {
   Widget build(BuildContext context) {
     final faqs = _filteredFaqs;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
+        Navigator.of(context).pop();
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.maybePop(context),
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          title: Text(
+            'Frequently Asked Questions',
+            style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+          ),
         ),
-        title: Text(
-          'Frequently Asked Questions',
-          style: AppTypography.displayHeadline.copyWith(fontSize: 20),
-        ),
-      ),
       body: SafeArea(
         top: true,
         bottom: true,
@@ -308,8 +316,9 @@ class _FaqScreenState extends State<FaqScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _FaqAccordionCard extends StatelessWidget {

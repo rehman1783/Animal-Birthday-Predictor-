@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/app_phone_launcher.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_loading_view.dart';
@@ -89,18 +90,25 @@ class _ContactsDirectoryScreenState extends ConsumerState<ContactsDirectoryScree
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
+        Navigator.of(context).pop();
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.maybePop(context),
-        ),
-        title: const Text('CONTACTS DIRECTORY', style: AppTypography.sectionLabel),
-        centerTitle: true,
-        bottom: TabBar(
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          title: const Text('CONTACTS DIRECTORY', style: AppTypography.sectionLabel),
+          centerTitle: true,
+          bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primaryGold,
           labelColor: AppColors.primaryGold,
@@ -182,8 +190,9 @@ class _ContactsDirectoryScreenState extends ConsumerState<ContactsDirectoryScree
           }
         },
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _ContactsRoleList extends ConsumerWidget {

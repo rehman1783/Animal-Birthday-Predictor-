@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/app_phone_launcher.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/app_image_picker.dart';
 import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
@@ -394,7 +395,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen>
       return _nameController.text.trim().isNotEmpty ||
           _stallionController.text.trim().isNotEmpty ||
           _breedController.text.trim().isNotEmpty ||
-          _selectedMare != null ||
+          _selectedMare?.id != widget.initialMareId ||
           _photoUrl != null ||
           markingsChanged;
     }
@@ -460,6 +461,7 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
         if (!_hasUnsavedChanges) {
           Navigator.of(context).pop();
           return;

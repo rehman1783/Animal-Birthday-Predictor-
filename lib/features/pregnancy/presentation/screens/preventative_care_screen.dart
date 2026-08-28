@@ -11,6 +11,7 @@ import '../../../../core/widgets/app_unsaved_changes_dialog.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/section_divider_label.dart';
+import '../../../../core/utils/keyboard_helper.dart';
 import '../../domain/preventative_care_record.dart';
 import '../providers/preventative_care_provider.dart';
 import '../widgets/contact_number_block.dart';
@@ -323,6 +324,7 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (dismissKeyboardIfOpen(context)) return;
         if (!_hasUnsavedChanges) {
           Navigator.of(context).pop();
           return;
