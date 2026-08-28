@@ -68,6 +68,24 @@ class ErrorHandler {
     }
 
     if (errorString.contains('PostgrestException')) {
+      // Extract specific PostgreSQL / PostgREST message if available
+      final msgMatch = RegExp(r'message:\s*([^,\)]+)').firstMatch(errorString);
+      if (msgMatch != null && msgMatch.group(1)?.trim().isNotEmpty == true) {
+        final extracted = msgMatch.group(1)!.trim();
+        if (extracted.toLowerCase().contains('jwt') || extracted.toLowerCase().contains('auth')) {
+          return 'Session expired. Please sign in again.';
+        }
+        if (extracted.toLowerCase().contains('row-level security') || extracted.toLowerCase().contains('permission denied')) {
+          return 'Permission denied for this record. Please check your account.';
+        }
+        if (extracted.toLowerCase().contains('violates foreign key')) {
+          return 'Referenced record was not found or has been removed.';
+        }
+        if (extracted.toLowerCase().contains('violates unique')) {
+          return 'A record with this information already exists.';
+        }
+        return extracted;
+      }
       return 'Unable to load data from the server. Please try again.';
     }
 

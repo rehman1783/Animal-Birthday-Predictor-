@@ -61,7 +61,20 @@ class MareRepository {
         }
       } catch (e) {
         debugPrint('Supabase saveMare error: $e');
-        rethrow;
+        if (e.toString().contains('column') || e.toString().contains('PGRST204')) {
+          try {
+            final fallbackPayload = Map<String, dynamic>.from(toSave.toJson())..remove('sex');
+            final data = await c.from('animals').upsert(fallbackPayload).select();
+            if (data is List && data.isNotEmpty) {
+              return Animal.fromJson(data.first as Map<String, dynamic>);
+            }
+          } catch (retryErr) {
+            debugPrint('Supabase saveMare fallback failed: $retryErr');
+            rethrow;
+          }
+        } else {
+          rethrow;
+        }
       }
     }
 

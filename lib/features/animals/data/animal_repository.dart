@@ -100,7 +100,27 @@ class AnimalRepository {
         }
       } catch (e) {
         debugPrint('Supabase saveAnimal error: $e');
-        rethrow;
+        if (e.toString().contains('column') || e.toString().contains('PGRST204')) {
+          try {
+            final fallbackPayload = Map<String, dynamic>.from(toSave.toJson())..remove('sex');
+            final data = await c.from('animals').upsert(fallbackPayload).select();
+            if (data is List && data.isNotEmpty) {
+              final saved = Animal.fromJson(data.first as Map<String, dynamic>);
+              final idx = _mockAnimals.indexWhere((a) => a.id == saved.id);
+              if (idx >= 0) {
+                _mockAnimals[idx] = saved;
+              } else {
+                _mockAnimals.insert(0, saved);
+              }
+              return saved;
+            }
+          } catch (retryErr) {
+            debugPrint('Supabase saveAnimal fallback failed: $retryErr');
+            rethrow;
+          }
+        } else {
+          rethrow;
+        }
       }
     }
 

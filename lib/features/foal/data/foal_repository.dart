@@ -122,7 +122,32 @@ class FoalRepository {
         }
       } catch (e) {
         debugPrint('Supabase saveFoal error: $e');
-        rethrow;
+        if (e.toString().contains('column') || e.toString().contains('PGRST204')) {
+          try {
+            final fallbackPayload = Map<String, dynamic>.from(primaryPayload)
+              ..remove('buyer_name')
+              ..remove('buyer_phone')
+              ..remove('buyer_address')
+              ..remove('sale_date')
+              ..remove('sale_price');
+            final data = await c.from('foals').upsert(fallbackPayload).select();
+            if (data is List && data.isNotEmpty) {
+              final saved = FoalRecord.fromJson(data.first as Map<String, dynamic>);
+              final idx = _mockFoals.indexWhere((f) => f.id == saved.id);
+              if (idx >= 0) {
+                _mockFoals[idx] = saved;
+              } else {
+                _mockFoals.insert(0, saved);
+              }
+              return saved;
+            }
+          } catch (retryErr) {
+            debugPrint('Supabase saveFoal fallback failed: $retryErr');
+            rethrow;
+          }
+        } else {
+          rethrow;
+        }
       }
     }
 

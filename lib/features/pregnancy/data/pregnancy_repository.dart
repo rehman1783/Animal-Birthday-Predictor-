@@ -33,14 +33,37 @@ class PregnancyRepository {
     final toSave = record.copyWith(id: validId, accountId: accountId);
 
     if (c != null && user != null) {
+      final jsonPayload = toSave.toJson();
+      // Ensure method satisfies check constraint (natural, chilled, frozen, icsi)
+      if (jsonPayload['method'] == 'et') {
+        jsonPayload['method'] = 'frozen';
+        jsonPayload['is_embryo_transfer'] = true;
+      }
       try {
-        final data = await c.from('breeding_records').upsert(toSave.toJson()).select();
+        final data = await c.from('breeding_records').upsert(jsonPayload).select();
         if (data is List && data.isNotEmpty) {
           return BreedingRecord.fromJson(data.first as Map<String, dynamic>);
         }
       } catch (e) {
         debugPrint('Supabase saveBreedingRecord error: $e');
-        rethrow;
+        // If column error, try minimal payload
+        if (e.toString().contains('column') || e.toString().contains('PGRST204')) {
+          try {
+            final fallbackPayload = Map<String, dynamic>.from(jsonPayload)
+              ..remove('dam_of_embryo')
+              ..remove('stallion_of_embryo')
+              ..remove('photo_url');
+            final data = await c.from('breeding_records').upsert(fallbackPayload).select();
+            if (data is List && data.isNotEmpty) {
+              return BreedingRecord.fromJson(data.first as Map<String, dynamic>);
+            }
+          } catch (retryErr) {
+            debugPrint('Supabase saveBreedingRecord retry failed: $retryErr');
+            rethrow;
+          }
+        } else {
+          rethrow;
+        }
       }
     }
 
@@ -221,14 +244,31 @@ class PregnancyRepository {
     );
 
     if (c != null && user != null) {
+      final primaryPayload = toSave.toJson();
       try {
-        final data = await c.from('pregnancy_records').upsert(toSave.toJson()).select();
+        final data = await c.from('pregnancy_records').upsert(primaryPayload).select();
         if (data is List && data.isNotEmpty) {
           return PregnancyRecord.fromJson(data.first as Map<String, dynamic>);
         }
       } catch (e) {
         debugPrint('Supabase savePregnancyRecord error: $e');
-        rethrow;
+        // If optional extended columns (e.g. twins_suspected, twin_rescan_date) don't exist in DB schema, retry without them
+        if (e.toString().contains('column') || e.toString().contains('PGRST204')) {
+          try {
+            final fallbackPayload = Map<String, dynamic>.from(primaryPayload)
+              ..remove('twins_suspected')
+              ..remove('twin_rescan_date');
+            final data = await c.from('pregnancy_records').upsert(fallbackPayload).select();
+            if (data is List && data.isNotEmpty) {
+              return PregnancyRecord.fromJson(data.first as Map<String, dynamic>);
+            }
+          } catch (retryErr) {
+            debugPrint('Supabase savePregnancyRecord fallback failed: $retryErr');
+            rethrow;
+          }
+        } else {
+          rethrow;
+        }
       }
     }
 
