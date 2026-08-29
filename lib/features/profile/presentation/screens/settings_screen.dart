@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/abp_brand_badge.dart';
 import '../../../../core/widgets/app_logout_dialog.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../providers/settings_provider.dart';
@@ -26,9 +27,15 @@ class SettingsScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.maybePop(context),
         ),
-        title: Text(
-          'App Settings',
-          style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+        title: Row(
+          children: [
+            const AbpOfficialLogo(size: 26),
+            const SizedBox(width: 8),
+            Text(
+              'App Settings',
+              style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+            ),
+          ],
         ),
       ),
       body: SafeArea(
@@ -37,13 +44,39 @@ class SettingsScreen extends ConsumerWidget {
         left: true,
         right: true,
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.all(AppSpacing.horizontalPadding),
           child: ResponsiveBody(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Section 1: Notifications
+              // Official ABP Brand Verification Stamp
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AbpBrandBadge(text: 'OFFICIAL ABP™ PRODUCTION APPLICATION'),
+                  Text('VER. 1.0.0 PRO', style: TextStyle(color: AppColors.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Section 1: Subscription & Payment Management
+              _SettingsGroup(
+                title: 'Subscription & Payment Management',
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.workspace_premium_rounded, color: AppColors.primaryGold, size: 22),
+                    title: const Text('Manage Plan & Invoices', style: AppTypography.inputText),
+                    subtitle: const Text('ABP Pro Master Breeder, payment methods & bank wire', style: AppTypography.finePrint),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => Navigator.pushNamed(context, '/payment-details'),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Section 2: Notifications
               _SettingsGroup(
                 title: 'Notifications & Alerts',
                 children: [
@@ -85,7 +118,7 @@ class SettingsScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // Section 2: Default Species Configuration
+              // Section 3: Default Species Configuration
               _SettingsGroup(
                 title: 'Default Species Configuration',
                 children: [
@@ -133,7 +166,7 @@ class SettingsScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // Section 3: Help & Legal
+              // Section 4: Help & Legal
               _SettingsGroup(
                 title: 'Help, FAQ & Legal',
                 children: [
@@ -157,24 +190,29 @@ class SettingsScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // Section 4: App Information
+              // Section 5: App Information
               const _SettingsGroup(
-                title: 'System Information',
+                title: 'System & License Information',
                 children: [
+                  _SystemInfoTile(
+                    label: 'Product Edition',
+                    value: 'Animal Birthday Predictor (ABP) Pro',
+                  ),
                   _SystemInfoTile(
                     label: 'Application Version',
                     value: '1.0.0 (Build 1)',
                   ),
                   _SystemInfoTile(
+                    label: 'Gestation Calculation Engine',
+                    value: 'ABP Equine & Canine v2.4 (Active)',
+                  ),
+                  _SystemInfoTile(
                     label: 'Supabase Backend Region',
                     value: 'US East (Production)',
                   ),
-                  _SystemInfoTile(
-                    label: 'Architecture',
-                    value: 'Feature-First Riverpod',
-                  ),
                 ],
               ),
+
 
               const SizedBox(height: 28),
 
@@ -213,7 +251,9 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
+              const AbpProtectedFooter(),
+              const SizedBox(height: 24),
             ],
           ),
         ),

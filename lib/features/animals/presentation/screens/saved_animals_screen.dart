@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/abp_brand_badge.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_loading_view.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
@@ -106,7 +107,14 @@ class _SavedAnimalsScreenState extends ConsumerState<SavedAnimalsScreen> with Si
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: const Text('SAVED ANIMALS REGISTRY', style: AppTypography.sectionLabel),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AbpOfficialLogo(size: 26),
+            SizedBox(width: 8),
+            Text('ABP VERIFIED ANIMAL REGISTRY', style: AppTypography.sectionLabel),
+          ],
+        ),
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,

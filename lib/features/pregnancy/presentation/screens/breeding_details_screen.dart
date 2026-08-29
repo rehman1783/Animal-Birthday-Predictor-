@@ -22,6 +22,7 @@ import '../../../animals/presentation/providers/animal_provider.dart';
 import '../../../animals/presentation/widgets/select_or_add_animal_modal.dart';
 import '../../domain/breeding_record.dart';
 import '../providers/pregnancy_provider.dart';
+import '../../../foaling_diary/presentation/providers/foaling_diary_provider.dart';
 
 class BreedingDetailsScreen extends ConsumerStatefulWidget {
   final String? initialMareId;
@@ -246,9 +247,20 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
           baseDate: baseDate,
         );
 
+        // Sync to Foaling Diary & Calendar Reminders
+        try {
+          await ref.read(calendarDiarySyncServiceProvider).syncFromBreedingRecord(
+            breeding: savedBreeding,
+            mare: _selectedMare!,
+            recipient: _selectedRecipient,
+          );
+        } catch (_) {}
+
         ref.invalidate(breedingRecordByMareProvider(_selectedMare!.id));
         ref.invalidate(pregnancyRecordForCarrierProvider(carrierAnimalId));
         ref.invalidate(pregnancyRecordForCarrierProvider(_selectedMare!.id));
+        ref.invalidate(foalingDiaryProvider);
+        ref.invalidate(calendarTimelineMilestonesProvider);
 
         if (mounted) {
           AppFeedbackSnackbar.showSuccess(
@@ -273,6 +285,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
       // Case 2: Vitrified / Stored Embryo (No recipient carrying at this time)
       if (isET && !_recipientCarries) {
         ref.invalidate(breedingRecordByMareProvider(_selectedMare!.id));
+        ref.invalidate(foalingDiaryProvider);
 
         if (mounted) {
           AppFeedbackSnackbar.showSuccess(
@@ -297,8 +310,18 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
         baseDate: baseDate,
       );
 
+      // Sync to Foaling Diary & Calendar Reminders
+      try {
+        await ref.read(calendarDiarySyncServiceProvider).syncFromBreedingRecord(
+          breeding: savedBreeding,
+          mare: _selectedMare!,
+        );
+      } catch (_) {}
+
       ref.invalidate(breedingRecordByMareProvider(_selectedMare!.id));
       ref.invalidate(pregnancyRecordForCarrierProvider(carrierAnimalId));
+      ref.invalidate(foalingDiaryProvider);
+      ref.invalidate(calendarTimelineMilestonesProvider);
 
       if (mounted) {
         AppFeedbackSnackbar.showSuccess(

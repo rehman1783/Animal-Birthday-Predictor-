@@ -3,12 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/utils/app_uuid.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
-import '../../domain/foaling_diary_entry.dart';
 import '../providers/foaling_diary_provider.dart';
-import '../../../certificates/data/pdf_certificate_service.dart';
 
 class DueDateCalculatorScreen extends ConsumerStatefulWidget {
   const DueDateCalculatorScreen({super.key});
@@ -152,33 +149,29 @@ class _DueDateCalculatorScreenState extends ConsumerState<DueDateCalculatorScree
   }
 
   Future<void> _saveToDiary() async {
-    final m = _calculatedMilestones;
+    final mareName = _mareNameController.text.trim().isEmpty ? 'Calculated Mare' : _mareNameController.text.trim();
+    final stallionName = _stallionNameController.text.trim().isEmpty ? 'Recorded Stallion' : _stallionNameController.text.trim();
     final isET = _selectedMethod == 'et' || _selectedMethod == 'icsi';
-    final entry = FoalingDiaryEntry(
-      id: AppUuid.generate(),
-      mareId: AppUuid.generate(),
-      mareName: _mareNameController.text.trim().isEmpty ? 'Calculated Mare' : _mareNameController.text.trim(),
-      stallionName: _stallionNameController.text.trim().isEmpty ? 'Recorded Stallion' : _stallionNameController.text.trim(),
-      isEmbryoTransfer: isET,
-      donorMareName: isET ? _mareNameController.text.trim() : null,
-      recipientMareName: isET ? _recipientNameController.text.trim() : null,
-      breedingMethod: _selectedMethod,
+
+    final entry = await ref.read(calendarDiarySyncServiceProvider).syncFromDueDateCalculator(
+      mareName: mareName,
+      stallionName: stallionName,
       serviceDate: _serviceDate,
-      foalingDueDate: m.dueDate,
-      minDueDate: m.minDueDate,
-      maxDueDate: m.maxDueDate,
-      currentPaddock: 'Main Broodmare Pasture',
-      notes: 'Added from Dedicated Due Date Calculator.',
+      species: _selectedSpecies,
+      method: _selectedMethod,
+      recipientName: isET ? _recipientNameController.text.trim() : null,
+      donorName: isET ? _mareNameController.text.trim() : null,
     );
 
-    await ref.read(foalingDiaryProvider.notifier).addOrUpdateEntry(entry);
+    ref.invalidate(foalingDiaryProvider);
+    ref.invalidate(calendarTimelineMilestonesProvider);
 
     setState(() => _savedToDiary = true);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${entry.mareName} added to Stud Foaling Diary!'),
+          content: Text('${entry.mareName} synchronized to Foaling Diary & Calendar!'),
           backgroundColor: AppColors.success,
           action: SnackBarAction(
             label: 'View Diary',
@@ -189,6 +182,7 @@ class _DueDateCalculatorScreenState extends ConsumerState<DueDateCalculatorScree
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

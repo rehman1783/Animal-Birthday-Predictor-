@@ -29,6 +29,7 @@ import '../../features/certificates/presentation/screens/certificate_screen.dart
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/profile/presentation/screens/change_password_screen.dart';
+import '../../features/profile/presentation/screens/payment_details_screen.dart';
 import '../../features/contacts/presentation/screens/contacts_directory_screen.dart';
 import '../../features/puppy/domain/puppy.dart';
 import '../../features/puppy/presentation/screens/puppy_details_screen.dart';
@@ -106,6 +107,14 @@ abstract class AppRouter {
       case '/settings':
         return MaterialPageRoute(
           builder: (_) => const SettingsScreen(),
+          settings: settings,
+        );
+
+      case '/payment-details':
+      case '/billing':
+      case '/subscription':
+        return MaterialPageRoute(
+          builder: (_) => const PaymentDetailsScreen(),
           settings: settings,
         );
 
@@ -464,6 +473,9 @@ abstract class AppRouter {
       '/profile': (context) => const MainNavigationScreen(initialIndex: 4),
       '/animal-details': (context) => const AnimalDetailsScreen(),
       '/settings': (context) => const SettingsScreen(),
+      '/payment-details': (context) => const PaymentDetailsScreen(),
+      '/billing': (context) => const PaymentDetailsScreen(),
+      '/subscription': (context) => const PaymentDetailsScreen(),
       '/delete-account': (context) => const DeleteAccountScreen(),
       '/contacts': (context) => const ContactsDirectoryScreen(),
       '/faq': (context) => const FaqScreen(),

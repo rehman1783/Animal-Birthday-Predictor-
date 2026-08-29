@@ -22,6 +22,7 @@ import '../../domain/breeding_record.dart';
 import '../../domain/preventative_care_record.dart';
 import '../providers/pregnancy_provider.dart';
 import '../providers/preventative_care_provider.dart';
+import '../../../foaling_diary/presentation/providers/foaling_diary_provider.dart';
 
 class EquineBreedingWizardScreen extends ConsumerStatefulWidget {
   final String? initialMareId;
@@ -240,9 +241,20 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
       );
       await careRepo.savePreventativeCare(careRecord);
 
+      // Sync to Foaling Diary & Calendar Reminders
+      try {
+        await ref.read(calendarDiarySyncServiceProvider).syncFromBreedingRecord(
+          breeding: savedBreeding,
+          mare: _selectedMare!,
+          recipient: _selectedRecipient,
+        );
+      } catch (_) {}
+
       ref.invalidate(breedingRecordByMareProvider(_selectedMare!.id));
       ref.invalidate(pregnancyRecordForCarrierProvider(carrierAnimalId));
       ref.invalidate(animalsListProvider('horse'));
+      ref.invalidate(foalingDiaryProvider);
+      ref.invalidate(calendarTimelineMilestonesProvider);
 
       if (mounted) {
         AppFeedbackSnackbar.showSuccess(

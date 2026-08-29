@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/abp_brand_badge.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/species_icon.dart';
@@ -49,17 +50,26 @@ class DashboardHomeScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Header Welcome Banner
+                // 1. Header Welcome Banner with Official ABP Branding
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'ANIMAL BIRTHDAY PREDICTOR',
-                            style: AppTypography.sectionLabel,
+                          const Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              Text(
+                                'ANIMAL BIRTHDAY PREDICTOR',
+                                style: AppTypography.sectionLabel,
+                              ),
+                              AbpBrandBadge(text: 'OFFICIAL ABP™'),
+                            ],
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -68,24 +78,110 @@ class DashboardHomeScreen extends ConsumerWidget {
                             softWrap: true,
                             maxLines: 2,
                           ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Animal Birthday Predictor Pro Edition',
+                            style: TextStyle(
+                              color: AppColors.primaryGold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primaryGold, width: 1.5),
+                    const SizedBox(width: 8),
+                    const AbpOfficialLogo(size: 46),
+                  ],
+                ),
+                const SizedBox(height: 16.0),
+
+                // ABP Quick Access Bar (Foaling Diary & Payment Portal)
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => Navigator.pushNamed(context, '/foaling-diary'),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.event_note_rounded, color: AppColors.primaryGold, size: 18),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Foaling Diary',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      'Gestation & Calendar',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: AppColors.textMuted, fontSize: 9),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      child: const Center(
-                        child: HorseshoeIcon(size: 22, color: AppColors.primaryGold),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => Navigator.pushNamed(context, '/payment-details'),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.workspace_premium_rounded, color: AppColors.primaryGold, size: 18),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'ABP Pro Plan',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      'Active • Manage',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: AppColors.textMuted, fontSize: 9),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24.0),
+                const SizedBox(height: 20.0),
+
 
                 // 2. EQUINE SUITE (SAVED MARES + FOAL RECORDS)
                 Row(
@@ -229,9 +325,19 @@ class DashboardHomeScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('When Is My Foal Due?', style: AppTypography.featureTitle),
+                            const Text(
+                              'When Is My Foal Due?',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.featureTitle,
+                            ),
                             const SizedBox(height: 2),
-                            Text('Instant Natural, AI & ET Gestation Predictor', style: AppTypography.finePrint.copyWith(color: AppColors.textMuted)),
+                            Text(
+                              'Instant Natural, AI & ET Gestation Predictor',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.finePrint.copyWith(color: AppColors.textMuted),
+                            ),
                           ],
                         ),
                       ),
@@ -240,11 +346,11 @@ class DashboardHomeScreen extends ConsumerWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryGold,
                           foregroundColor: AppColors.background,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         onPressed: () => Navigator.pushNamed(context, '/due-date-calculator'),
-                        child: const Text('CALCULATE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                        child: const Text('CALCULATE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10.5)),
                       ),
                     ],
                   ),
@@ -500,6 +606,8 @@ class DashboardHomeScreen extends ConsumerWidget {
                   isAvailable: false,
                   onTap: () => Navigator.pushNamed(context, '/species-select'),
                 ),
+                const SizedBox(height: 20.0),
+                const AbpProtectedFooter(),
                 const SizedBox(height: 24.0),
               ],
             ),

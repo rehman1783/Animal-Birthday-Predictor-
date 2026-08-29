@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animal_birthday_predictor/core/constants/app_colors.dart';
 import 'package:animal_birthday_predictor/core/constants/app_spacing.dart';
 import 'package:animal_birthday_predictor/core/constants/app_typography.dart';
+import 'package:animal_birthday_predictor/core/widgets/abp_brand_badge.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_error_view.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_loading_view.dart';
 import 'package:animal_birthday_predictor/core/widgets/app_thumbnail_avatar.dart';
@@ -151,7 +152,14 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: const Text('BIRTH LOG & REGISTRY', style: AppTypography.sectionLabel),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AbpOfficialLogo(size: 26),
+            SizedBox(width: 8),
+            Text('ABP BIRTH LOG & REGISTRY', style: AppTypography.sectionLabel),
+          ],
+        ),
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,

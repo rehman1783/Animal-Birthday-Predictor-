@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/abp_brand_badge.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
+import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../../core/widgets/app_logout_dialog.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -24,9 +26,15 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: Text(
-          'User Profile',
-          style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+        title: Row(
+          children: [
+            const AbpOfficialLogo(size: 28),
+            const SizedBox(width: 10),
+            Text(
+              'User Profile',
+              style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+            ),
+          ],
         ),
       ),
       body: SafeArea(
@@ -35,7 +43,7 @@ class ProfileScreen extends ConsumerWidget {
         left: true,
         right: true,
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.all(AppSpacing.horizontalPadding),
           child: ResponsiveBody(
           child: Column(
@@ -51,6 +59,8 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
+                    const AbpBrandBadge(text: 'ORIGINAL ABP™ REGISTERED BREEDER'),
+                    const SizedBox(height: 12),
                     Container(
                       width: 72,
                       height: 72,
@@ -58,7 +68,9 @@ class ProfileScreen extends ConsumerWidget {
                         color: AppColors.background,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.person, color: AppColors.primaryGold, size: 40),
+                      child: const Center(
+                        child: HorseshoeIcon(size: 38, color: AppColors.primaryGold),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -88,6 +100,39 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Section: Subscription & Payment Details
+              _ProfileInfoSection(
+                title: 'Subscription & Payment Details',
+                items: [
+                  _InfoTile(
+                    icon: Icons.workspace_premium_rounded,
+                    label: 'Current Plan',
+                    value: 'ABP Pro — Master Breeder Edition (\$29.99/yr)',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/payment-details');
+                    },
+                  ),
+                  _InfoTile(
+                    icon: Icons.credit_card_rounded,
+                    label: 'Payment Method & Wire Transfers',
+                    value: 'Visa •••• 4242 & Official Bank Details',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/payment-details');
+                    },
+                  ),
+                  _InfoTile(
+                    icon: Icons.receipt_long_rounded,
+                    label: 'Invoices & Billing History',
+                    value: 'View & download verified receipts',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/payment-details');
+                    },
+                  ),
+                ],
               ),
 
               const SizedBox(height: 24),
@@ -133,6 +178,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+
 
               const SizedBox(height: 24),
 
@@ -195,7 +241,9 @@ class ProfileScreen extends ConsumerWidget {
                 },
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
+              const AbpProtectedFooter(),
+              const SizedBox(height: 24),
             ],
           ),
         ),

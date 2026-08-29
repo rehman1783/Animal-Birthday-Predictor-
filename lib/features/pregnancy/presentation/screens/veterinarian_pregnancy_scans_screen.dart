@@ -22,6 +22,7 @@ import '../../domain/pregnancy_record.dart';
 import '../providers/pregnancy_provider.dart';
 import '../widgets/contact_number_block.dart';
 import '../widgets/scan_due_block.dart';
+import '../../../foaling_diary/presentation/providers/foaling_diary_provider.dart';
 
 class VeterinarianPregnancyScansScreen extends ConsumerStatefulWidget {
   final String? carrierAnimalId;
@@ -143,10 +144,29 @@ class _VeterinarianPregnancyScansScreenState
       }
 
       final saved = await repo.savePregnancyRecord(updated);
+
+      // Sync scan confirmation to Foaling Diary & Calendar
+      try {
+        await ref.read(calendarDiarySyncServiceProvider).syncFromVetScanUpdate(
+          pregnancyRecordId: saved.id,
+          carrierAnimalId: _selectedCarrierId ?? saved.carrierAnimalId,
+          scanNumber: scanNumber,
+          isConfirmed: (scanNumber == 1)
+              ? _scan1Confirmed
+              : (scanNumber == 2)
+                  ? _scan2Confirmed
+                  : _scan3Confirmed,
+          vetName: _vetNameController.text.trim().isNotEmpty ? _vetNameController.text.trim() : null,
+          vetNumber: _vetNumberController.text.trim().isNotEmpty ? _vetNumberController.text.trim() : null,
+        );
+      } catch (_) {}
+
       if (_selectedCarrierId != null) {
         ref.invalidate(pregnancyRecordForCarrierProvider(_selectedCarrierId!));
       }
       ref.invalidate(pregnancyRecordByIdProvider(saved.id));
+      ref.invalidate(foalingDiaryProvider);
+      ref.invalidate(calendarTimelineMilestonesProvider);
 
       if (mounted) {
         setState(() => _record = saved);

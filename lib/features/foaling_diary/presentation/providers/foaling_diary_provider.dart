@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/foaling_diary_entry.dart';
 import '../../data/foaling_diary_repository.dart';
+import '../../data/calendar_diary_sync_service.dart';
 
 final foalingDiaryRepositoryProvider = Provider<FoalingDiaryRepository>((ref) {
   SupabaseClient? client;
@@ -69,3 +70,19 @@ final foalingDiaryProvider = StateNotifierProvider<FoalingDiaryNotifier, AsyncVa
   final repo = ref.watch(foalingDiaryRepositoryProvider);
   return FoalingDiaryNotifier(repo);
 });
+
+final calendarDiarySyncServiceProvider = Provider<CalendarDiarySyncService>((ref) {
+  SupabaseClient? client;
+  try {
+    client = Supabase.instance.client;
+  } catch (_) {}
+  return CalendarDiarySyncService(client: client);
+});
+
+final calendarTimelineMilestonesProvider = FutureProvider.autoDispose<List<CalendarTimelineMilestone>>((ref) async {
+  final diaryAsync = ref.watch(foalingDiaryProvider);
+  final syncService = ref.watch(calendarDiarySyncServiceProvider);
+  final entries = diaryAsync.value ?? [];
+  return syncService.getUnifiedCalendarMilestones(entries);
+});
+
