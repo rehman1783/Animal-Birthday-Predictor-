@@ -94,7 +94,7 @@ void main() {
       await tester.tap(find.text('Birth Log'));
       await tester.pumpAndSettle();
 
-      expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
+      expect(find.text('ABP BIRTH LOG & REGISTRY'), findsOneWidget);
       expect(find.text('SAVED MARES FOAL RECORDS'), findsOneWidget);
       expect(find.text('DAM/BITCH PUPPY RECORDS'), findsOneWidget);
       expect(find.text('+ REGISTER NEW FOAL'), findsOneWidget);
@@ -121,7 +121,7 @@ void main() {
       Navigator.pushNamed(tester.element(find.byType(MainNavigationScreen)), '/foals');
       await tester.pumpAndSettle();
 
-      expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
+      expect(find.text('ABP BIRTH LOG & REGISTRY'), findsOneWidget);
       expect(find.text('SAVED MARES FOAL RECORDS'), findsOneWidget);
     });
 
@@ -141,7 +141,7 @@ void main() {
       // Switch to Animals tab (index 1)
       await tester.tap(find.text('Animals'));
       await tester.pumpAndSettle();
-      expect(find.text('SAVED ANIMALS REGISTRY'), findsOneWidget);
+      expect(find.text('ABP VERIFIED ANIMAL REGISTRY'), findsOneWidget);
 
       // Trigger system back pop on the Navigator
       final dynamic widgetsAppState = tester.state(find.byType(WidgetsApp));

@@ -38,7 +38,7 @@ void main() {
 
       // Verify BottomNavigationBar is still present
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      expect(find.text('SAVED ANIMALS REGISTRY'), findsOneWidget);
+      expect(find.text('ABP VERIFIED ANIMAL REGISTRY'), findsOneWidget);
     });
 
     testWidgets('Tapping Puppy Registry on Dashboard switches to Birth Log Puppies tab while keeping BottomNavigationBar', (tester) async {
@@ -54,7 +54,7 @@ void main() {
 
       // Verify BottomNavigationBar is still present and Birth Log screen is active
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
+      expect(find.text('ABP BIRTH LOG & REGISTRY'), findsOneWidget);
       // Verify that Puppies section is active
       expect(find.text('Register Newborn Puppy'), findsOneWidget);
       expect(find.text('+ REGISTER NEW PUPPY'), findsOneWidget);
@@ -65,7 +65,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      expect(find.text('SAVED ANIMALS REGISTRY'), findsOneWidget);
+      expect(find.text('ABP VERIFIED ANIMAL REGISTRY'), findsOneWidget);
     });
 
     testWidgets('Navigating to /puppies route opens MainNavigationScreen with BottomNavigationBar', (tester) async {
@@ -73,7 +73,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      expect(find.text('BIRTH LOG & REGISTRY'), findsOneWidget);
+      expect(find.text('ABP BIRTH LOG & REGISTRY'), findsOneWidget);
     });
 
     testWidgets('Tapping Dog / Canine Module on Dashboard switches to Animals tab on Dogs filter while keeping BottomNavigationBar', (tester) async {
@@ -89,7 +89,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      expect(find.text('SAVED ANIMALS REGISTRY'), findsOneWidget);
+      expect(find.text('ABP VERIFIED ANIMAL REGISTRY'), findsOneWidget);
       expect(find.text('DAMS/BITCHES & DOGS'), findsOneWidget);
     });
 
@@ -98,7 +98,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      expect(find.text('PREGNANCY & BREEDING TRACKER'), findsOneWidget);
+      expect(find.text('ABP GESTATION & BREEDING ENGINE'), findsOneWidget);
     });
   });
 }
