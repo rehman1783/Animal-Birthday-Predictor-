@@ -32,6 +32,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/visual_assets/
 /coverage/
 
 # Symbolication related
