@@ -268,8 +268,11 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Official Header Badge
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                const Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
                     AbpBrandBadge(text: 'OFFICIAL ABP™ PAYMENT & SUBSCRIPTION PORTAL'),
                     AbpOfficialLogo(size: 28),
@@ -299,24 +302,29 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'ACTIVE SUBSCRIPTION',
-                                style: AppTypography.finePrint.copyWith(
-                                  color: AppColors.primaryGold,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ACTIVE SUBSCRIPTION',
+                                  style: AppTypography.finePrint.copyWith(
+                                    color: AppColors.primaryGold,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.2,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'ABP Pro — Master Breeder',
-                                style: AppTypography.displayHeadline.copyWith(fontSize: 19),
-                              ),
-                            ],
+                                const SizedBox(height: 2),
+                                Text(
+                                  'ABP Pro — Master Breeder',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.displayHeadline.copyWith(fontSize: 19),
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
@@ -325,6 +333,7 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                               border: Border.all(color: AppColors.success, width: 1),
                             ),
                             child: const Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.check_circle_rounded, color: AppColors.success, size: 12),
                                 SizedBox(width: 4),
@@ -348,9 +357,14 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Billing Tier', style: AppTypography.finePrint),
-                          Text(
-                            '\$29.99 / Year (Annual Billing)',
-                            style: AppTypography.inputText.copyWith(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '\$29.99 / Year (Annual Billing)',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.inputText.copyWith(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ],
                       ),
@@ -359,7 +373,15 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Account Owner', style: AppTypography.finePrint),
-                          Text(breederName, style: AppTypography.inputText),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              breederName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.inputText,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -367,7 +389,15 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Registered Email', style: AppTypography.finePrint),
-                          Text(breederEmail, style: AppTypography.inputText),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              breederEmail,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.inputText,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -375,9 +405,14 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Next Renewal Date', style: AppTypography.finePrint),
-                          Text(
-                            '29 August 2027',
-                            style: AppTypography.inputText.copyWith(fontWeight: FontWeight.w600),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '29 August 2027',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.inputText.copyWith(fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ],
                       ),
@@ -403,7 +438,9 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Auto-Renew Subscription', style: AppTypography.inputText),
+                          const Expanded(
+                            child: Text('Auto-Renew Subscription', style: AppTypography.inputText),
+                          ),
                           Switch(
                             value: _autoRenew,
                             activeTrackColor: AppColors.surface,
@@ -453,21 +490,29 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Row(
-                                  children: [
-                                    HorseshoeIcon(size: 18, color: AppColors.primaryGold),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'ABP BREEDER CARD',
-                                      style: TextStyle(
-                                        color: AppColors.primaryGold,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2,
-                                      ),
+                                const Expanded(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        AbpOfficialLogo(size: 22),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'ABP BREEDER CARD',
+                                          style: TextStyle(
+                                            color: AppColors.primaryGold,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
@@ -487,27 +532,39 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                               ],
                             ),
                             const SizedBox(height: 18),
-                            const Text(
-                              '•••• •••• •••• 4242',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                letterSpacing: 3,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'monospace',
+                            const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                '•••• •••• •••• 4242',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  letterSpacing: 3,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'monospace',
+                                ),
                               ),
                             ),
                             const SizedBox(height: 14),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('CARD HOLDER', style: TextStyle(color: Colors.white60, fontSize: 8)),
-                                    Text(breederName.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                                  ],
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('CARD HOLDER', style: TextStyle(color: Colors.white60, fontSize: 8)),
+                                      Text(
+                                        breederName.toUpperCase(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 const Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
@@ -640,21 +697,20 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                   ),
                   child: Column(
                     children: [
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.security_rounded, color: AppColors.primaryGold, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'OFFICIAL ABP PAYMENT ENCRYPTION & GUARANTEE',
-                            style: TextStyle(
-                              color: AppColors.primaryGold,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.1,
-                            ),
+                      const AbpOfficialLogo(size: 38),
+                      const SizedBox(height: 10),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: const Text(
+                          'OFFICIAL ABP PAYMENT ENCRYPTION & GUARANTEE',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppColors.primaryGold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.1,
                           ),
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 6),
                       const Text(
@@ -705,12 +761,15 @@ class _SectionCard extends StatelessWidget {
           Row(
             children: [
               Icon(icon, color: AppColors.primaryGold, size: 20),
-              const SizedBox(width: 8),
-              Text(title, style: AppTypography.featureTitle.copyWith(fontSize: 16)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.featureTitle.copyWith(color: AppColors.primaryGold),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 12),
-          const Divider(color: AppColors.inputBorder, height: 1),
           const SizedBox(height: 14),
           child,
         ],
@@ -727,15 +786,15 @@ class _FeatureCheckRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          const Icon(Icons.check_rounded, color: AppColors.primaryGold, size: 14),
-          const SizedBox(width: 6),
+          const Icon(Icons.check_circle_rounded, color: AppColors.primaryGold, size: 14),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 11),
+              style: AppTypography.finePrint.copyWith(color: AppColors.textPrimary),
             ),
           ),
         ],
@@ -805,29 +864,45 @@ class _InvoiceTile extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.inputBorder),
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: const Icon(Icons.description_outlined, color: AppColors.primaryGold, size: 18),
                 ),
-                child: const Icon(Icons.description_outlined, color: AppColors.primaryGold, size: 18),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(invoiceNo, style: AppTypography.inputText.copyWith(fontWeight: FontWeight.bold, fontSize: 12)),
-                  const SizedBox(height: 2),
-                  Text(date, style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
-                ],
-              ),
-            ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        invoiceNo,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.inputText.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        date,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -847,10 +922,12 @@ class _InvoiceTile extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               IconButton(
                 icon: const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
                 onPressed: onViewReceipt,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
@@ -872,7 +949,15 @@ class _ReceiptRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
-        Text(value, style: AppTypography.inputText.copyWith(fontSize: 11, fontWeight: FontWeight.w600)),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.inputText.copyWith(fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+        ),
       ],
     );
   }

@@ -60,6 +60,7 @@ import 'package:animal_birthday_predictor/features/contacts/presentation/screens
 import 'package:animal_birthday_predictor/features/certificates/presentation/screens/certificate_screen.dart';
 import 'package:animal_birthday_predictor/features/profile/presentation/screens/profile_screen.dart';
 import 'package:animal_birthday_predictor/features/profile/presentation/screens/settings_screen.dart';
+import 'package:animal_birthday_predictor/features/profile/presentation/screens/payment_details_screen.dart';
 import 'package:animal_birthday_predictor/features/profile/presentation/screens/delete_account_screen.dart';
 import 'package:animal_birthday_predictor/features/faq/presentation/screens/faq_screen.dart';
 import 'package:animal_birthday_predictor/features/disclaimer/presentation/screens/disclaimer_screen.dart';
@@ -920,6 +921,25 @@ void main() {
         expect(tester.takeException(), isNull);
         expect(find.text('EQUINE BREEDING WIZARD'), findsOneWidget);
       });
+
+      // 37. PaymentDetailsScreen
+      testWidgets('PaymentDetailsScreen renders without overflow on $sizeName', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: getOverrides(),
+            child: const MaterialApp(home: PaymentDetailsScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Payment & Billing Details'), findsOneWidget);
+      });
     }
   });
 }
+

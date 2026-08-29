@@ -70,13 +70,16 @@ class _PregnancyModuleScreenState extends ConsumerState<PregnancyModuleScreen>
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AbpOfficialLogo(size: 26),
-            SizedBox(width: 8),
-            Text('ABP GESTATION & BREEDING ENGINE', style: AppTypography.sectionLabel),
-          ],
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AbpOfficialLogo(size: 26),
+              SizedBox(width: 8),
+              Text('ABP GESTATION & BREEDING ENGINE', style: AppTypography.sectionLabel),
+            ],
+          ),
         ),
         centerTitle: true,
         bottom: TabBar(

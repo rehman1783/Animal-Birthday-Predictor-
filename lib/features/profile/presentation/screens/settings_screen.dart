@@ -27,15 +27,18 @@ class SettingsScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.maybePop(context),
         ),
-        title: Row(
-          children: [
-            const AbpOfficialLogo(size: 26),
-            const SizedBox(width: 8),
-            Text(
-              'App Settings',
-              style: AppTypography.displayHeadline.copyWith(fontSize: 20),
-            ),
-          ],
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            children: [
+              const AbpOfficialLogo(size: 26),
+              const SizedBox(width: 8),
+              Text(
+                'App Settings',
+                style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+              ),
+            ],
+          ),
         ),
       ),
       body: SafeArea(
@@ -51,8 +54,11 @@ class SettingsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Official ABP Brand Verification Stamp
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
                 children: [
                   AbpBrandBadge(text: 'OFFICIAL ABP™ PRODUCTION APPLICATION'),
                   Text('VER. 1.0.0 PRO', style: TextStyle(color: AppColors.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),

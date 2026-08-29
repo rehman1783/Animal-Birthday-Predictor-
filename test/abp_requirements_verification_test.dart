@@ -37,7 +37,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(AbpOfficialLogo), findsOneWidget);
+      expect(find.byType(AbpOfficialLogo), findsWidgets);
       expect(find.byType(AbpBrandBadge), findsOneWidget);
       expect(find.text('OFFICIAL ABP™ PRODUCT'), findsOneWidget);
       expect(find.byType(AbpProtectedFooter), findsOneWidget);
@@ -54,7 +54,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(AbpOfficialLogo), findsOneWidget);
+      expect(find.byType(AbpOfficialLogo), findsWidgets);
       expect(find.text('ANIMAL BIRTHDAY PREDICTOR'), findsOneWidget);
       expect(find.text('OFFICIAL ABP™'), findsOneWidget);
       expect(find.byType(AbpProtectedFooter), findsOneWidget);
@@ -70,6 +70,7 @@ void main() {
       );
       await tester.pump();
 
+      expect(find.byType(AbpOfficialLogo), findsWidgets);
       expect(find.text('ORIGINAL ABP™ REGISTERED BREEDER'), findsOneWidget);
       expect(find.byType(AbpProtectedFooter), findsOneWidget);
     });

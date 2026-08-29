@@ -129,27 +129,30 @@ class AbpBrandBadge extends StatelessWidget {
           width: 0.8,
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(
-              icon,
-              size: 11,
-              color: textColor ?? AppColors.primaryGold,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 11,
+                color: textColor ?? AppColors.primaryGold,
+              ),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w700,
+                color: textColor ?? AppColors.primaryGold,
+                letterSpacing: 0.8,
+              ),
             ),
-            const SizedBox(width: 4),
           ],
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w700,
-              color: textColor ?? AppColors.primaryGold,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -181,7 +184,7 @@ class AbpWatermarkSeal extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const HorseshoeIcon(size: 28, color: AppColors.primaryGold),
+              AbpOfficialLogo(size: size * 0.4),
               const SizedBox(height: 2),
               Text(
                 label,
@@ -217,21 +220,24 @@ class AbpProtectedFooter extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const HorseshoeIcon(size: 14, color: AppColors.primaryGold),
-              const SizedBox(width: 6),
-              Text(
-                'ANIMAL BIRTHDAY PREDICTOR (ABP)™',
-                style: AppTypography.finePrint.copyWith(
-                  color: AppColors.primaryGold,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  fontSize: 10,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const AbpOfficialLogo(size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'ANIMAL BIRTHDAY PREDICTOR (ABP)™',
+                  style: AppTypography.finePrint.copyWith(
+                    color: AppColors.primaryGold,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    fontSize: 10,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 4),
           const Text(

@@ -234,11 +234,15 @@ class _FoalingDiaryScreenState extends ConsumerState<FoalingDiaryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Official ABP Header Badge
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 6,
                       children: [
                         AbpBrandBadge(text: 'OFFICIAL ABP™ FOALING & GESTATION DIARY'),
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             HorseshoeIcon(size: 14, color: AppColors.primaryGold),
                             SizedBox(width: 4),
@@ -998,12 +1002,16 @@ class _ViewTabButton extends StatelessWidget {
               color: isSelected ? AppColors.background : AppColors.textSecondary,
             ),
             const SizedBox(width: 6),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? AppColors.background : AppColors.textSecondary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 12,
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isSelected ? AppColors.background : AppColors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 11.5,
+                ),
               ),
             ),
           ],
@@ -1151,11 +1159,15 @@ class _TimelineMilestoneCard extends StatelessWidget {
                       children: [
                         const HorseshoeIcon(size: 13, color: AppColors.primaryGold),
                         const SizedBox(width: 5),
-                        Text(
-                          'Mare: ${milestone.mareName}',
-                          style: const TextStyle(color: AppColors.primaryGold, fontSize: 11.5, fontWeight: FontWeight.w600),
+                        Expanded(
+                          child: Text(
+                            'Mare: ${milestone.mareName}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppColors.primaryGold, fontSize: 11.5, fontWeight: FontWeight.w600),
+                          ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         Text(
                           _formatDate(milestone.date),
                           style: AppTypography.finePrint.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),

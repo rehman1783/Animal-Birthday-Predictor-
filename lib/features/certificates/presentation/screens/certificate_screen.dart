@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/abp_brand_badge.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/horseshoe_icon.dart';
@@ -280,17 +281,7 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
         Center(
           child: Column(
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primaryGold, width: 2),
-                ),
-                child: const Center(
-                  child: HorseshoeIcon(size: 28, color: AppColors.primaryGold),
-                ),
-              ),
+              const AbpOfficialLogo(size: 48),
               const SizedBox(height: 10),
               const Text('ANIMAL BIRTHDAY PREDICTOR', style: AppTypography.sectionLabel),
               const SizedBox(height: 4),

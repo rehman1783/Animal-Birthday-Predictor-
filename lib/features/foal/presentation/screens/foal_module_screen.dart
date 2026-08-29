@@ -152,13 +152,16 @@ class _FoalModuleScreenState extends ConsumerState<FoalModuleScreen> with Single
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AbpOfficialLogo(size: 26),
-            SizedBox(width: 8),
-            Text('ABP BIRTH LOG & REGISTRY', style: AppTypography.sectionLabel),
-          ],
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AbpOfficialLogo(size: 26),
+              SizedBox(width: 8),
+              Text('ABP BIRTH LOG & REGISTRY', style: AppTypography.sectionLabel),
+            ],
+          ),
         ),
         centerTitle: true,
         bottom: TabBar(

@@ -26,15 +26,18 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: Row(
-          children: [
-            const AbpOfficialLogo(size: 28),
-            const SizedBox(width: 10),
-            Text(
-              'User Profile',
-              style: AppTypography.displayHeadline.copyWith(fontSize: 20),
-            ),
-          ],
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            children: [
+              const AbpOfficialLogo(size: 28),
+              const SizedBox(width: 10),
+              Text(
+                'User Profile',
+                style: AppTypography.displayHeadline.copyWith(fontSize: 20),
+              ),
+            ],
+          ),
         ),
       ),
       body: SafeArea(
@@ -62,14 +65,14 @@ class ProfileScreen extends ConsumerWidget {
                     const AbpBrandBadge(text: 'ORIGINAL ABP™ REGISTERED BREEDER'),
                     const SizedBox(height: 12),
                     Container(
-                      width: 72,
-                      height: 72,
+                      width: 80,
+                      height: 80,
                       decoration: const BoxDecoration(
                         color: AppColors.background,
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
-                        child: HorseshoeIcon(size: 38, color: AppColors.primaryGold),
+                        child: AbpOfficialLogo(size: 76),
                       ),
                     ),
                     const SizedBox(height: 12),
