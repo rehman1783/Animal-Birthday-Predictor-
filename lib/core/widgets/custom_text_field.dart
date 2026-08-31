@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
   final IconData? leadingIcon;
   final IconData? prefixIcon;
+  final Widget? prefixWidget;
   final bool obscureText;
   final Widget? trailingWidget;
   final String? errorText;
@@ -23,6 +24,7 @@ class CustomTextField extends StatelessWidget {
     this.hintText,
     this.leadingIcon,
     this.prefixIcon,
+    this.prefixWidget,
     this.controller,
     this.obscureText = false,
     this.trailingWidget,
@@ -58,13 +60,22 @@ class CustomTextField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hintText ?? 'Enter $label',
             hintStyle: AppTypography.inputHint,
-            prefixIcon: iconToUse != null
-                ? Icon(
-                    iconToUse,
-                    color: AppColors.primaryGold,
-                    size: 20,
+            prefixIcon: prefixWidget != null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Center(
+                      widthFactor: 1.0,
+                      heightFactor: 1.0,
+                      child: prefixWidget,
+                    ),
                   )
-                : null,
+                : (iconToUse != null
+                    ? Icon(
+                        iconToUse,
+                        color: AppColors.primaryGold,
+                        size: 20,
+                      )
+                    : null),
             suffixIcon: trailingWidget,
             errorText: errorText,
             errorStyle: const TextStyle(

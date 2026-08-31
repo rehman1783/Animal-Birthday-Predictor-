@@ -22,10 +22,11 @@ void main() {
       expect(find.text('BREEDING MILESTONE ACHIEVED'), findsOneWidget);
       expect(find.text('CONGRATULATIONS!'), findsOneWidget);
       expect(find.text('A NEW LIFE HAS ARRIVED SAFELY'), findsOneWidget);
-      expect(find.text('THE 1-2-3 FOALING RULE (FIRST HOURS)'), findsOneWidget);
+      expect(find.text('THE 1-2-3 FOALING RULE (FIRST 3 HOURS)'), findsOneWidget);
       expect(find.text('⏱️ Hour 1'), findsOneWidget);
       expect(find.text('🍼 Hour 2'), findsOneWidget);
       expect(find.text('🩺 Hour 3'), findsOneWidget);
+      expect(find.text('💩 Post-Foaling'), findsOneWidget);
       expect(find.text('📸 REGISTER NEW FOAL & BIRTH RECORD'), findsOneWidget);
       expect(find.text('CELEBRATE AGAIN 🎉'), findsOneWidget);
     });

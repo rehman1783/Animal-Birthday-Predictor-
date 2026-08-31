@@ -90,7 +90,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Modal opens with title and ADD NEW STALLION button
-    expect(find.text('Select Stallion (Father)'), findsOneWidget);
+    expect(find.text('Select Sire / Stallion'), findsOneWidget);
     expect(find.text('ADD NEW STALLION'), findsOneWidget);
 
     // Tap ADD NEW STALLION

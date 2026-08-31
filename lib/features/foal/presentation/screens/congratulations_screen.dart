@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/widgets/abp_brand_badge.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
 import '../../../../core/widgets/responsive_body.dart';
 
@@ -222,11 +223,16 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
                                 color: AppColors.background,
                               ),
                               child: Center(
-                                child: Icon(
-                                  isCanine ? Icons.pets : Icons.auto_awesome,
-                                  size: 58,
-                                  color: AppColors.primaryGold,
-                                ),
+                                child: isCanine
+                                    ? const Icon(
+                                        Icons.pets,
+                                        size: 54,
+                                        color: AppColors.primaryGold,
+                                      )
+                                    : const AbpOfficialLogo(
+                                        size: 96,
+                                        showBadge: false,
+                                      ),
                               ),
                             ),
                           ),
@@ -275,7 +281,7 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
 
                     const SizedBox(height: 24),
 
-                    // First 24-Hours Vital Protocol Card
+                    // First 3 Hours / 24-Hours Vital Protocol Card
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -297,7 +303,7 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
                                 child: Text(
                                   isCanine
                                       ? 'FIRST 24-HOUR CRITICAL WHELPING CHECKLIST'
-                                      : 'THE 1-2-3 FOALING RULE (FIRST HOURS)',
+                                      : 'THE 1-2-3 FOALING RULE (FIRST 3 HOURS)',
                                   style: const TextStyle(
                                     color: Color(0xFF10B981),
                                     fontWeight: FontWeight.bold,
@@ -312,17 +318,22 @@ class _CongratulationsScreenState extends State<CongratulationsScreen>
                           if (!isCanine) ...[
                             _buildProtocolRow(
                               '⏱️ Hour 1',
-                              'Foal should be standing on all four feet independently.',
+                              'Foal standing independently on all four legs within 60 minutes.',
                             ),
                             const SizedBox(height: 8),
                             _buildProtocolRow(
                               '🍼 Hour 2',
-                              'Foal should be actively nursing colostrum (essential immunity).',
+                              'Foal nursing vigorously (essential colostral IgG antibody transfer).',
                             ),
                             const SizedBox(height: 8),
                             _buildProtocolRow(
                               '🩺 Hour 3',
-                              'Mare should pass complete placenta intact & meconium passed.',
+                              'Mare should pass complete placenta intact within 3 hours. (Retained placenta >3h is an emergency).',
+                            ),
+                            const SizedBox(height: 8),
+                            _buildProtocolRow(
+                              '💩 Post-Foaling',
+                              'Confirm foal has passed dark, tarry meconium to prevent impaction colic.',
                             ),
                           ] else ...[
                             _buildProtocolRow(

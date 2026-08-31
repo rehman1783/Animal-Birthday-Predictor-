@@ -181,11 +181,19 @@ abstract class AppRouter {
         );
 
       case '/markings':
-        final args = settings.arguments is Map ? settings.arguments as Map : {};
+        String ownerType = 'animal';
+        String ownerId = '';
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          ownerType = (map['ownerType'] as String?) ?? (map['type'] as String?) ?? 'animal';
+          ownerId = (map['ownerId'] as String?) ?? (map['id'] as String?) ?? '';
+        } else if (settings.arguments is String) {
+          ownerId = settings.arguments as String;
+        }
         return MaterialPageRoute(
           builder: (_) => MarkingsScreen(
-            ownerType: (args['ownerType'] as String?) ?? 'animal',
-            ownerId: (args['ownerId'] as String?) ?? '',
+            ownerType: ownerType,
+            ownerId: ownerId,
           ),
           settings: settings,
         );

@@ -503,14 +503,14 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
         // Section 2: Parentage & Lineage
         const Text('II. PARENTAGE & LINEAGE', style: AppTypography.sectionLabel),
         const SizedBox(height: 10),
-        _CertRow(label: 'Sire (Father)', value: foal.stallion?.isNotEmpty == true ? foal.stallion! : 'Recorded Stallion'),
+        _CertRow(label: 'Sire (Stallion)', value: foal.stallion?.isNotEmpty == true ? foal.stallion! : 'Recorded Stallion'),
         damMareAsync.when(
           data: (damMare) => _CertRow(
-            label: 'Dam (Mother)',
+            label: 'Dam (Broodmare)',
             value: damMare != null ? '${damMare.name} (Chip: ${damMare.microchipNo ?? "N/A"})' : 'Registered Mare',
           ),
-          loading: () => const _CertRow(label: 'Dam (Mother)', value: 'Loading...'),
-          error: (err, stack) => const _CertRow(label: 'Dam (Mother)', value: 'Recorded Mare'),
+          loading: () => const _CertRow(label: 'Dam (Broodmare)', value: 'Loading...'),
+          error: (err, stack) => const _CertRow(label: 'Dam (Broodmare)', value: 'Recorded Mare'),
         ),
         const SizedBox(height: 18),
 
@@ -522,9 +522,9 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
             return Column(
               children: [
                 _CertRow(label: 'Tetanus Toxoid', value: care?.tetanusDone == true ? 'Given ${_formatDate(care?.tetanusDate)}' : 'Pending Primary'),
-                _CertRow(label: 'Deworming Status', value: care?.wormerDone == true ? 'Completed ${_formatDate(care?.wormerDate)}' : 'Scheduled'),
+                _CertRow(label: 'Wormer Status', value: care?.wormerDone == true ? 'Completed ${_formatDate(care?.wormerDate)}' : 'Scheduled Routine'),
                 _CertRow(label: 'Strangles Vaccination', value: care?.stranglesDone == true ? 'Given ${_formatDate(care?.stranglesDate)}' : 'Not Recorded'),
-                _CertRow(label: 'Veterinary Dental Check', value: care?.dentalDone == true ? 'Inspected ${_formatDate(care?.dentalDate)}' : 'Scheduled at Weaning'),
+                _CertRow(label: 'Dental Examination', value: care?.dentalDone == true ? 'Inspected ${_formatDate(care?.dentalDate)}' : 'Scheduled at Weaning'),
                 _CertRow(label: 'Farrier / Hoof Care', value: care?.farrierDone == true ? 'Trimmed ${_formatDate(care?.farrierDate)}' : 'Scheduled Routine'),
               ],
             );

@@ -27,16 +27,15 @@ import '../../../foaling_diary/presentation/providers/foaling_diary_provider.dar
 class EquineBreedingWizardScreen extends ConsumerStatefulWidget {
   final String? initialMareId;
 
-  const EquineBreedingWizardScreen({
-    super.key,
-    this.initialMareId,
-  });
+  const EquineBreedingWizardScreen({super.key, this.initialMareId});
 
   @override
-  ConsumerState<EquineBreedingWizardScreen> createState() => _EquineBreedingWizardScreenState();
+  ConsumerState<EquineBreedingWizardScreen> createState() =>
+      _EquineBreedingWizardScreenState();
 }
 
-class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizardScreen> {
+class _EquineBreedingWizardScreenState
+    extends ConsumerState<EquineBreedingWizardScreen> {
   int _currentStep = 0; // 0 to 5 (6 steps)
   bool _isSaving = false;
 
@@ -61,14 +60,26 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
   DateTime _ehvDate = DateTime.now();
   bool _rotavirusDone = false;
   DateTime? _rotavirusDate;
-  bool _dewormerDone = true;
-  DateTime _dewormerDate = DateTime.now();
+  bool _wormerDone = true;
+  DateTime _wormerDate = DateTime.now();
 
-  // Step 5: Dentist & Farrier Contacts
-  final _vetNameController = TextEditingController(text: 'Dr. Sarah Jenkins (Equine Vet)');
+  // Step 5: Veterinarian, Dentist & Farrier Contacts
+  final _vetNameController = TextEditingController(
+    text: 'Dr. Sarah Jenkins (Equine Vet)',
+  );
   final _vetPhoneController = TextEditingController(text: '+1-555-482-9102');
-  final _farrierNameController = TextEditingController(text: 'Robert Vance (Master Farrier)');
-  final _farrierPhoneController = TextEditingController(text: '+1-555-839-2019');
+  final _dentistNameController = TextEditingController(
+    text: 'Dr. Marcus Vance (Equine Dentist)',
+  );
+  final _dentistPhoneController = TextEditingController(
+    text: '+1-555-671-8822',
+  );
+  final _farrierNameController = TextEditingController(
+    text: 'Robert Vance (Master Farrier)',
+  );
+  final _farrierPhoneController = TextEditingController(
+    text: '+1-555-839-2019',
+  );
   DateTime? _farrierDate = DateTime.now();
   DateTime? _dentalDate = DateTime.now();
 
@@ -105,6 +116,8 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
     _stallionController.dispose();
     _vetNameController.dispose();
     _vetPhoneController.dispose();
+    _dentistNameController.dispose();
+    _dentistPhoneController.dispose();
     _farrierNameController.dispose();
     _farrierPhoneController.dispose();
     super.dispose();
@@ -115,7 +128,10 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
   }
 
-  Future<void> _pickDate(Function(DateTime) onPicked, {DateTime? initial}) async {
+  Future<void> _pickDate(
+    Function(DateTime) onPicked, {
+    DateTime? initial,
+  }) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: initial ?? DateTime.now(),
@@ -156,7 +172,10 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
       );
       return;
     }
-    if (_currentStep == 2 && _isEtOrIcsi && _recipientCarries && _selectedRecipient == null) {
+    if (_currentStep == 2 &&
+        _isEtOrIcsi &&
+        _recipientCarries &&
+        _selectedRecipient == null) {
       AppFeedbackSnackbar.showError(
         context,
         title: 'Step 3 Incomplete',
@@ -185,7 +204,8 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
       final careRepo = ref.read(preventativeCareRepositoryProvider);
 
       final isET = _isEtOrIcsi;
-      final carrierAnimalId = (isET && _recipientCarries && _selectedRecipient != null)
+      final carrierAnimalId =
+          (isET && _recipientCarries && _selectedRecipient != null)
           ? _selectedRecipient!.id
           : _selectedMare!.id;
 
@@ -198,7 +218,9 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
         method: _selectedMethod,
         coverOrTransferDate: _coverDate,
         isEmbryoTransfer: isET && _recipientCarries,
-        recipientAnimalId: (isET && _recipientCarries) ? _selectedRecipient?.id : null,
+        recipientAnimalId: (isET && _recipientCarries)
+            ? _selectedRecipient?.id
+            : null,
         damOfEmbryo: isET ? _selectedMare!.name : null,
         stallionOfEmbryo: isET ? _stallionController.text.trim() : null,
         createdAt: DateTime.now(),
@@ -228,14 +250,18 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
         eqHerpesDone: _ehvDone,
         rotavirusDate: _rotavirusDone ? _rotavirusDate : null,
         rotavirusDone: _rotavirusDone,
-        wormerDate: _dewormerDone ? _dewormerDate : null,
-        wormerDone: _dewormerDone,
+        wormerDate: _wormerDone ? _wormerDate : null,
+        wormerDone: _wormerDone,
         farrierDate: _farrierDate,
         farrierDone: _farrierDate != null,
-        farrierNumber: _farrierPhoneController.text.trim().isNotEmpty ? _farrierPhoneController.text.trim() : null,
+        farrierNumber: _farrierPhoneController.text.trim().isNotEmpty
+            ? _farrierPhoneController.text.trim()
+            : null,
         dentalDate: _dentalDate,
         dentalDone: _dentalDate != null,
-        dentistNumber: _vetPhoneController.text.trim().isNotEmpty ? _vetPhoneController.text.trim() : null,
+        dentistNumber: _dentistPhoneController.text.trim().isNotEmpty
+            ? _dentistPhoneController.text.trim()
+            : null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -243,11 +269,13 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
 
       // Sync to Foaling Diary & Calendar Reminders
       try {
-        await ref.read(calendarDiarySyncServiceProvider).syncFromBreedingRecord(
-          breeding: savedBreeding,
-          mare: _selectedMare!,
-          recipient: _selectedRecipient,
-        );
+        await ref
+            .read(calendarDiarySyncServiceProvider)
+            .syncFromBreedingRecord(
+              breeding: savedBreeding,
+              mare: _selectedMare!,
+              recipient: _selectedRecipient,
+            );
       } catch (_) {}
 
       ref.invalidate(breedingRecordByMareProvider(_selectedMare!.id));
@@ -260,7 +288,8 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
         AppFeedbackSnackbar.showSuccess(
           context,
           title: 'Breeding & Pregnancy Activated',
-          message: 'Full 6-step equine breeding workflow verified and calculated!',
+          message:
+              'Full 6-step equine breeding workflow verified and calculated!',
         );
 
         Navigator.pushReplacementNamed(
@@ -287,10 +316,12 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
   }
 
   bool get _hasUnsavedChanges {
-    final isMareSelected = _selectedMare != null && _selectedMare?.id != widget.initialMareId;
+    final isMareSelected =
+        _selectedMare != null && _selectedMare?.id != widget.initialMareId;
     final isStallionEntered = _stallionController.text.trim().isNotEmpty;
     final isMethodChanged = _selectedMethod != 'natural';
-    final isRecipientChanged = _recipientCarries != false || _selectedRecipient != null;
+    final isRecipientChanged =
+        _recipientCarries != false || _selectedRecipient != null;
     return isMareSelected ||
         isStallionEntered ||
         isMethodChanged ||
@@ -311,7 +342,8 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
         final shouldSave = await showAppUnsavedChangesDialog(
           context,
           title: 'Exit Breeding Wizard?',
-          message: 'You have entered breeding details in this wizard. Do you want to save or discard before leaving?',
+          message:
+              'You have entered breeding details in this wizard. Do you want to save or discard before leaving?',
         );
         if (shouldSave == false) {
           if (mounted) Navigator.of(context).pop();
@@ -325,10 +357,17 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
           backgroundColor: AppColors.background,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppColors.textPrimary,
+              size: 20,
+            ),
             onPressed: () => Navigator.maybePop(context),
           ),
-          title: const Text('EQUINE BREEDING WIZARD', style: AppTypography.sectionLabel),
+          title: const Text(
+            'EQUINE BREEDING WIZARD',
+            style: AppTypography.sectionLabel,
+          ),
           centerTitle: true,
         ),
         body: SafeArea(
@@ -344,9 +383,7 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
                     horizontal: AppSpacing.horizontalPadding,
                     vertical: 16.0,
                   ),
-                  child: ResponsiveBody(
-                    child: _buildCurrentStepContent(),
-                  ),
+                  child: ResponsiveBody(child: _buildCurrentStepContent()),
                 ),
               ),
 
@@ -360,12 +397,21 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
   }
 
   Widget _buildStepperHeader() {
-    final stepTitles = ['Mare', 'Breeding', 'Carrier', 'Vaccines', 'Dentist', 'Due Date'];
+    final stepTitles = [
+      'Mare',
+      'Breeding',
+      'Carrier',
+      'Vaccines',
+      'Dentist',
+      'Due Date',
+    ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.inputBorder, width: 1.0)),
+        border: Border(
+          bottom: BorderSide(color: AppColors.inputBorder, width: 1.0),
+        ),
       ),
       child: Column(
         children: [
@@ -383,19 +429,29 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
                       shape: BoxShape.circle,
                       color: isPassed
                           ? AppColors.primaryGold
-                          : (isCurrent ? AppColors.primaryGold.withValues(alpha: 0.2) : AppColors.inputField),
+                          : (isCurrent
+                                ? AppColors.primaryGold.withValues(alpha: 0.2)
+                                : AppColors.inputField),
                       border: Border.all(
-                        color: (isPassed || isCurrent) ? AppColors.primaryGold : AppColors.inputBorder,
+                        color: (isPassed || isCurrent)
+                            ? AppColors.primaryGold
+                            : AppColors.inputBorder,
                         width: 1.5,
                       ),
                     ),
                     child: Center(
                       child: isPassed
-                          ? const Icon(Icons.check, size: 16, color: AppColors.background)
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: AppColors.background,
+                            )
                           : Text(
                               '${index + 1}',
                               style: TextStyle(
-                                color: isCurrent ? AppColors.primaryGold : AppColors.textMuted,
+                                color: isCurrent
+                                    ? AppColors.primaryGold
+                                    : AppColors.textMuted,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -406,7 +462,9 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
                     Container(
                       width: 18,
                       height: 2,
-                      color: isPassed ? AppColors.primaryGold : AppColors.inputBorder,
+                      color: isPassed
+                          ? AppColors.primaryGold
+                          : AppColors.inputBorder,
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                     ),
                 ],
@@ -479,7 +537,9 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
               border: Border.all(
-                color: _selectedMare != null ? AppColors.primaryGold : AppColors.inputBorder,
+                color: _selectedMare != null
+                    ? AppColors.primaryGold
+                    : AppColors.inputBorder,
                 width: _selectedMare != null ? 1.5 : 1.0,
               ),
             ),
@@ -507,22 +567,36 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
                         const SizedBox(height: 2),
                         Text(
                           'Breed: ${_selectedMare!.breed ?? "Equine"} • Microchip: ${_selectedMare!.microchipNo ?? "N/A"}',
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.check_circle, color: AppColors.primaryGold, size: 22),
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppColors.primaryGold,
+                    size: 22,
+                  ),
                 ] else ...[
                   const HorseshoeIcon(size: 28, color: AppColors.primaryGold),
                   const SizedBox(width: 14),
                   const Expanded(
                     child: Text(
                       'Tap to select or register Broodmare...',
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: AppColors.textMuted,
+                    size: 14,
+                  ),
                 ],
               ],
             ),
@@ -532,6 +606,7 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
     );
   }
 
+  // ---------------------------------------------------------------------------
   // ---------------------------------------------------------------------------
   // STEP 2: BREEDING SERVICE DETAILS
   // ---------------------------------------------------------------------------
@@ -546,7 +621,10 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
           label: 'Sire / Stallion Name *',
           hintText: 'e.g. Thunderbolt Royal King',
           controller: _stallionController,
-          prefixIcon: Icons.pets,
+          prefixWidget: const HorseshoeIcon(
+            size: 18,
+            color: AppColors.primaryGold,
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -558,14 +636,29 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
           children: _methods.map((m) {
             final isSelected = _selectedMethod == m.value;
             return ChoiceChip(
-              label: Text(m.label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+              label: Text(
+                m.label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+              ),
               selected: isSelected,
               selectedColor: AppColors.primaryGold,
               backgroundColor: AppColors.surface,
               labelStyle: TextStyle(
-                color: isSelected ? AppColors.background : AppColors.textPrimary,
+                color: isSelected
+                    ? AppColors.background
+                    : AppColors.textPrimary,
               ),
-              onSelected: (_) => setState(() => _selectedMethod = m.value),
+              onSelected: (_) {
+                setState(() {
+                  _selectedMethod = m.value;
+                  if (m.value == 'et' || m.value == 'icsi') {
+                    _recipientCarries = true;
+                  }
+                });
+              },
             );
           }).toList(),
         ),
@@ -574,12 +667,19 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Cover / Insemination Date *', style: AppTypography.inputLabel),
+            const Text(
+              'Cover / Insemination Date *',
+              style: AppTypography.inputLabel,
+            ),
             const SizedBox(height: 6),
             GestureDetector(
-              onTap: () => _pickDate((date) => _coverDate = date, initial: _coverDate),
+              onTap: () =>
+                  _pickDate((date) => _coverDate = date, initial: _coverDate),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.inputField,
                   borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
@@ -588,8 +688,18 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_formatDate(_coverDate), style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
-                    const Icon(Icons.calendar_today_rounded, color: AppColors.primaryGold, size: 18),
+                    Text(
+                      _formatDate(_coverDate),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      color: AppColors.primaryGold,
+                      size: 18,
+                    ),
                   ],
                 ),
               ),
@@ -615,16 +725,25 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-              border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.4)),
+              border: Border.all(
+                color: AppColors.primaryGold.withValues(alpha: 0.4),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.check_circle_outline, color: AppColors.primaryGold, size: 24),
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: AppColors.primaryGold,
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Natural/AI Breeding: The Dam (${_selectedMare?.name ?? "Mare"}) carries the pregnancy herself. No recipient surrogate needed.',
-                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
@@ -637,12 +756,46 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionDividerLabel(label: 'STEP 3: EMBRYO TRANSFER RECIPIENT MARE'),
+        const SectionDividerLabel(
+          label: 'STEP 3: EMBRYO TRANSFER RECIPIENT MARE',
+        ),
         const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: AppColors.primaryGold.withValues(alpha: 0.3),
+            ),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.info_outline, color: AppColors.primaryGold, size: 20),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'ET / ICSI Protocol Activated: Select or register the surrogate Recipient Mare carrying the embryo.',
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Embryo Transferred to Recipient Mare', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Toggle on if embryo was flushed and transferred to a surrogate mare', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          title: const Text(
+            'Embryo Transferred to Recipient Mare',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          subtitle: const Text(
+            'Designate the surrogate mare carrying this embryo',
+            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+          ),
           value: _recipientCarries,
           activeColor: AppColors.primaryGold,
           onChanged: (val) => setState(() => _recipientCarries = val),
@@ -665,7 +818,11 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                border: Border.all(color: _selectedRecipient != null ? AppColors.primaryGold : AppColors.inputBorder),
+                border: Border.all(
+                  color: _selectedRecipient != null
+                      ? AppColors.primaryGold
+                      : AppColors.inputBorder,
+                ),
               ),
               child: Row(
                 children: [
@@ -677,19 +834,53 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        _selectedRecipient!.name,
-                        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _selectedRecipient!.name,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            'Recipient Microchip: ${_selectedRecipient!.microchipNo ?? "N/A"}',
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const Icon(Icons.check_circle, color: AppColors.primaryGold, size: 20),
+                    const Icon(
+                      Icons.check_circle,
+                      color: AppColors.primaryGold,
+                      size: 20,
+                    ),
                   ] else ...[
-                    const Icon(Icons.add_circle_outline, color: AppColors.textMuted, size: 22),
+                    const Icon(
+                      Icons.add_circle_outline,
+                      color: AppColors.textMuted,
+                      size: 22,
+                    ),
                     const SizedBox(width: 12),
                     const Expanded(
-                      child: Text('Tap to select Recipient Mare...', style: TextStyle(color: AppColors.textMuted, fontSize: 14)),
+                      child: Text(
+                        'Tap to select or register Recipient Mare...',
+                        style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: AppColors.textMuted,
+                      size: 14,
+                    ),
                   ],
                 ],
               ),
@@ -701,68 +892,98 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
   }
 
   // ---------------------------------------------------------------------------
-  // STEP 4: PREVENTATIVE CARE & 9 VACCINES
+  // STEP 4: PREVENTATIVE CARE & VACCINES
   // ---------------------------------------------------------------------------
   Widget _buildStep4Vaccines() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionDividerLabel(label: 'STEP 4: PREVENTATIVE CARE & VACCINES'),
+        const SectionDividerLabel(
+          label: 'STEP 4: PREVENTATIVE CARE & VACCINES',
+        ),
         const SizedBox(height: 10),
         const Text(
-          'Ensure brooding mare immunity before foaling. Verified 9-Vaccine Equine Health Protocol:',
+          'Ensure brooding mare immunity before foaling. Verified Equine Health Protocol:',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
         ),
         const SizedBox(height: 14),
 
-        _buildVaccineTile('Tetanus Toxoid', _tetanusDone, _tetanusDate, (done, date) {
+        _buildVaccineTile('Tetanus Toxoid', _tetanusDone, _tetanusDate, (
+          done,
+          date,
+        ) {
           setState(() {
             _tetanusDone = done;
             if (date != null) _tetanusDate = date;
           });
         }),
-        _buildVaccineTile('Strangles (S. equi)', _stranglesDone, _stranglesDate, (done, date) {
-          setState(() {
-            _stranglesDone = done;
-            if (date != null) _stranglesDate = date;
-          });
-        }),
-        _buildVaccineTile('EHV 1/4 (Equine Herpesvirus)', _ehvDone, _ehvDate, (done, date) {
+        _buildVaccineTile(
+          'Strangles (S. equi)',
+          _stranglesDone,
+          _stranglesDate,
+          (done, date) {
+            setState(() {
+              _stranglesDone = done;
+              if (date != null) _stranglesDate = date;
+            });
+          },
+        ),
+        _buildVaccineTile('EHV 1/4 (Equine Herpesvirus)', _ehvDone, _ehvDate, (
+          done,
+          date,
+        ) {
           setState(() {
             _ehvDone = done;
             if (date != null) _ehvDate = date;
           });
         }),
-        _buildVaccineTile('Rotavirus (Foal Diarrhea)', _rotavirusDone, _rotavirusDate, (done, date) {
+        _buildVaccineTile(
+          'Rotavirus (Foal Diarrhea)',
+          _rotavirusDone,
+          _rotavirusDate,
+          (done, date) {
+            setState(() {
+              _rotavirusDone = done;
+              if (date != null) _rotavirusDate = date;
+            });
+          },
+        ),
+        _buildVaccineTile('Wormer (Broad-spectrum)', _wormerDone, _wormerDate, (
+          done,
+          date,
+        ) {
           setState(() {
-            _rotavirusDone = done;
-            if (date != null) _rotavirusDate = date;
-          });
-        }),
-        _buildVaccineTile('Dewormer (Broad-spectrum)', _dewormerDone, _dewormerDate, (done, date) {
-          setState(() {
-            _dewormerDone = done;
-            if (date != null) _dewormerDate = date;
+            _wormerDone = done;
+            if (date != null) _wormerDate = date;
           });
         }),
 
         const SizedBox(height: 12),
-        // Sponsor Slot Placeholder (Point 5 commitment)
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: AppColors.primaryGold.withValues(alpha: 0.3),
+            ),
           ),
           child: const Row(
             children: [
-              Icon(Icons.workspace_premium_outlined, color: AppColors.primaryGold, size: 20),
+              Icon(
+                Icons.workspace_premium_outlined,
+                color: AppColors.primaryGold,
+                size: 20,
+              ),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Sponsor Partner: Official Equine Vaccine & Dewormer Protocol Approved',
-                  style: TextStyle(color: AppColors.primaryGold, fontSize: 11, fontWeight: FontWeight.w600),
+                  'Sponsor Partner: Official Equine Vaccine & Wormer Protocol Approved',
+                  style: TextStyle(
+                    color: AppColors.primaryGold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -772,14 +993,23 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
     );
   }
 
-  Widget _buildVaccineTile(String name, bool isDone, DateTime? date, Function(bool, DateTime?) onChanged) {
+  Widget _buildVaccineTile(
+    String name,
+    bool isDone,
+    DateTime? date,
+    Function(bool, DateTime?) onChanged,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: isDone ? AppColors.primaryGold.withValues(alpha: 0.5) : AppColors.inputBorder),
+        border: Border.all(
+          color: isDone
+              ? AppColors.primaryGold.withValues(alpha: 0.5)
+              : AppColors.inputBorder,
+        ),
       ),
       child: Row(
         children: [
@@ -792,16 +1022,36 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
                 if (isDone && date != null)
-                  Text('Administered: ${_formatDate(date)}', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                  Text(
+                    'Administered: ${_formatDate(date)}',
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
+                  ),
               ],
             ),
           ),
           if (isDone)
             IconButton(
-              icon: const Icon(Icons.edit_calendar_outlined, size: 16, color: AppColors.primaryGold),
-              onPressed: () => _pickDate((newDate) => onChanged(true, newDate), initial: date),
+              icon: const Icon(
+                Icons.edit_calendar_outlined,
+                size: 16,
+                color: AppColors.primaryGold,
+              ),
+              onPressed: () => _pickDate(
+                (newDate) => onChanged(true, newDate),
+                initial: date,
+              ),
             ),
         ],
       ),
@@ -809,22 +1059,33 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
   }
 
   // ---------------------------------------------------------------------------
-  // STEP 5: DENTIST & FARRIER
+  // STEP 5: VETERINARIAN, DENTIST & FARRIER (PREFERRED SEQUENCE: 1. VET ➔ 2. DENTIST ➔ 3. FARRIER)
   // ---------------------------------------------------------------------------
   Widget _buildStep5DentistFarrier() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionDividerLabel(label: 'STEP 5: DENTIST, FARRIER & EMERGENCY VET'),
+        const SectionDividerLabel(
+          label: 'STEP 5: VET, DENTIST & FARRIER (1-2-3 SEQUENCE)',
+        ),
         const SizedBox(height: 12),
 
+        // 1. Veterinarian
+        const Text(
+          '1. Equine Veterinarian (Primary Medical & Scans)',
+          style: TextStyle(
+            color: AppColors.primaryGold,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
         CustomTextField(
           label: 'Veterinarian Name',
           controller: _vetNameController,
           prefixIcon: Icons.medical_services_outlined,
         ),
         const SizedBox(height: 10),
-
         CustomTextField(
           label: 'Veterinarian Phone (Click-to-Call)',
           controller: _vetPhoneController,
@@ -836,25 +1097,99 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
           Align(
             alignment: Alignment.centerRight,
             child: OutlinedButton.icon(
-              onPressed: () => AppPhoneLauncher.makePhoneCall(context, _vetPhoneController.text),
-              icon: const Icon(Icons.call, size: 14, color: AppColors.primaryGold),
-              label: const Text('Call Vet', style: TextStyle(color: AppColors.primaryGold, fontSize: 11)),
+              onPressed: () => AppPhoneLauncher.makePhoneCall(
+                context,
+                _vetPhoneController.text,
+              ),
+              icon: const Icon(
+                Icons.call,
+                size: 14,
+                color: AppColors.primaryGold,
+              ),
+              label: const Text(
+                'Call Vet',
+                style: TextStyle(color: AppColors.primaryGold, fontSize: 11),
+              ),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primaryGold),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
               ),
             ),
           ),
         ],
-        const SizedBox(height: 16),
+        const Divider(color: AppColors.inputBorder, height: 28),
 
+        // 2. Equine Dentist
+        const Text(
+          '2. Equine Dentist / Dental Technician',
+          style: TextStyle(
+            color: AppColors.primaryGold,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+        CustomTextField(
+          label: 'Dentist Name',
+          controller: _dentistNameController,
+          prefixIcon: Icons.health_and_safety_outlined,
+        ),
+        const SizedBox(height: 10),
+        CustomTextField(
+          label: 'Dentist Phone (Click-to-Call)',
+          controller: _dentistPhoneController,
+          keyboardType: TextInputType.phone,
+          prefixIcon: Icons.phone_outlined,
+        ),
+        if (_dentistPhoneController.text.trim().isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: OutlinedButton.icon(
+              onPressed: () => AppPhoneLauncher.makePhoneCall(
+                context,
+                _dentistPhoneController.text,
+              ),
+              icon: const Icon(
+                Icons.call,
+                size: 14,
+                color: AppColors.primaryGold,
+              ),
+              label: const Text(
+                'Call Dentist',
+                style: TextStyle(color: AppColors.primaryGold, fontSize: 11),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.primaryGold),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+              ),
+            ),
+          ),
+        ],
+        const Divider(color: AppColors.inputBorder, height: 28),
+
+        // 3. Master Farrier
+        const Text(
+          '3. Master Farrier (Hoof Care & Trimming)',
+          style: TextStyle(
+            color: AppColors.primaryGold,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
         CustomTextField(
           label: 'Farrier Name',
           controller: _farrierNameController,
           prefixIcon: Icons.construction_outlined,
         ),
         const SizedBox(height: 10),
-
         CustomTextField(
           label: 'Farrier Phone (Click-to-Call)',
           controller: _farrierPhoneController,
@@ -866,12 +1201,25 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
           Align(
             alignment: Alignment.centerRight,
             child: OutlinedButton.icon(
-              onPressed: () => AppPhoneLauncher.makePhoneCall(context, _farrierPhoneController.text),
-              icon: const Icon(Icons.call, size: 14, color: AppColors.primaryGold),
-              label: const Text('Call Farrier', style: TextStyle(color: AppColors.primaryGold, fontSize: 11)),
+              onPressed: () => AppPhoneLauncher.makePhoneCall(
+                context,
+                _farrierPhoneController.text,
+              ),
+              icon: const Icon(
+                Icons.call,
+                size: 14,
+                color: AppColors.primaryGold,
+              ),
+              label: const Text(
+                'Call Farrier',
+                style: TextStyle(color: AppColors.primaryGold, fontSize: 11),
+              ),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primaryGold),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
               ),
             ),
           ),
@@ -892,7 +1240,9 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionDividerLabel(label: 'STEP 6: FOALING DUE DATE & SCAN SCHEDULE'),
+        const SectionDividerLabel(
+          label: 'STEP 6: FOALING DUE DATE & SCAN SCHEDULE',
+        ),
         const SizedBox(height: 12),
 
         // Hero Card with Foaling Prediction
@@ -913,17 +1263,29 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
               const SizedBox(height: 8),
               const Text(
                 'PROJECTED FOALING BIRTHDAY',
-                style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0),
+                style: TextStyle(
+                  color: AppColors.primaryGold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  letterSpacing: 1.0,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 _formatDate(foalingDate),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 26),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Gestation Period: 341 Days • Dam: ${_selectedMare?.name ?? "Mare"}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -931,17 +1293,40 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
         const SizedBox(height: 18),
 
         // Three Ultrasound Scans Timeline
-        const Text('System-Calculated Ultrasound Milestones:', style: AppTypography.inputLabel),
+        const Text(
+          'System-Calculated Ultrasound Milestones:',
+          style: AppTypography.inputLabel,
+        ),
         const SizedBox(height: 10),
 
-        _buildScanSummaryTile(1, 'Day 14-16 Ultrasound', scan1Date, 'Early Pregnancy & Twin Detection Warning'),
-        _buildScanSummaryTile(2, 'Day 28-30 Ultrasound', scan2Date, 'Embryo Heartbeat & Viability Confirmation'),
-        _buildScanSummaryTile(3, 'Day 45 Ultrasound', scan3Date, 'Endometrial Cups & Organogenesis Completion'),
+        _buildScanSummaryTile(
+          1,
+          'Day 14-16 Ultrasound',
+          scan1Date,
+          'Early Pregnancy & Twin Detection Warning',
+        ),
+        _buildScanSummaryTile(
+          2,
+          'Day 28-30 Ultrasound',
+          scan2Date,
+          'Embryo Heartbeat & Viability Confirmation',
+        ),
+        _buildScanSummaryTile(
+          3,
+          'Day 45 Ultrasound',
+          scan3Date,
+          'Endometrial Cups & Organogenesis Completion',
+        ),
       ],
     );
   }
 
-  Widget _buildScanSummaryTile(int num, String title, DateTime date, String purpose) {
+  Widget _buildScanSummaryTile(
+    int num,
+    String title,
+    DateTime date,
+    String purpose,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -962,7 +1347,10 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
             child: Center(
               child: Text(
                 '$num',
-                style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: AppColors.primaryGold,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -974,12 +1362,32 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(title, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
-                    Text(_formatDate(date), style: const TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold, fontSize: 12)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      _formatDate(date),
+                      style: const TextStyle(
+                        color: AppColors.primaryGold,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 2),
-                Text(purpose, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                Text(
+                  purpose,
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ),
@@ -997,7 +1405,9 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.inputBorder, width: 1.0)),
+        border: Border(
+          top: BorderSide(color: AppColors.inputBorder, width: 1.0),
+        ),
       ),
       child: Row(
         children: [
@@ -1006,10 +1416,21 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
               onPressed: _isSaving ? null : _previousStep,
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primaryGold),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.cardRadius)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                ),
               ),
-              child: const Text('PREVIOUS', style: TextStyle(color: AppColors.primaryGold, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'PREVIOUS',
+                style: TextStyle(
+                  color: AppColors.primaryGold,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             const SizedBox(width: 12),
           ],
@@ -1017,8 +1438,12 @@ class _EquineBreedingWizardScreenState extends ConsumerState<EquineBreedingWizar
             child: GradientCtaButton(
               text: _isSaving
                   ? 'CALCULATING & SAVING...'
-                  : (isLastStep ? 'FINISH & ACTIVATE PREGNANCY' : 'SAVE & CONTINUE ➔'),
-              onPressed: _isSaving ? null : (isLastStep ? _finishWizard : _nextStep),
+                  : (isLastStep
+                        ? 'FINISH & ACTIVATE PREGNANCY'
+                        : 'SAVE & CONTINUE ➔'),
+              onPressed: _isSaving
+                  ? null
+                  : (isLastStep ? _finishWizard : _nextStep),
             ),
           ),
         ],

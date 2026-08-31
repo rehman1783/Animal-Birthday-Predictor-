@@ -412,8 +412,8 @@ class _PreventativeCareScreenState extends ConsumerState<PreventativeCareScreen>
                       const SizedBox(height: 20.0),
                     ],
 
-                    // 1. Parasite & Deworming
-                    const SectionDividerLabel(label: 'PARASITE & DEWORMING'),
+                    // 1. Parasite & Wormer Protocol
+                    const SectionDividerLabel(label: 'PARASITE & WORMER PROTOCOL'),
                     const SizedBox(height: 12.0),
 
                     VaccinationRow(

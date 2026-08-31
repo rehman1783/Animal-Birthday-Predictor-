@@ -89,6 +89,7 @@ class MareRepository {
 
   // --- MARKINGS ---
   Future<Markings?> getMarkings(String ownerType, String ownerId) async {
+    if (ownerId.trim().isEmpty) return null;
     final c = client;
 
     if (c != null) {
@@ -104,8 +105,7 @@ class MareRepository {
         }
         return null;
       } catch (e) {
-        debugPrint('Supabase getMarkings error: $e');
-        rethrow;
+        debugPrint('Supabase getMarkings error (fallback to local): $e');
       }
     }
 
@@ -148,8 +148,7 @@ class MareRepository {
           return saved;
         }
       } catch (e) {
-        debugPrint('Supabase saveMarkings error: $e');
-        rethrow;
+        debugPrint('Supabase saveMarkings error (fallback to local): $e');
       }
     }
 

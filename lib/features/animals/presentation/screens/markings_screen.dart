@@ -47,23 +47,42 @@ class _MarkingsScreenState extends ConsumerState<MarkingsScreen> {
   }
 
   Future<void> _loadExistingMarkings() async {
-    final repo = ref.read(mareRepositoryProvider);
-    final markings = await repo.getMarkings(widget.ownerType, widget.ownerId);
-    if (markings != null && mounted) {
-      setState(() {
-        _initialMarkings = markings;
-        _existingId = markings.id;
-        _leftSideImage = markings.leftSideImageUrl;
-        _rightSideImage = markings.rightSideImageUrl;
-        _headViewImage = markings.headViewImageUrl;
-        _headNotesController.text = markings.headViewNotes ?? '';
-        _isLoaded = true;
-      });
-    } else {
-      setState(() {
-        _initialMarkings = null;
-        _isLoaded = true;
-      });
+    try {
+      if (widget.ownerId.trim().isEmpty) {
+        if (mounted) {
+          setState(() {
+            _initialMarkings = null;
+            _isLoaded = true;
+          });
+        }
+        return;
+      }
+      final repo = ref.read(mareRepositoryProvider);
+      final markings = await repo.getMarkings(widget.ownerType, widget.ownerId);
+      if (markings != null && mounted) {
+        setState(() {
+          _initialMarkings = markings;
+          _existingId = markings.id;
+          _leftSideImage = markings.leftSideImageUrl;
+          _rightSideImage = markings.rightSideImageUrl;
+          _headViewImage = markings.headViewImageUrl;
+          _headNotesController.text = markings.headViewNotes ?? '';
+          _isLoaded = true;
+        });
+      } else if (mounted) {
+        setState(() {
+          _initialMarkings = null;
+          _isLoaded = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('MarkingsScreen load error: $e');
+      if (mounted) {
+        setState(() {
+          _initialMarkings = null;
+          _isLoaded = true;
+        });
+      }
     }
   }
 

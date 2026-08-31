@@ -137,6 +137,16 @@ class CalendarDiarySyncService {
           'account_id': user.id,
           'related_table': 'foaling_diary_entries',
           'related_id': diaryEntry.id,
+          'field_name': 'caslick_reminder_date',
+          'reminder_date': calculations.foalingDueDate.subtract(const Duration(days: 30)).toIso8601String().split('T').first,
+          'label': '${carrierMare.name} — 🚨 Caslick Opening Alert (1 Month Before Foaling)',
+          'synced_to_device_calendar': false,
+        },
+        {
+          'id': AppUuid.generate(),
+          'account_id': user.id,
+          'related_table': 'foaling_diary_entries',
+          'related_id': diaryEntry.id,
           'field_name': 'foaling_due_date',
           'reminder_date': calculations.foalingDueDate.toIso8601String().split('T').first,
           'label': '${carrierMare.name} — Expected Foaling Due Date (340d)',
@@ -313,6 +323,21 @@ class CalendarDiarySyncService {
           date: scan3Date,
           isCompleted: entry.scan3Confirmed,
           description: 'Day 45-60 post cover: Fetal development, Caslick evaluation & fetal sexing.',
+          relatedRecordId: entry.id,
+        ),
+      );
+
+      // Caslick Alert (30 days before foaling - 1 Month Prior)
+      final caslickDate = entry.foalingDueDate.subtract(const Duration(days: 30));
+      milestones.add(
+        CalendarTimelineMilestone(
+          id: '${entry.id}_caslick_alert',
+          title: '🚨 Caslick Vulvoplasty Opening Alert',
+          mareName: entry.mareName,
+          category: 'caslick_alert',
+          date: caslickDate,
+          isCompleted: DateTime.now().isAfter(caslickDate) || entry.isFoaled,
+          description: '1 Month Prior to Foaling: Schedule veterinarian to perform vulvotomy / open Caslick to prevent severe tearing.',
           relatedRecordId: entry.id,
         ),
       );

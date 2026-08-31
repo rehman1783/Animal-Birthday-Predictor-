@@ -293,8 +293,8 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen>
       _tabController.animateTo(0);
       AppFeedbackSnackbar.showError(
         context,
-        title: 'Dam (Mare) Required',
-        error: 'Please select the Mother / Dam (Mare) before saving the foal record.',
+        title: 'Dam (Broodmare) Required',
+        error: 'Please select the Dam (Broodmare) before saving the foal record.',
       );
       return;
     }
@@ -722,14 +722,14 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen>
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Mother / Dam (Mare) *', style: AppTypography.inputLabel),
+                const Text('Dam / Broodmare *', style: AppTypography.inputLabel),
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: () async {
                     final picked = await SelectOrAddAnimalModal.show(
                       context,
                       species: 'horse',
-                      title: 'Select Dam (Mare)',
+                      title: 'Select Dam (Broodmare)',
                     );
                     if (picked != null) {
                       setState(() {
@@ -874,9 +874,10 @@ class _FoalDetailsScreenState extends ConsumerState<FoalDetailsScreen>
             const SizedBox(height: 14.0),
 
             CustomTextField(
-              label: 'Father / Sire (Stallion)',
+              label: 'Sire / Stallion',
               hintText: 'e.g. Thunderbolt Pegasus',
               controller: _stallionController,
+              prefixWidget: const HorseshoeIcon(size: 18, color: AppColors.primaryGold),
             ),
             const SizedBox(height: 14.0),
 

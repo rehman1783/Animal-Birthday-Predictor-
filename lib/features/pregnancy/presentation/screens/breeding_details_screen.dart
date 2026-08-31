@@ -447,8 +447,8 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // 1. Donor Mare (Mother)
-                              const SectionDividerLabel(label: 'DONOR MARE (MOTHER)'),
+                              // 1. Donor Mare (Dam)
+                              const SectionDividerLabel(label: 'DONOR MARE (DAM)'),
                               const SizedBox(height: 12.0),
 
                               GestureDetector(
@@ -515,8 +515,8 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                               ),
                               const SizedBox(height: 24.0),
 
-                              // 2. Stallion (Father)
-                              const SectionDividerLabel(label: 'STALLION (FATHER)'),
+                              // 2. Sire / Stallion
+                              const SectionDividerLabel(label: 'SIRE / STALLION'),
                               const SizedBox(height: 10.0),
                               Wrap(
                                 alignment: WrapAlignment.spaceBetween,
@@ -524,12 +524,12 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                                 spacing: 8,
                                 runSpacing: 4,
                                 children: [
-                                  const Text('Stallion Information', style: AppTypography.inputLabel),
+                                  const Text('Sire / Stallion Information', style: AppTypography.inputLabel),
                                   TextButton.icon(
                                     onPressed: () async {
                                       final chosen = await SelectOrAddAnimalModal.show(
                                         context,
-                                        title: 'Select Stallion (Father)',
+                                        title: 'Select Sire / Stallion',
                                         species: 'horse',
                                         requiredSex: 'stallion',
                                       );
@@ -545,9 +545,10 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                               const SizedBox(height: 6.0),
 
                               CustomTextField(
-                                label: 'Stallion / Stud Name (Optional)',
+                                label: 'Sire / Stallion Name (Optional)',
                                 hintText: 'e.g. Acres Destiny, Northern Dancer...',
                                 controller: _stallionController,
+                                prefixWidget: const HorseshoeIcon(size: 18, color: AppColors.primaryGold),
                               ),
                               const SizedBox(height: 24.0),
 
@@ -788,7 +789,7 @@ class _BreedingDetailsScreenState extends ConsumerState<BreedingDetailsScreen> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          '• Genetic Dam (Mother): ${_selectedMare?.name ?? "Selected Mare"}\n• Genetic Sire (Stallion): ${_stallionController.text.isNotEmpty ? _stallionController.text : "Selected Stallion"}\n• Cover / Breeding Date: ${_formatDate(_coverDate)}',
+                                          '• Genetic Dam (Broodmare): ${_selectedMare?.name ?? "Selected Mare"}\n• Genetic Sire (Stallion): ${_stallionController.text.isNotEmpty ? _stallionController.text : "Selected Stallion"}\n• Cover / Breeding Date: ${_formatDate(_coverDate)}',
                                           style: AppTypography.bodySmall.copyWith(color: AppColors.textPrimary, height: 1.4),
                                         ),
                                       ],

@@ -31,102 +31,144 @@ class PdfCertificateService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
+          final certId = 'ABP-EQ-${foal.dateOfBirth?.year ?? 2026}-${foal.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
+          final watermarkColor = PdfColor(0.83, 0.68, 0.21, 0.08);
+
           return pw.Container(
             padding: const pw.EdgeInsets.all(24),
             decoration: pw.BoxDecoration(
               border: pw.Border.all(color: goldColor, width: 2.5),
               borderRadius: pw.BorderRadius.circular(12),
             ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+            child: pw.Stack(
               children: [
-                // Header
-                pw.Center(
-                  child: pw.Column(
-                    children: [
-                      pw.Text(
-                        'ANIMAL BIRTHDAY PREDICTOR (ABP)',
-                        style: pw.TextStyle(
-                          fontSize: 10,
-                          fontWeight: pw.FontWeight.bold,
-                          color: goldColor,
-                          letterSpacing: 2,
-                        ),
+                // Tamper-Resistant Official ABP Watermark Overlay
+                pw.Positioned.fill(
+                  child: pw.Center(
+                    child: pw.Transform.rotate(
+                      angle: -0.42,
+                      child: pw.Column(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          pw.Text(
+                            'ABP OFFICIAL RECORD',
+                            style: pw.TextStyle(
+                              fontSize: 32,
+                              fontWeight: pw.FontWeight.bold,
+                              color: watermarkColor,
+                              letterSpacing: 4,
+                            ),
+                          ),
+                          pw.SizedBox(height: 10),
+                          pw.Text(
+                            certId,
+                            style: pw.TextStyle(
+                              fontSize: 16,
+                              fontWeight: pw.FontWeight.bold,
+                              color: watermarkColor,
+                              letterSpacing: 3,
+                            ),
+                          ),
+                        ],
                       ),
-                      pw.SizedBox(height: 4),
-                      pw.Text(
-                        'OFFICIAL EQUINE / FOAL CERTIFICATE',
-                        style: pw.TextStyle(
-                          fontSize: 20,
-                          fontWeight: pw.FontWeight.bold,
-                          color: darkNavy,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text(
-                        'Certified Pedigree, Physical Identification & Preventative Health Record',
-                        style: pw.TextStyle(fontSize: 9, color: textMuted, fontStyle: pw.FontStyle.italic),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-                pw.Divider(color: goldColor, thickness: 1, height: 20),
 
-                // Section 1: Identification
-                _buildPdfSectionHeader('I. IDENTIFICATION', goldColor),
-                pw.SizedBox(height: 6),
-                _buildPdfRow('Registered Name', foal.foalName?.isNotEmpty == true ? foal.foalName! : 'Unregistered Foal'),
-                _buildPdfRow('Breed', foal.breed?.isNotEmpty == true ? foal.breed! : 'Equine'),
-                _buildPdfRow('Sex', foal.sex == 'colt' ? 'Colt (Male)' : 'Filly (Female)'),
-                _buildPdfRow('Date of Birth', _formatDate(foal.dateOfBirth)),
-                _buildPdfRow('Microchip Number', foal.foalMicrochipNo?.isNotEmpty == true ? foal.foalMicrochipNo! : 'Not Microchipped'),
-                _buildPdfRow('DNA Profile', foal.dna?.isNotEmpty == true ? foal.dna! : 'On File / Pending'),
-                _buildPdfRow('Stud Book Association', foal.studBookAssociation?.isNotEmpty == true ? foal.studBookAssociation! : 'Recorded Breeder'),
-                pw.SizedBox(height: 12),
-
-                // Section 2: Parentage & Lineage
-                _buildPdfSectionHeader('II. PARENTAGE & LINEAGE', goldColor),
-                pw.SizedBox(height: 6),
-                _buildPdfRow('Sire (Father)', foal.stallion?.isNotEmpty == true ? foal.stallion! : 'Recorded Stallion'),
-                _buildPdfRow('Dam (Mother)', dam != null ? '${dam.name} (Chip: ${dam.microchipNo ?? "N/A"})' : 'Registered Mare'),
-                pw.SizedBox(height: 12),
-
-                // Section 3: Health Summary
-                _buildPdfSectionHeader('III. HEALTH & PREVENTATIVE CARE SUMMARY', goldColor),
-                pw.SizedBox(height: 6),
-                _buildPdfRow('Tetanus Toxoid', prevCare?.tetanusDone == true ? 'Completed ${_formatDate(prevCare?.tetanusDate)}' : 'Scheduled Primary'),
-                _buildPdfRow('Deworming Status', prevCare?.wormerDone == true ? 'Completed ${_formatDate(prevCare?.wormerDate)}' : 'Scheduled Routine'),
-                _buildPdfRow('Strangles Vaccination', prevCare?.stranglesDone == true ? 'Completed ${_formatDate(prevCare?.stranglesDate)}' : 'Not Recorded'),
-                _buildPdfRow('Dental Examination', prevCare?.dentalDone == true ? 'Inspected ${_formatDate(prevCare?.dentalDate)}' : 'Scheduled at Weaning'),
-                _buildPdfRow('Farrier / Hoof Care', prevCare?.farrierDone == true ? 'Trimmed ${_formatDate(prevCare?.farrierDate)}' : 'Scheduled Routine'),
-                pw.SizedBox(height: 12),
-
-                // Section 4: Breeder Details
-                _buildPdfSectionHeader('IV. BREEDER & OWNER ATTESTATION', goldColor),
-                pw.SizedBox(height: 6),
-                _buildPdfRow('Breeder / Stud Name', breederName.isNotEmpty ? breederName : 'Certified Equine Breeder'),
-                _buildPdfRow('Contact', breederEmail.isNotEmpty ? breederEmail : 'support@abp.app'),
-                if (foal.buyerName?.isNotEmpty == true) ...[
-                  _buildPdfRow('New Owner / Transfer', foal.buyerName!),
-                  if (foal.saleDate != null) _buildPdfRow('Date of Transfer', _formatDate(foal.saleDate)),
-                ],
-                _buildPdfRow('Date Issued', _formatDate(DateTime.now())),
-                pw.Spacer(),
-
-                // Fixed Legal Disclaimer
-                pw.Divider(color: surfaceColor, thickness: 0.5),
-                pw.SizedBox(height: 4),
-                pw.Center(
-                  child: pw.Text(
-                    'This certificate is a summary of information recorded by the breeder/owner. It is not a substitute for veterinary records, veterinary examination or professional veterinary advice.',
-                    style: pw.TextStyle(
-                      fontSize: 8,
-                      color: textMuted,
-                      fontStyle: pw.FontStyle.italic,
+                // Foreground Content
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    pw.Center(
+                      child: pw.Column(
+                        children: [
+                          pw.Text(
+                            'ANIMAL BIRTHDAY PREDICTOR (ABP)',
+                            style: pw.TextStyle(
+                              fontSize: 10,
+                              fontWeight: pw.FontWeight.bold,
+                              color: goldColor,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                          pw.SizedBox(height: 4),
+                          pw.Text(
+                            'OFFICIAL EQUINE / FOAL CERTIFICATE',
+                            style: pw.TextStyle(
+                              fontSize: 20,
+                              fontWeight: pw.FontWeight.bold,
+                              color: darkNavy,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          pw.SizedBox(height: 4),
+                          pw.Text(
+                            'Certified Pedigree, Physical Identification & Preventative Health Record',
+                            style: pw.TextStyle(fontSize: 9, color: textMuted, fontStyle: pw.FontStyle.italic),
+                          ),
+                        ],
+                      ),
                     ),
-                    textAlign: pw.TextAlign.center,
-                  ),
+                    pw.Divider(color: goldColor, thickness: 1, height: 20),
+
+                    // Section 1: Identification
+                    _buildPdfSectionHeader('I. IDENTIFICATION', goldColor),
+                    pw.SizedBox(height: 6),
+                    _buildPdfRow('Registered Name', foal.foalName?.isNotEmpty == true ? foal.foalName! : 'Unregistered Foal'),
+                    _buildPdfRow('Breed', foal.breed?.isNotEmpty == true ? foal.breed! : 'Equine'),
+                    _buildPdfRow('Sex', foal.sex == 'colt' ? 'Colt (Male)' : 'Filly (Female)'),
+                    _buildPdfRow('Date of Birth', _formatDate(foal.dateOfBirth)),
+                    _buildPdfRow('Microchip Number', foal.foalMicrochipNo?.isNotEmpty == true ? foal.foalMicrochipNo! : 'Not Microchipped'),
+                    _buildPdfRow('DNA Profile', foal.dna?.isNotEmpty == true ? foal.dna! : 'On File / Pending'),
+                    _buildPdfRow('Official Certificate ID', certId),
+                    _buildPdfRow('Stud Book Association', foal.studBookAssociation?.isNotEmpty == true ? foal.studBookAssociation! : 'Recorded Breeder'),
+                    pw.SizedBox(height: 12),
+
+                    // Section 2: Parentage & Lineage
+                    _buildPdfSectionHeader('II. PARENTAGE & LINEAGE', goldColor),
+                    pw.SizedBox(height: 6),
+                    _buildPdfRow('Sire (Stallion)', foal.stallion?.isNotEmpty == true ? foal.stallion! : 'Recorded Stallion'),
+                    _buildPdfRow('Dam (Broodmare)', dam != null ? '${dam.name} (Chip: ${dam.microchipNo ?? "N/A"})' : 'Registered Mare'),
+                    pw.SizedBox(height: 12),
+
+                    // Section 3: Health Summary
+                    _buildPdfSectionHeader('III. HEALTH & PREVENTATIVE CARE SUMMARY', goldColor),
+                    pw.SizedBox(height: 6),
+                    _buildPdfRow('Tetanus Toxoid', prevCare?.tetanusDone == true ? 'Completed ${_formatDate(prevCare?.tetanusDate)}' : 'Scheduled Primary'),
+                    _buildPdfRow('Wormer Status', prevCare?.wormerDone == true ? 'Completed ${_formatDate(prevCare?.wormerDate)}' : 'Scheduled Routine'),
+                    _buildPdfRow('Strangles Vaccination', prevCare?.stranglesDone == true ? 'Completed ${_formatDate(prevCare?.stranglesDate)}' : 'Not Recorded'),
+                    _buildPdfRow('Dental Examination', prevCare?.dentalDone == true ? 'Inspected ${_formatDate(prevCare?.dentalDate)}' : 'Scheduled at Weaning'),
+                    _buildPdfRow('Farrier / Hoof Care', prevCare?.farrierDone == true ? 'Trimmed ${_formatDate(prevCare?.farrierDate)}' : 'Scheduled Routine'),
+                    pw.SizedBox(height: 12),
+
+                    // Section 4: Breeder Details
+                    _buildPdfSectionHeader('IV. BREEDER & OWNER ATTESTATION', goldColor),
+                    pw.SizedBox(height: 6),
+                    _buildPdfRow('Breeder / Stud Name', breederName.isNotEmpty ? breederName : 'Certified Equine Breeder'),
+                    _buildPdfRow('Contact', breederEmail.isNotEmpty ? breederEmail : 'support@abp.app'),
+                    if (foal.buyerName?.isNotEmpty == true) ...[
+                      _buildPdfRow('New Owner / Transfer', foal.buyerName!),
+                      if (foal.saleDate != null) _buildPdfRow('Date of Transfer', _formatDate(foal.saleDate)),
+                    ],
+                    _buildPdfRow('Date Issued', _formatDate(DateTime.now())),
+                    pw.Spacer(),
+
+                    // Fixed Legal Disclaimer
+                    pw.Divider(color: surfaceColor, thickness: 0.5),
+                    pw.SizedBox(height: 4),
+                    pw.Center(
+                      child: pw.Text(
+                        'This certificate is a summary of information recorded by the breeder/owner. It is not a substitute for veterinary records, veterinary examination or professional veterinary advice.',
+                        style: pw.TextStyle(
+                          fontSize: 8,
+                          color: textMuted,
+                          fontStyle: pw.FontStyle.italic,
+                        ),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
