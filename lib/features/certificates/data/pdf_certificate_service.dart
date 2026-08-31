@@ -32,7 +32,6 @@ class PdfCertificateService {
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
           final certId = 'ABP-EQ-${foal.dateOfBirth?.year ?? 2026}-${foal.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
-          final watermarkColor = PdfColor(0.83, 0.68, 0.21, 0.08);
 
           return pw.Container(
             padding: const pw.EdgeInsets.all(24),
@@ -40,77 +39,50 @@ class PdfCertificateService {
               border: pw.Border.all(color: goldColor, width: 2.5),
               borderRadius: pw.BorderRadius.circular(12),
             ),
-            child: pw.Stack(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                // Tamper-Resistant Official ABP Watermark Overlay
-                pw.Positioned.fill(
-                  child: pw.Center(
-                    child: pw.Transform.rotate(
-                      angle: -0.42,
-                      child: pw.Column(
-                        mainAxisSize: pw.MainAxisSize.min,
-                        children: [
-                          pw.Text(
-                            'ABP OFFICIAL RECORD',
-                            style: pw.TextStyle(
-                              fontSize: 32,
-                              fontWeight: pw.FontWeight.bold,
-                              color: watermarkColor,
-                              letterSpacing: 4,
-                            ),
-                          ),
-                          pw.SizedBox(height: 10),
-                          pw.Text(
-                            certId,
-                            style: pw.TextStyle(
-                              fontSize: 16,
-                              fontWeight: pw.FontWeight.bold,
-                              color: watermarkColor,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                        ],
+                // Header
+                pw.Center(
+                  child: pw.Column(
+                    children: [
+                      _buildPdfLogo(goldColor, surfaceColor),
+                      pw.Text(
+                        'ANIMAL BIRTHDAY PREDICTOR (ABP)',
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: goldColor,
+                          letterSpacing: 2,
+                        ),
                       ),
-                    ),
+                      pw.SizedBox(height: 3),
+                      pw.Text(
+                        'OFFICIAL EQUINE / FOAL CERTIFICATE',
+                        style: pw.TextStyle(
+                          fontSize: 18,
+                          fontWeight: pw.FontWeight.bold,
+                          color: darkNavy,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      pw.SizedBox(height: 3),
+                      pw.Text(
+                        'Certified Pedigree, Physical Identification & Preventative Health Record',
+                        style: pw.TextStyle(fontSize: 8.5, color: textMuted, fontStyle: pw.FontStyle.italic),
+                      ),
+                      pw.SizedBox(height: 8),
+
+                      // Top Benchmark & Certificate ID Security Banner
+                      _buildPdfBenchmarkBadge(
+                        certId: certId,
+                        goldColor: goldColor,
+                        surfaceColor: surfaceColor,
+                      ),
+                    ],
                   ),
                 ),
-
-                // Foreground Content
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    pw.Center(
-                      child: pw.Column(
-                        children: [
-                          pw.Text(
-                            'ANIMAL BIRTHDAY PREDICTOR (ABP)',
-                            style: pw.TextStyle(
-                              fontSize: 10,
-                              fontWeight: pw.FontWeight.bold,
-                              color: goldColor,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                          pw.SizedBox(height: 4),
-                          pw.Text(
-                            'OFFICIAL EQUINE / FOAL CERTIFICATE',
-                            style: pw.TextStyle(
-                              fontSize: 20,
-                              fontWeight: pw.FontWeight.bold,
-                              color: darkNavy,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          pw.SizedBox(height: 4),
-                          pw.Text(
-                            'Certified Pedigree, Physical Identification & Preventative Health Record',
-                            style: pw.TextStyle(fontSize: 9, color: textMuted, fontStyle: pw.FontStyle.italic),
-                          ),
-                        ],
-                      ),
-                    ),
-                    pw.Divider(color: goldColor, thickness: 1, height: 20),
+                pw.Divider(color: goldColor, thickness: 1, height: 16),
 
                     // Section 1: Identification
                     _buildPdfSectionHeader('I. IDENTIFICATION', goldColor),
@@ -170,10 +142,8 @@ class PdfCertificateService {
                     ),
                   ],
                 ),
-              ],
-            ),
-          );
-        },
+              );
+            },
       ),
     );
 
@@ -203,6 +173,8 @@ class PdfCertificateService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
+          final certId = 'ABP-CN-${puppy.dateOfBirth?.year ?? 2026}-${puppy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
+
           return pw.Container(
             padding: const pw.EdgeInsets.all(24),
             decoration: pw.BoxDecoration(
@@ -216,6 +188,7 @@ class PdfCertificateService {
                 pw.Center(
                   child: pw.Column(
                     children: [
+                      _buildPdfLogo(goldColor, surfaceColor),
                       pw.Text(
                         'ANIMAL BIRTHDAY PREDICTOR (ABP)',
                         style: pw.TextStyle(
@@ -225,30 +198,39 @@ class PdfCertificateService {
                           letterSpacing: 2,
                         ),
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 3),
                       pw.Text(
                         'OFFICIAL CANINE / PUPPY CERTIFICATE',
                         style: pw.TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: pw.FontWeight.bold,
                           color: darkNavy,
                           letterSpacing: 1.5,
                         ),
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 3),
                       pw.Text(
                         'Certified Pedigree, Physical Identification & Preventative Health Record',
-                        style: pw.TextStyle(fontSize: 9, color: textMuted, fontStyle: pw.FontStyle.italic),
+                        style: pw.TextStyle(fontSize: 8.5, color: textMuted, fontStyle: pw.FontStyle.italic),
+                      ),
+                      pw.SizedBox(height: 8),
+
+                      // Top Benchmark & Certificate ID Security Banner
+                      _buildPdfBenchmarkBadge(
+                        certId: certId,
+                        goldColor: goldColor,
+                        surfaceColor: surfaceColor,
                       ),
                     ],
                   ),
                 ),
-                pw.Divider(color: goldColor, thickness: 1, height: 20),
+                pw.Divider(color: goldColor, thickness: 1, height: 16),
 
                 // Section 1: Identification
                 _buildPdfSectionHeader('I. PUPPY IDENTIFICATION', goldColor),
                 pw.SizedBox(height: 6),
                 _buildPdfRow('Puppy Name / ID', puppy.puppyName?.isNotEmpty == true ? puppy.puppyName! : 'Puppy Record'),
+                _buildPdfRow('Official Certificate ID', certId),
                 _buildPdfRow('Collar / Tag Colour', puppy.collarTagColour?.isNotEmpty == true ? puppy.collarTagColour! : 'None Assigned'),
                 _buildPdfRow('Sex', puppy.sex == 'male' ? 'Male' : 'Female'),
                 _buildPdfRow('Coat Colour / Pattern', puppy.colour?.isNotEmpty == true ? puppy.colour! : 'Recorded'),
@@ -370,6 +352,8 @@ class PdfCertificateService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
+          final certId = 'ABP-45D-${breedingRecord?.coverOrTransferDate?.year ?? pregnancy.foalingDueDate?.year ?? 2026}-${pregnancy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
+
           return pw.Container(
             padding: const pw.EdgeInsets.all(24),
             decoration: pw.BoxDecoration(
@@ -383,6 +367,7 @@ class PdfCertificateService {
                 pw.Center(
                   child: pw.Column(
                     children: [
+                      _buildPdfLogo(goldColor, surfaceColor),
                       pw.Text(
                         'ANIMAL BIRTHDAY PREDICTOR (ABP)',
                         style: pw.TextStyle(
@@ -392,7 +377,7 @@ class PdfCertificateService {
                           letterSpacing: 2,
                         ),
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 3),
                       pw.Text(
                         'OFFICIAL 45-DAY EQUINE PREGNANCY SCAN CERTIFICATE',
                         style: pw.TextStyle(
@@ -403,11 +388,19 @@ class PdfCertificateService {
                         ),
                         textAlign: pw.TextAlign.center,
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 3),
                       pw.Text(
                         'Thoroughbred & Sport Horse Standard | Day 45 Gestation Security Attestation',
                         style: pw.TextStyle(fontSize: 8.5, color: textMuted, fontStyle: pw.FontStyle.italic),
                         textAlign: pw.TextAlign.center,
+                      ),
+                      pw.SizedBox(height: 8),
+
+                      // Top Benchmark & Certificate ID Security Banner
+                      _buildPdfBenchmarkBadge(
+                        certId: certId,
+                        goldColor: goldColor,
+                        surfaceColor: surfaceColor,
                       ),
                     ],
                   ),
@@ -751,6 +744,90 @@ class PdfCertificateService {
     );
 
     return pdf.save();
+  }
+
+  static pw.Widget _buildPdfLogo(PdfColor goldColor, PdfColor surfaceColor) {
+    return pw.Container(
+      width: 44,
+      height: 44,
+      margin: const pw.EdgeInsets.only(bottom: 6),
+      decoration: pw.BoxDecoration(
+        color: surfaceColor,
+        shape: pw.BoxShape.circle,
+        border: pw.Border.all(color: goldColor, width: 2.0),
+      ),
+      child: pw.Center(
+        child: pw.Column(
+          mainAxisAlignment: pw.MainAxisAlignment.center,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          children: [
+            pw.Text(
+              'ABP',
+              style: pw.TextStyle(
+                fontSize: 13,
+                fontWeight: pw.FontWeight.bold,
+                color: goldColor,
+                letterSpacing: 2.0,
+              ),
+            ),
+            pw.Container(
+              width: 18,
+              height: 1,
+              color: goldColor,
+              margin: const pw.EdgeInsets.symmetric(vertical: 1.5),
+            ),
+            pw.Text(
+              'OFFICIAL',
+              style: pw.TextStyle(
+                fontSize: 4.5,
+                fontWeight: pw.FontWeight.bold,
+                color: goldColor,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static pw.Widget _buildPdfBenchmarkBadge({
+    required String certId,
+    required PdfColor goldColor,
+    required PdfColor surfaceColor,
+  }) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: pw.BoxDecoration(
+        color: surfaceColor,
+        borderRadius: pw.BorderRadius.circular(6),
+        border: pw.Border.all(color: goldColor, width: 1.0),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            'OFFICIAL ABP BENCHMARK RECORD',
+            style: pw.TextStyle(
+              fontSize: 8.5,
+              fontWeight: pw.FontWeight.bold,
+              color: goldColor,
+              letterSpacing: 0.8,
+            ),
+          ),
+          pw.Text(
+            'CERTIFICATE ID: $certId',
+            style: pw.TextStyle(
+              fontSize: 8.5,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.white,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   static pw.Widget _buildKpiBox(String title, String value, PdfColor color) {

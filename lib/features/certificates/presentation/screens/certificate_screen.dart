@@ -60,41 +60,65 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     try {
       final authState = ref.read(authControllerProvider);
       final user = authState.value;
-      final breederName = user?.fullName.isNotEmpty == true ? user!.fullName : 'Certified Breeder';
-      final breederEmail = user?.email.isNotEmpty == true ? user!.email : 'support@abp.app';
+      final breederName = user?.fullName.isNotEmpty == true
+          ? user!.fullName
+          : 'Certified Breeder';
+      final breederEmail = user?.email.isNotEmpty == true
+          ? user!.email
+          : 'support@abp.app';
 
       if (widget.is45DayScan || widget.pregnancy != null) {
         final preg = widget.pregnancy!;
-        final carrier = widget.carrierMare ?? (await ref.read(animalRepositoryProvider).getAnimalById(preg.carrierAnimalId));
+        final carrier =
+            widget.carrierMare ??
+            (await ref
+                .read(animalRepositoryProvider)
+                .getAnimalById(preg.carrierAnimalId));
         if (carrier == null) {
           throw Exception('Carrier mare record not found');
         }
-        final breeding = widget.breedingRecord ?? (await ref.read(pregnancyRepositoryProvider).getBreedingRecordByMare(carrier.id));
-        final donor = widget.donorMare ?? ((breeding?.mareAnimalId != null && breeding!.mareAnimalId != carrier.id)
-            ? await ref.read(animalRepositoryProvider).getAnimalById(breeding.mareAnimalId)
-            : null);
+        final breeding =
+            widget.breedingRecord ??
+            (await ref
+                .read(pregnancyRepositoryProvider)
+                .getBreedingRecordByMare(carrier.id));
+        final donor =
+            widget.donorMare ??
+            ((breeding?.mareAnimalId != null &&
+                    breeding!.mareAnimalId != carrier.id)
+                ? await ref
+                      .read(animalRepositoryProvider)
+                      .getAnimalById(breeding.mareAnimalId)
+                : null);
 
         final vetName = preg.vetName ?? '';
         final vetNumber = preg.vetNumber ?? '';
 
-        final pdfBytes = await PdfCertificateService.generate45DayScanCertificate(
-          pregnancy: preg,
-          carrierMare: carrier,
-          donorMare: donor,
-          breedingRecord: breeding,
-          vetName: vetName,
-          vetNumber: vetNumber,
-          breederName: breederName,
-          breederEmail: breederEmail,
-        );
+        final pdfBytes =
+            await PdfCertificateService.generate45DayScanCertificate(
+              pregnancy: preg,
+              carrierMare: carrier,
+              donorMare: donor,
+              breedingRecord: breeding,
+              vetName: vetName,
+              vetNumber: vetNumber,
+              breederName: breederName,
+              breederEmail: breederEmail,
+            );
 
         await PdfCertificateService.exportOrPrintPdf(
           pdfBytes,
           '45_day_scan_certificate_${carrier.name.replaceAll(' ', '_')}.pdf',
         );
       } else if (widget.foal != null) {
-        final damMare = widget.dam ?? (await ref.read(animalRepositoryProvider).getAnimalById(widget.foal!.mareAnimalId));
-        final prevCare = await ref.read(preventativeCareRepositoryProvider).getPreventativeCare('foal', widget.foal!.id);
+        final damMare =
+            widget.dam ??
+            (await ref
+                .read(animalRepositoryProvider)
+                .getAnimalById(widget.foal!.mareAnimalId));
+        final prevCare = await ref
+            .read(preventativeCareRepositoryProvider)
+            .getPreventativeCare('foal', widget.foal!.id);
 
         final pdfBytes = await PdfCertificateService.generateFoalCertificate(
           foal: widget.foal!,
@@ -109,10 +133,16 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
           'foal_certificate_${widget.foal!.foalName ?? "equine"}.pdf',
         );
       } else if (widget.puppy != null) {
-        final damDog = widget.dam ?? (widget.puppy!.damAnimalId != null
-            ? await ref.read(animalRepositoryProvider).getAnimalById(widget.puppy!.damAnimalId!)
-            : null);
-        final healthItems = await ref.read(puppyRepositoryProvider).getDogPreventativeCare('puppy', widget.puppy!.id);
+        final damDog =
+            widget.dam ??
+            (widget.puppy!.damAnimalId != null
+                ? await ref
+                      .read(animalRepositoryProvider)
+                      .getAnimalById(widget.puppy!.damAnimalId!)
+                : null);
+        final healthItems = await ref
+            .read(puppyRepositoryProvider)
+            .getDogPreventativeCare('puppy', widget.puppy!.id);
 
         final pdfBytes = await PdfCertificateService.generatePuppyCertificate(
           puppy: widget.puppy!,
@@ -129,11 +159,7 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
       }
     } catch (e) {
       if (mounted) {
-        AppFeedbackSnackbar.showError(
-          context,
-          title: 'Export Error',
-          error: e,
-        );
+        AppFeedbackSnackbar.showError(context, title: 'Export Error', error: e);
       }
     } finally {
       if (mounted) setState(() => _isExporting = false);
@@ -149,10 +175,16 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     if (!is45Day && !isHorse && !isDog) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(backgroundColor: AppColors.background, title: const Text('CERTIFICATE')),
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          title: const Text('CERTIFICATE'),
+        ),
         body: const SafeArea(
           child: Center(
-            child: Text('No record selected for certificate view', style: TextStyle(color: Colors.white)),
+            child: Text(
+              'No record selected for certificate view',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ),
       );
@@ -176,17 +208,21 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
           onPressed: () => Navigator.maybePop(context),
         ),
-        title: Text(
-          titleText,
-          style: AppTypography.sectionLabel,
-        ),
+        title: Text(titleText, style: AppTypography.sectionLabel),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf_outlined, color: AppColors.primaryGold),
+            icon: const Icon(
+              Icons.picture_as_pdf_outlined,
+              color: AppColors.primaryGold,
+            ),
             tooltip: 'Export PDF',
             onPressed: _isExporting ? null : _exportPdf,
           ),
@@ -217,14 +253,16 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
                   child: is45Day
                       ? _build45DayScanCertificateContent(user)
                       : (isHorse
-                          ? _buildFoalCertificateContent(user)
-                          : _buildPuppyCertificateContent(user)),
+                            ? _buildFoalCertificateContent(user)
+                            : _buildPuppyCertificateContent(user)),
                 ),
                 const SizedBox(height: 24),
 
                 // Export / Print CTA Button
                 GradientCtaButton(
-                  text: _isExporting ? 'GENERATING PRINTABLE PDF...' : 'EXPORT / PRINT PDF CERTIFICATE',
+                  text: _isExporting
+                      ? 'GENERATING PRINTABLE PDF...'
+                      : 'EXPORT / PRINT PDF CERTIFICATE',
                   onPressed: _isExporting ? null : _exportPdf,
                 ),
                 const SizedBox(height: 24),
@@ -248,7 +286,8 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     final carrierMare = carrierMareAsync.valueOrNull ?? widget.carrierMare;
     final breeding = breedingAsync.valueOrNull ?? widget.breedingRecord;
 
-    final isET = breeding?.isEmbryoTransfer == true ||
+    final isET =
+        breeding?.isEmbryoTransfer == true ||
         (breeding?.method.toLowerCase().trim() == 'et') ||
         (breeding?.method.toLowerCase().trim() == 'icsi') ||
         (widget.donorMare != null && widget.donorMare?.id != carrierMare?.id);
@@ -260,12 +299,17 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     if (rawMethod == 'et') methodLabel = 'Embryo Transfer (ET)';
     if (rawMethod == 'icsi') methodLabel = 'ICSI';
 
-    final geneticDamName = widget.donorMare?.name ??
-        (breeding?.damOfEmbryo?.isNotEmpty == true ? breeding!.damOfEmbryo! : 'Registered Donor Dam');
+    final geneticDamName =
+        widget.donorMare?.name ??
+        (breeding?.damOfEmbryo?.isNotEmpty == true
+            ? breeding!.damOfEmbryo!
+            : 'Registered Donor Dam');
 
     final stallionName = breeding?.stallionName?.isNotEmpty == true
         ? breeding!.stallionName!
-        : (breeding?.stallionOfEmbryo?.isNotEmpty == true ? breeding!.stallionOfEmbryo! : 'Recorded Stallion');
+        : (breeding?.stallionOfEmbryo?.isNotEmpty == true
+              ? breeding!.stallionOfEmbryo!
+              : 'Recorded Stallion');
 
     final vetName = preg.vetName?.isNotEmpty == true
         ? preg.vetName!
@@ -283,7 +327,10 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
             children: [
               const AbpOfficialLogo(size: 48),
               const SizedBox(height: 10),
-              const Text('ANIMAL BIRTHDAY PREDICTOR', style: AppTypography.sectionLabel),
+              const Text(
+                'ANIMAL BIRTHDAY PREDICTOR',
+                style: AppTypography.sectionLabel,
+              ),
               const SizedBox(height: 4),
               Text(
                 '45-DAY SCAN CERTIFICATE',
@@ -297,7 +344,10 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
               const SizedBox(height: 4),
               Text(
                 'Official Equine Gestation Security Attestation • Thoroughbred & Sport Horse Standard',
-                style: AppTypography.finePrint.copyWith(fontStyle: FontStyle.italic, color: AppColors.textMuted),
+                style: AppTypography.finePrint.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.textMuted,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -319,7 +369,11 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.verified, color: Color(0xFF10B981), size: 18),
+                  const Icon(
+                    Icons.verified,
+                    color: Color(0xFF10B981),
+                    size: 18,
+                  ),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
@@ -342,7 +396,9 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  isET ? 'RECIPIENT MARE GESTATION' : 'DIRECT / AI MARE GESTATION',
+                  isET
+                      ? 'RECIPIENT MARE GESTATION'
+                      : 'DIRECT / AI MARE GESTATION',
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -357,20 +413,31 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
         const SizedBox(height: 18),
 
         // Section 1: Mare & Carrier Identification
-        const Text('I. MARE & CARRIER IDENTIFICATION', style: AppTypography.sectionLabel),
+        const Text(
+          'I. MARE & CARRIER IDENTIFICATION',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
-        _CertRow(label: 'Carrier Mare (In-Foal)', value: carrierMare?.name ?? 'Loading Mare...'),
+        _CertRow(
+          label: 'Carrier Mare (In-Foal)',
+          value: carrierMare?.name ?? 'Loading Mare...',
+        ),
         _CertRow(
           label: 'Breed & Color',
-          value: '${carrierMare?.breed ?? "Equine"} • ${carrierMare?.colour ?? "Standard"}',
+          value:
+              '${carrierMare?.breed ?? "Equine"} • ${carrierMare?.colour ?? "Standard"}',
         ),
         _CertRow(
           label: 'Microchip / Reg No',
-          value: carrierMare?.microchipNo?.isNotEmpty == true ? carrierMare!.microchipNo! : 'Recorded in Registry',
+          value: carrierMare?.microchipNo?.isNotEmpty == true
+              ? carrierMare!.microchipNo!
+              : 'Recorded in Registry',
         ),
         _CertRow(
           label: 'Carrier Role',
-          value: isET ? 'Recipient Carrier (Embryo Transfer / ICSI)' : 'Biological Dam (AI / Natural)',
+          value: isET
+              ? 'Recipient Carrier (Embryo Transfer / ICSI)'
+              : 'Biological Dam (AI / Natural)',
         ),
         if (isET) ...[
           _CertRow(label: 'Genetic Donor Dam', value: geneticDamName),
@@ -381,7 +448,10 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
         const SizedBox(height: 18),
 
         // Section 2: Conception & Breeding Details
-        const Text('II. CONCEPTION & BREEDING DETAILS', style: AppTypography.sectionLabel),
+        const Text(
+          'II. CONCEPTION & BREEDING DETAILS',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
         _CertRow(label: 'Breeding Method', value: methodLabel),
         if (breeding?.coverOrTransferDate != null)
@@ -389,20 +459,31 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
             label: isET ? 'Embryo Transfer Date' : 'Cover / Insemination Date',
             value: _formatDate(breeding!.coverOrTransferDate),
           ),
-        _CertRow(label: 'Expected Foaling Due Date', value: _formatDate(preg.foalingDueDate)),
-        _CertRow(label: 'Gestation Security', value: 'Day 45 Complete • Organogenesis Secured'),
+        _CertRow(
+          label: 'Expected Foaling Due Date',
+          value: _formatDate(preg.foalingDueDate),
+        ),
+        _CertRow(
+          label: 'Gestation Security',
+          value: 'Day 45 Complete • Organogenesis Secured',
+        ),
         const SizedBox(height: 18),
 
         // Section 3: Ultrasound Examination Timeline
-        const Text('III. VETERINARY ULTRASOUND SCAN TIMELINE', style: AppTypography.sectionLabel),
+        const Text(
+          'III. VETERINARY ULTRASOUND SCAN TIMELINE',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
         _CertRow(
           label: '1st Scan (Day 14-16)',
-          value: 'Due ${_formatDate(preg.scan1DueDate)} • ${preg.scan1Confirmed ? "✅ Confirmed Positive" : "Recorded"}',
+          value:
+              'Due ${_formatDate(preg.scan1DueDate)} • ${preg.scan1Confirmed ? "✅ Confirmed Positive" : "Recorded"}',
         ),
         _CertRow(
           label: '2nd Scan (Day 28-30)',
-          value: 'Due ${_formatDate(preg.scan2DueDate)} • ${preg.scan2Confirmed ? "✅ Heartbeat Viable" : "Recorded"}',
+          value:
+              'Due ${_formatDate(preg.scan2DueDate)} • ${preg.scan2Confirmed ? "✅ Heartbeat Viable" : "Recorded"}',
         ),
         _CertRow(
           label: '3rd Milestone Scan (Day 45)',
@@ -411,19 +492,30 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
         const SizedBox(height: 18),
 
         // Section 4: Attestation & Verification
-        const Text('IV. VETERINARY & BREEDER ATTESTATION', style: AppTypography.sectionLabel),
+        const Text(
+          'IV. VETERINARY & BREEDER ATTESTATION',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
         _CertRow(label: 'Attending Veterinarian', value: vetName),
         _CertRow(label: 'Veterinary Contact', value: vetNumber),
         _CertRow(
           label: 'Breeder / Stud Master',
-          value: user?.fullName.isNotEmpty == true ? user!.fullName : 'Certified Equine Breeder',
+          value: user?.fullName.isNotEmpty == true
+              ? user!.fullName
+              : 'Certified Equine Breeder',
         ),
-        _CertRow(label: 'Breeder Contact', value: user?.email.isNotEmpty == true ? user!.email : 'support@abp.app'),
+        _CertRow(
+          label: 'Breeder Contact',
+          value: user?.email.isNotEmpty == true
+              ? user!.email
+              : 'support@abp.app',
+        ),
         _CertRow(label: 'Date Issued', value: _formatDate(DateTime.now())),
         _CertRow(
           label: 'Certificate ID',
-          value: 'ABP-45D-${preg.id.isNotEmpty && preg.id.length >= 8 ? preg.id.substring(0, 8).toUpperCase() : "EQUINE"}',
+          value:
+              'ABP-45D-${preg.id.isNotEmpty && preg.id.length >= 8 ? preg.id.substring(0, 8).toUpperCase() : "EQUINE"}',
         ),
         const Divider(color: AppColors.surface, height: 28),
 
@@ -444,6 +536,8 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
 
   Widget _buildFoalCertificateContent(dynamic user) {
     final foal = widget.foal!;
+    final certId =
+        'ABP-EQ-${foal.dateOfBirth?.year ?? 2026}-${foal.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
     final damMareAsync = widget.dam != null
         ? AsyncValue.data(widget.dam)
         : ref.watch(animalByIdProvider(foal.mareAnimalId));
@@ -454,20 +548,17 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Certificate Header
+        // Certificate Header with ABP Official Logo & Benchmark Badge
         Center(
           child: Column(
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.goldGradient,
-                ),
-                child: const Icon(Icons.verified_rounded, size: 32, color: AppColors.background),
-              ),
+              const AbpOfficialLogo(size: 52),
               const SizedBox(height: 10),
+              const Text(
+                'ANIMAL BIRTHDAY PREDICTOR (ABP)',
+                style: AppTypography.sectionLabel,
+              ),
+              const SizedBox(height: 4),
               Text(
                 'OFFICIAL EQUINE / FOAL CERTIFICATE',
                 style: AppTypography.displayHeadline.copyWith(
@@ -479,71 +570,203 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Pedigree, Identification & Preventative Health Record',
-                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                'Certified Pedigree, Physical Identification & Preventative Health Record',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+
+              // Top Benchmark & Certificate ID Security Banner
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.primaryGold, width: 1.2),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.verified_user_rounded,
+                      color: AppColors.primaryGold,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'OFFICIAL BENCHMARK: $certId',
+                        style: const TextStyle(
+                          color: AppColors.primaryGold,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                          letterSpacing: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        const Divider(color: AppColors.primaryGold, height: 28, thickness: 1),
+        const Divider(color: AppColors.primaryGold, height: 24, thickness: 1),
 
         // Section 1: Identification
         const Text('I. IDENTIFICATION', style: AppTypography.sectionLabel),
         const SizedBox(height: 10),
-        _CertRow(label: 'Registered Name', value: foal.foalName?.isNotEmpty == true ? foal.foalName! : 'Unregistered Foal'),
-        _CertRow(label: 'Breed', value: foal.breed?.isNotEmpty == true ? foal.breed! : 'Equine'),
-        _CertRow(label: 'Sex', value: foal.sex == 'colt' ? 'Colt (Male)' : 'Filly (Female)'),
+        _CertRow(
+          label: 'Registered Name',
+          value: foal.foalName?.isNotEmpty == true
+              ? foal.foalName!
+              : 'Unregistered Foal',
+        ),
+        _CertRow(
+          label: 'Breed',
+          value: foal.breed?.isNotEmpty == true ? foal.breed! : 'Equine',
+        ),
+        _CertRow(
+          label: 'Sex',
+          value: foal.sex == 'colt' ? 'Colt (Male)' : 'Filly (Female)',
+        ),
         _CertRow(label: 'Date of Birth', value: _formatDate(foal.dateOfBirth)),
-        _CertRow(label: 'Microchip Number', value: foal.foalMicrochipNo?.isNotEmpty == true ? foal.foalMicrochipNo! : 'Not Microchipped'),
-        _CertRow(label: 'DNA Profile', value: foal.dna?.isNotEmpty == true ? foal.dna! : 'On File / Pending'),
-        _CertRow(label: 'Stud Book Association', value: foal.studBookAssociation?.isNotEmpty == true ? foal.studBookAssociation! : 'Recorded Breeder'),
+        _CertRow(
+          label: 'Microchip Number',
+          value: foal.foalMicrochipNo?.isNotEmpty == true
+              ? foal.foalMicrochipNo!
+              : 'Not Microchipped',
+        ),
+        _CertRow(
+          label: 'DNA Profile',
+          value: foal.dna?.isNotEmpty == true ? foal.dna! : 'On File / Pending',
+        ),
+        _CertRow(
+          label: 'Official Certificate ID',
+          value:
+              'ABP-EQ-${foal.dateOfBirth?.year ?? 2026}-${foal.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}',
+        ),
+        _CertRow(
+          label: 'Stud Book Association',
+          value: foal.studBookAssociation?.isNotEmpty == true
+              ? foal.studBookAssociation!
+              : 'Recorded Breeder',
+        ),
         const SizedBox(height: 18),
 
         // Section 2: Parentage & Lineage
-        const Text('II. PARENTAGE & LINEAGE', style: AppTypography.sectionLabel),
+        const Text(
+          'II. PARENTAGE & LINEAGE',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
-        _CertRow(label: 'Sire (Stallion)', value: foal.stallion?.isNotEmpty == true ? foal.stallion! : 'Recorded Stallion'),
+        _CertRow(
+          label: 'Sire (Stallion)',
+          value: foal.stallion?.isNotEmpty == true
+              ? foal.stallion!
+              : 'Recorded Stallion',
+        ),
         damMareAsync.when(
           data: (damMare) => _CertRow(
             label: 'Dam (Broodmare)',
-            value: damMare != null ? '${damMare.name} (Chip: ${damMare.microchipNo ?? "N/A"})' : 'Registered Mare',
+            value: damMare != null
+                ? '${damMare.name} (Chip: ${damMare.microchipNo ?? "N/A"})'
+                : 'Registered Mare',
           ),
-          loading: () => const _CertRow(label: 'Dam (Broodmare)', value: 'Loading...'),
-          error: (err, stack) => const _CertRow(label: 'Dam (Broodmare)', value: 'Recorded Mare'),
+          loading: () =>
+              const _CertRow(label: 'Dam (Broodmare)', value: 'Loading...'),
+          error: (err, stack) =>
+              const _CertRow(label: 'Dam (Broodmare)', value: 'Recorded Mare'),
         ),
         const SizedBox(height: 18),
 
         // Section 3: Health Summary
-        const Text('III. HEALTH & PREVENTATIVE CARE SUMMARY', style: AppTypography.sectionLabel),
+        const Text(
+          'III. HEALTH & PREVENTATIVE CARE SUMMARY',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
         prevCareAsync.when(
           data: (care) {
             return Column(
               children: [
-                _CertRow(label: 'Tetanus Toxoid', value: care?.tetanusDone == true ? 'Given ${_formatDate(care?.tetanusDate)}' : 'Pending Primary'),
-                _CertRow(label: 'Wormer Status', value: care?.wormerDone == true ? 'Completed ${_formatDate(care?.wormerDate)}' : 'Scheduled Routine'),
-                _CertRow(label: 'Strangles Vaccination', value: care?.stranglesDone == true ? 'Given ${_formatDate(care?.stranglesDate)}' : 'Not Recorded'),
-                _CertRow(label: 'Dental Examination', value: care?.dentalDone == true ? 'Inspected ${_formatDate(care?.dentalDate)}' : 'Scheduled at Weaning'),
-                _CertRow(label: 'Farrier / Hoof Care', value: care?.farrierDone == true ? 'Trimmed ${_formatDate(care?.farrierDate)}' : 'Scheduled Routine'),
+                _CertRow(
+                  label: 'Tetanus Toxoid',
+                  value: care?.tetanusDone == true
+                      ? 'Given ${_formatDate(care?.tetanusDate)}'
+                      : 'Pending Primary',
+                ),
+                _CertRow(
+                  label: 'Wormer Status',
+                  value: care?.wormerDone == true
+                      ? 'Completed ${_formatDate(care?.wormerDate)}'
+                      : 'Scheduled Routine',
+                ),
+                _CertRow(
+                  label: 'Strangles Vaccination',
+                  value: care?.stranglesDone == true
+                      ? 'Given ${_formatDate(care?.stranglesDate)}'
+                      : 'Not Recorded',
+                ),
+                _CertRow(
+                  label: 'Dental Examination',
+                  value: care?.dentalDone == true
+                      ? 'Inspected ${_formatDate(care?.dentalDate)}'
+                      : 'Scheduled at Weaning',
+                ),
+                _CertRow(
+                  label: 'Farrier / Hoof Care',
+                  value: care?.farrierDone == true
+                      ? 'Trimmed ${_formatDate(care?.farrierDate)}'
+                      : 'Scheduled Routine',
+                ),
               ],
             );
           },
-          loading: () => const _CertRow(label: 'Health Records', value: 'Loading records...'),
-          error: (err, stack) => const _CertRow(label: 'Health Records', value: 'Refer to Veterinary Log'),
+          loading: () => const _CertRow(
+            label: 'Health Records',
+            value: 'Loading records...',
+          ),
+          error: (err, stack) => const _CertRow(
+            label: 'Health Records',
+            value: 'Refer to Veterinary Log',
+          ),
         ),
         const SizedBox(height: 18),
 
         // Section 4: Breeder Details
-        const Text('IV. BREEDER & OWNER ATTESTATION', style: AppTypography.sectionLabel),
+        const Text(
+          'IV. BREEDER & OWNER ATTESTATION',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
-        _CertRow(label: 'Breeder / Stud Name', value: user?.fullName.isNotEmpty == true ? user!.fullName : 'Certified Equine Breeder'),
-        _CertRow(label: 'Contact Email', value: user?.email.isNotEmpty == true ? user!.email : 'breeder@abp.app'),
+        _CertRow(
+          label: 'Breeder / Stud Name',
+          value: user?.fullName.isNotEmpty == true
+              ? user!.fullName
+              : 'Certified Equine Breeder',
+        ),
+        _CertRow(
+          label: 'Contact Email',
+          value: user?.email.isNotEmpty == true
+              ? user!.email
+              : 'breeder@abp.app',
+        ),
         if (foal.buyerName?.isNotEmpty == true) ...[
           _CertRow(label: 'New Owner / Transfer', value: foal.buyerName!),
-          if (foal.saleDate != null) _CertRow(label: 'Transfer Date', value: _formatDate(foal.saleDate)),
+          if (foal.saleDate != null)
+            _CertRow(label: 'Transfer Date', value: _formatDate(foal.saleDate)),
         ],
-        _CertRow(label: 'Certificate Issued', value: _formatDate(DateTime.now())),
+        _CertRow(
+          label: 'Certificate Issued',
+          value: _formatDate(DateTime.now()),
+        ),
         const Divider(color: AppColors.surface, height: 28),
 
         // Fixed Footer Disclaimer
@@ -563,35 +786,36 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
 
   Widget _buildPuppyCertificateContent(dynamic user) {
     final puppy = widget.puppy!;
+    final certId =
+        'ABP-CN-${puppy.dateOfBirth?.year ?? 2026}-${puppy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
     final damDogAsync = widget.dam != null
         ? AsyncValue.data(widget.dam)
         : (puppy.damAnimalId != null
-            ? ref.watch(animalByIdProvider(puppy.damAnimalId!))
-            : const AsyncValue.data(null));
+              ? ref.watch(animalByIdProvider(puppy.damAnimalId!))
+              : const AsyncValue.data(null));
 
-    final healthAsync = ref.watch(dogPreventativeCareProvider((
-      ownerType: 'puppy',
-      ownerId: puppy.id,
-      dob: puppy.dateOfBirth,
-    )));
+    final healthAsync = ref.watch(
+      dogPreventativeCareProvider((
+        ownerType: 'puppy',
+        ownerId: puppy.id,
+        dob: puppy.dateOfBirth,
+      )),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Certificate Header
+        // Certificate Header with ABP Official Logo & Benchmark Badge
         Center(
           child: Column(
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.goldGradient,
-                ),
-                child: const Icon(Icons.verified_rounded, size: 32, color: AppColors.background),
-              ),
+              const AbpOfficialLogo(size: 52),
               const SizedBox(height: 10),
+              const Text(
+                'ANIMAL BIRTHDAY PREDICTOR (ABP)',
+                style: AppTypography.sectionLabel,
+              ),
+              const SizedBox(height: 4),
               Text(
                 'OFFICIAL CANINE / PUPPY CERTIFICATE',
                 style: AppTypography.displayHeadline.copyWith(
@@ -604,89 +828,221 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
               const SizedBox(height: 4),
               Text(
                 'Certified Pedigree, Physical Identification & Preventative Health Record',
-                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+
+              // Top Benchmark & Certificate ID Security Banner
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.primaryGold, width: 1.2),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.verified_user_rounded,
+                      color: AppColors.primaryGold,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'OFFICIAL BENCHMARK: $certId',
+                        style: const TextStyle(
+                          color: AppColors.primaryGold,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                          letterSpacing: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        const Divider(color: AppColors.primaryGold, height: 28, thickness: 1),
+        const Divider(color: AppColors.primaryGold, height: 24, thickness: 1),
 
         // Section 1: Identification
-        const Text('I. PUPPY IDENTIFICATION', style: AppTypography.sectionLabel),
+        const Text(
+          'I. PUPPY IDENTIFICATION',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
-        _CertRow(label: 'Puppy Name / ID', value: puppy.puppyName?.isNotEmpty == true ? puppy.puppyName! : 'Puppy Record'),
-        _CertRow(label: 'Collar / Tag Colour', value: puppy.collarTagColour?.isNotEmpty == true ? puppy.collarTagColour! : 'None Assigned'),
+        _CertRow(
+          label: 'Puppy Name / ID',
+          value: puppy.puppyName?.isNotEmpty == true
+              ? puppy.puppyName!
+              : 'Puppy Record',
+        ),
+        _CertRow(label: 'Official Certificate ID', value: certId),
+        _CertRow(
+          label: 'Collar / Tag Colour',
+          value: puppy.collarTagColour?.isNotEmpty == true
+              ? puppy.collarTagColour!
+              : 'None Assigned',
+        ),
         _CertRow(label: 'Sex', value: puppy.sex == 'male' ? 'Male' : 'Female'),
-        _CertRow(label: 'Coat Colour / Pattern', value: puppy.colour?.isNotEmpty == true ? puppy.colour! : 'Recorded'),
-        _CertRow(label: 'Birth Order', value: puppy.birthOrder != null ? '#${puppy.birthOrder}' : 'Recorded'),
+        _CertRow(
+          label: 'Coat Colour / Pattern',
+          value: puppy.colour?.isNotEmpty == true ? puppy.colour! : 'Recorded',
+        ),
+        _CertRow(
+          label: 'Birth Order',
+          value: puppy.birthOrder != null ? '#${puppy.birthOrder}' : 'Recorded',
+        ),
         _CertRow(label: 'Date of Birth', value: _formatDate(puppy.dateOfBirth)),
-        _CertRow(label: 'Microchip Number', value: puppy.microchipNo?.isNotEmpty == true ? puppy.microchipNo! : 'Pending Microchip'),
+        _CertRow(
+          label: 'Microchip Number',
+          value: puppy.microchipNo?.isNotEmpty == true
+              ? puppy.microchipNo!
+              : 'Pending Microchip',
+        ),
         const SizedBox(height: 18),
 
         // Section 2: Parentage & Weights
-        const Text('II. PARENTAGE & WEIGHT METRICS', style: AppTypography.sectionLabel),
+        const Text(
+          'II. PARENTAGE & WEIGHT METRICS',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
         damDogAsync.when(
           data: (damDog) => _CertRow(
             label: 'Mother (Dam Dog)',
-            value: damDog != null ? '${damDog.name} (${damDog.breed ?? "Canine"})' : 'Registered Dam Dog',
+            value: damDog != null
+                ? '${damDog.name} (${damDog.breed ?? "Canine"})'
+                : 'Registered Dam Dog',
           ),
-          loading: () => const _CertRow(label: 'Mother (Dam Dog)', value: 'Loading...'),
-          error: (err, stack) => const _CertRow(label: 'Mother (Dam Dog)', value: 'Recorded Dam Dog'),
+          loading: () =>
+              const _CertRow(label: 'Mother (Dam Dog)', value: 'Loading...'),
+          error: (err, stack) => const _CertRow(
+            label: 'Mother (Dam Dog)',
+            value: 'Recorded Dam Dog',
+          ),
         ),
-        _CertRow(label: 'Father (Sire)', value: puppy.sireName?.isNotEmpty == true ? puppy.sireName! : 'Recorded Stud'),
-        _CertRow(label: 'Birth Weight', value: puppy.birthWeight?.isNotEmpty == true ? puppy.birthWeight! : 'Recorded at birth'),
-        _CertRow(label: 'Departure Weight', value: puppy.currentWeight?.isNotEmpty == true ? puppy.currentWeight! : 'Recorded on departure'),
+        _CertRow(
+          label: 'Father (Sire)',
+          value: puppy.sireName?.isNotEmpty == true
+              ? puppy.sireName!
+              : 'Recorded Stud',
+        ),
+        _CertRow(
+          label: 'Birth Weight',
+          value: puppy.birthWeight?.isNotEmpty == true
+              ? puppy.birthWeight!
+              : 'Recorded at birth',
+        ),
+        _CertRow(
+          label: 'Departure Weight',
+          value: puppy.currentWeight?.isNotEmpty == true
+              ? puppy.currentWeight!
+              : 'Recorded on departure',
+        ),
         const SizedBox(height: 18),
 
         // Section 3: Health Summary
-        const Text('III. HEALTH & PREVENTATIVE CARE SUMMARY', style: AppTypography.sectionLabel),
+        const Text(
+          'III. HEALTH & PREVENTATIVE CARE SUMMARY',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
         healthAsync.when(
           data: (items) {
-            final completedWorms = items.where((i) => i.treatmentType == 'worming' && i.isCompleted).toList();
-            final completedVax = items.where((i) => i.treatmentType == 'vaccination' && i.isCompleted).toList();
-            final completedVet = items.where((i) => i.treatmentType == 'vet_check' && i.isCompleted).toList();
+            final completedWorms = items
+                .where((i) => i.treatmentType == 'worming' && i.isCompleted)
+                .toList();
+            final completedVax = items
+                .where((i) => i.treatmentType == 'vaccination' && i.isCompleted)
+                .toList();
+            final completedVet = items
+                .where((i) => i.treatmentType == 'vet_check' && i.isCompleted)
+                .toList();
 
             return Column(
               children: [
                 _CertRow(
                   label: 'Worming Protocol',
                   value: completedWorms.isNotEmpty
-                      ? completedWorms.map((w) => '${w.title} (${_formatDate(w.dateGiven)})').join(', ')
+                      ? completedWorms
+                            .map(
+                              (w) => '${w.title} (${_formatDate(w.dateGiven)})',
+                            )
+                            .join(', ')
                       : 'Completed according to schedule',
                 ),
                 _CertRow(
                   label: 'Vaccinations',
                   value: completedVax.isNotEmpty
-                      ? completedVax.map((v) => '${v.title} (${_formatDate(v.dateGiven)})').join(', ')
+                      ? completedVax
+                            .map(
+                              (v) => '${v.title} (${_formatDate(v.dateGiven)})',
+                            )
+                            .join(', ')
                       : 'C3/C5 Primary Vaccination Completed',
                 ),
                 _CertRow(
                   label: 'Veterinary Check',
                   value: completedVet.isNotEmpty
-                      ? completedVet.map((vc) => '${vc.title} (Passed)').join(', ')
+                      ? completedVet
+                            .map((vc) => '${vc.title} (Passed)')
+                            .join(', ')
                       : 'General Health Exam Completed',
                 ),
               ],
             );
           },
-          loading: () => const _CertRow(label: 'Health Summary', value: 'Loading...'),
-          error: (e, _) => const _CertRow(label: 'Health Summary', value: 'Refer to veterinary record'),
+          loading: () =>
+              const _CertRow(label: 'Health Summary', value: 'Loading...'),
+          error: (e, _) => const _CertRow(
+            label: 'Health Summary',
+            value: 'Refer to veterinary record',
+          ),
         ),
         const SizedBox(height: 18),
 
         // Section 4: Breeder Details & Going Home
-        const Text('IV. BREEDER & NEW OWNER ATTESTATION', style: AppTypography.sectionLabel),
+        const Text(
+          'IV. BREEDER & NEW OWNER ATTESTATION',
+          style: AppTypography.sectionLabel,
+        ),
         const SizedBox(height: 10),
-        _CertRow(label: 'Breeder / Kennel Name', value: user?.fullName.isNotEmpty == true ? user!.fullName : 'Certified Canine Breeder'),
-        _CertRow(label: 'Breeder Contact', value: user?.email.isNotEmpty == true ? user!.email : 'support@abp.app'),
+        _CertRow(
+          label: 'Breeder / Kennel Name',
+          value: user?.fullName.isNotEmpty == true
+              ? user!.fullName
+              : 'Certified Canine Breeder',
+        ),
+        _CertRow(
+          label: 'Breeder Contact',
+          value: user?.email.isNotEmpty == true
+              ? user!.email
+              : 'support@abp.app',
+        ),
         if (puppy.newOwnerName?.isNotEmpty == true) ...[
           _CertRow(label: 'New Owner / Home', value: puppy.newOwnerName!),
-          if (puppy.dateGoingHome != null) _CertRow(label: 'Date Going Home', value: _formatDate(puppy.dateGoingHome)),
+          if (puppy.dateGoingHome != null)
+            _CertRow(
+              label: 'Date Going Home',
+              value: _formatDate(puppy.dateGoingHome),
+            ),
         ],
-        _CertRow(label: 'Certificate Issued', value: _formatDate(DateTime.now())),
+        _CertRow(
+          label: 'Certificate Issued',
+          value: _formatDate(DateTime.now()),
+        ),
         const Divider(color: AppColors.surface, height: 28),
 
         // Fixed Footer Disclaimer
@@ -722,7 +1078,9 @@ class _CertRow extends StatelessWidget {
             flex: 2,
             child: Text(
               label,
-              style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           const SizedBox(width: 10),

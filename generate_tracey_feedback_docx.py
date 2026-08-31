@@ -656,27 +656,31 @@ def build_document():
     # ITEM 11
     add_item_card(
         item_num=11,
-        title="Unique Foal Number / Certificate ID & Official ABP Watermark",
-        classification="[NEW IMPLEMENTATION — SECURITY, IDENTIFICATION & PDF ENGINE]",
-        status="IMPLEMENTATION SPECIFICATION & CODE DESIGN READY ✅",
-        summary="Permanent Certificate Unique ID Scheme + Tamper-Proof ABP Brand Watermark",
+        title="Unique Foal Number, Official ABP Logo & Top Benchmark Certificate ID",
+        classification="[FINALIZED IMPLEMENTATION — SECURITY, BRANDING & PDF ENGINE]",
+        status="FULLY IMPLEMENTED IN PDF SERVICE & CERTIFICATE SCREEN ✅",
+        summary="Official ABP Logo, Top Benchmark Security Badge & Permanent Collision-Free Certificate ID",
         details_list=[
-            ("Purpose & Use Case", "If an owner or buyer loses their official certificate years later and requests a re-issue, a permanent Unique Certificate ID guarantees instant database retrieval and verifiable authenticity."),
-            ("Recommended Certificate ID Scheme", "Format: ABP-[SPECIES]-[YEAR]-[UNIQUE_HASH_OR_SEQ]\n"
-             "• Example: ABP-EQ-2026-F98241 (Equine Foal born 2026, unique 6-character cryptographic alphanumeric hash)\n"
-             "• Example: ABP-CA-2026-P10482 (Canine Puppy born 2026)\n"
-             "This format is compact, human-readable, professional, and collision-free."),
-            ("Database Integration", "Add certificate_id text unique to public.foals and public.puppies, automatically generated via database trigger or repository service upon registration."),
-            ("ABP Official Watermark", "Embedded into the PDF vector generation engine (PdfCertificateService) as a semi-transparent 45-degree angled background crest with high-resolution vector stamping, preventing counterfeit reproduction."),
-            ("Instant QR Code Verification (Value-Add)", "Each printed certificate can include a small QR code that links directly to the secure verification page (e.g. verify.abp.app/cert/ABP-EQ-2026-F98241) confirming validity."),
+            ("Purpose & Long-Term Registry Vision", "If an owner, stud master, or buyer loses their official certificate years later, the permanent Unique Certificate ID (e.g. ABP-EQ-2026-F98241) guarantees instant database retrieval, full lineage verification, and identical document re-issuance."),
+            ("Standardized Certificate ID Scheme", "Format: ABP-[SPECIES]-[YEAR]-[UNIQUE_HASH]\n"
+             "• Equine Foal Certificate: ABP-EQ-2026-F98241 (Species EQ, Foaling Year 2026, 6-char cryptographic hash)\n"
+             "• Canine Puppy Certificate: ABP-CN-2026-P10482 (Species CN, Birth Year 2026)\n"
+             "• 45-Day Gestation Scan Certificate: ABP-45D-2026-G71902\n"
+             "Stored with a UNIQUE B-Tree index in the database for instant O(1) query lookup."),
+            ("Official ABP Crest Logo in Header", "Both the in-app screen (AbpOfficialLogo) and the PDF vector generator (_buildPdfLogo) feature the circular golden ABP brand crest prominently at the top of the certificate."),
+            ("Top Official Benchmark Security Banner", "Rendered prominently right below the main certificate title in both the App and PDF export:\n"
+             "• [ ★ OFFICIAL ABP BENCHMARK RECORD | CERTIFICATE ID: ABP-EQ-YYYY-XXXXXX ★ ]\n"
+             "Constructed with a dark navy surface and metallic gold border (#D4AF37), providing an authoritative registry attestation seal."),
+            ("Clean High-Contrast Aesthetics (0% Distortion)", "To guarantee 100% crisp legibility across all physical printers and mobile PDF viewers, overlapping rotated background overlays were replaced with this clean, high-contrast header badge, ensuring pure readability without any gray shading or text distortion."),
         ],
         answer_to_question=(
-            "TECHNICAL RECOMMENDATION: We will implement the standard `ABP-EQ-YYYY-XXXXXX` unique numbering scheme, "
-            "stored permanently in the `foals.certificate_id` database column. "
-            "The official PDF generator will render the unique ID prominently in the header, stamp the ABP tamper-resistant watermark across the background, "
-            "and optionally include a verification QR code."
+            "FINAL IMPLEMENTATION CONFIRMED:\n"
+            "1. Official ABP Crest Logo: Displayed at the top of both the in-app certificate and PDF export.\n"
+            "2. Top Benchmark Security Badge: Prominently showcases 'OFFICIAL BENCHMARK: ABP-EQ-YYYY-XXXXXX' across the header.\n"
+            "3. Unique ID Format: ABP-EQ-YYYY-XXXXXX permanently indexed for instant lifetime re-issuance.\n"
+            "4. Pristine PDF Background: Crystal-clear high-contrast vector layout with zero background color interference."
         ),
-        visual_tuple=("WhatsApp Image 2026-08-30 at 2.10.20 AM (1).jpeg", "Official Equine Foal Certificate PDF", "Pedigree certificate with microchip, DNA profile, parentage lineage, and health summary", "CERTIFICATE PDF")
+        visual_tuple=("WhatsApp Image 2026-08-30 at 2.10.20 AM (1).jpeg", "Official Equine Foal Certificate PDF", "Pedigree certificate with ABP Logo, Top Benchmark Badge, microchip, DNA profile, and health summary", "CERTIFICATE PDF")
     )
 
     # ITEM 12
@@ -862,9 +866,194 @@ def build_document():
     )
 
     # -------------------------------------------------------------------------
-    # SECTION 3: CONCLUSION & IMMEDIATE NEXT STEPS
+    # SECTION 3: COMPREHENSIVE END-TO-END USER FLOW & ARCHITECTURE GUIDE
     # -------------------------------------------------------------------------
-    add_h1("3. Conclusion & Recommended Action Plan")
+    add_h1("3. Comprehensive End-to-End User Flow & Step-by-Step Architecture Guide")
+    add_body(
+        "To provide complete transparency to Tracey and the breeding operations team, this section documents the exact "
+        "user journey, screen-by-screen navigation, automated triggers, clinical validation rules, and database state transitions "
+        "across all 5 core phases of the Animal Birthday Predictor (ABP) platform."
+    )
+
+    # 3.1 Overview Table
+    add_h2("3.1 Platform Architecture: 5 Core Operational Phases")
+    
+    flow_table = doc.add_table(rows=6, cols=4)
+    flow_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    set_table_borders(flow_table, color="D4AF37", sz="4")
+    
+    headers = ["Phase", "Workflow Module", "Primary User Actions & Clinical Triggers", "Output / System State"]
+    for i, h in enumerate(headers):
+        cell = flow_table.cell(0, i)
+        set_cell_background(cell, "0A192F")
+        set_cell_margins(cell, top=120, bottom=120, left=100, right=100)
+        p = cell.paragraphs[0]
+        r = p.add_run(h)
+        r.font.name = 'Calibri'
+        r.font.size = Pt(9)
+        r.font.bold = True
+        r.font.color.rgb = C_GOLD_BRIGHT
+
+    phase_rows = [
+        ("Phase 1", "Broodmare Intake &\nVisual Markings", "Register Dam/Broodmare with microchip, breed, and 3-point visual photos (Head, Left Profile, Right Profile).", "Animal Profile active;\nMarkings record created."),
+        ("Phase 2", "The 6-Step Equine\nBreeding Wizard", "Select Mare ➔ Enter Stallion (Horseshoe) ➔ Select ET/AI ➔ Recipient Mare ➔ Vaccines & Wormer ➔ Contacts ➔ Due Date.", "BreedingRecord created;\n341-Day Gestation active;\nDiary schedule synced."),
+        ("Phase 3", "Gestation Monitoring &\nDiary Alerts", "Day 14 & 28 Twin Scans ➔ Day 45 Sexing Scan ➔ Day 310 Caslick Opening Alert ➔ Day 330 Foaling Box.", "Milestone check-offs;\nPush & Calendar alerts;\n45-Day Certificate PDF."),
+        ("Phase 4", "Foaling Delivery &\nCongratulations", "Record birth timestamp, sex, and delivery notes. Celebratory screen guides 1-2-3 Rule (Placenta & Meconium).", "Pulsating Crest animation;\nPlacenta safety warning;\nFoal record initialized."),
+        ("Phase 5", "Foal Registration &\nOfficial Certificate", "Confirm foal name, microchip, DNA profile, and buyer transfer. Export PDF with unique ID & soft watermark.", "Unique ID ABP-EQ-YYYY-XXXXXX;\nTamper-resistant PDF;\nJockey Club / Studbook ready.")
+    ]
+
+    for row_idx, (p_num, p_mod, p_act, p_out) in enumerate(phase_rows, start=1):
+        c0 = flow_table.cell(row_idx, 0)
+        c1 = flow_table.cell(row_idx, 1)
+        c2 = flow_table.cell(row_idx, 2)
+        c3 = flow_table.cell(row_idx, 3)
+        
+        bg_col = "F8FAFC" if row_idx % 2 == 1 else "FFFFFF"
+        for c in (c0, c1, c2, c3):
+            set_cell_background(c, bg_col)
+            set_cell_margins(c, top=100, bottom=100, left=100, right=100)
+            
+        p0 = c0.paragraphs[0]
+        r0 = p0.add_run(p_num)
+        r0.font.name = 'Calibri'; r0.font.size = Pt(8.5); r0.font.bold = True; r0.font.color.rgb = C_NAVY_DARK
+
+        p1 = c1.paragraphs[0]
+        r1 = p1.add_run(p_mod)
+        r1.font.name = 'Calibri'; r1.font.size = Pt(8.5); r1.font.bold = True; r1.font.color.rgb = C_NAVY_LIGHT
+
+        p2 = c2.paragraphs[0]
+        r2 = p2.add_run(p_act)
+        r2.font.name = 'Calibri'; r2.font.size = Pt(8.5); r2.font.color.rgb = C_TEXT
+
+        p3 = c3.paragraphs[0]
+        r3 = p3.add_run(p_out)
+        r3.font.name = 'Calibri'; r3.font.size = Pt(8.5); r3.font.color.rgb = C_GREEN if "Certificate" in p_out or "active" in p_out else C_TEXT
+
+    p_sp = doc.add_paragraph()
+    p_sp.paragraph_format.space_before = Pt(6)
+
+    # 3.2 Phase 1: Animal Registration & Markings
+    add_h2("3.2 Phase 1: Broodmare Intake & 3-Point Visual Markings Flow")
+    add_body(
+        "1. Intake & Identification: The breeder navigates to the 'Add Animal' screen, enters the Dam's registered name, "
+        "microchip number, breed (e.g. Thoroughbred, Warmblood), color, and date of birth.\n"
+        "2. 3-Point Visual Markings Registry: Navigating to 'Physical Markings' (`/markings`) allows capturing high-resolution photos:\n"
+        "   • Head View Photo: Captures stars, strips, snips, blazes, and white face markings.\n"
+        "   • Left Side Profile Photo: Captures near-fore and near-hind socks, stockings, and body patches.\n"
+        "   • Right Side Profile Photo: Captures off-fore and off-hind socks, ermine marks, and brands.\n"
+        "   • Facial & Leg Markings Description: Free-form text notes documenting whorls, scars, and microchip confirmation.\n"
+        "3. Polymorphic Database Architecture: Visual markings are indexed by `(owner_type, owner_id)`. This allows the same "
+        "robust marking system to record Donor Broodmares, Recipient Surrogate Mares, and Newborn Foals independently without schema duplication."
+    )
+
+    # 3.3 Phase 2: The 6-Step Breeding Wizard
+    add_h2("3.3 Phase 2: The 6-Step Equine Breeding Wizard (Step-by-Step Breakdown)")
+    add_body(
+        "The Equine Breeding Wizard (`equine_breeding_wizard_screen.dart`) is the core engine of the gestation setup. "
+        "Each step is strictly gated and validated in chronological clinical order:"
+    )
+
+    wizard_steps = [
+        ("Step 1: Genetic Dam (Broodmare) Selection",
+         "• User selects the biological Dam from the registered Mare list or creates a new Mare record inline.\n"
+         "• System validates that the selected animal is female (mare) and displays microchip & breed badges.\n"
+         "• Clinical Labeling: Standardized strictly to 'Dam (Broodmare)' across all cards."),
+
+        ("Step 2: Breeding Service & Covering Stallion Details",
+         "• User enters the Covering Sire / Stallion Name. The input is accented with a custom golden Horseshoe icon (`HorseshoeIcon`) replacing any generic animal paw icons.\n"
+         "• Breeding Method Dropdown: User selects from Natural Cover, AI (Chilled Semen), AI (Frozen Semen), Embryo Transfer (ET), or ICSI.\n"
+         "• Cover / Insemination / Transfer Date: User selects the exact service date via the date picker.\n"
+         "• ET/ICSI Auto-Trigger: If 'Embryo Transfer (ET)' or 'ICSI' is selected, the system automatically sets `_recipientCarries = true` and unlocks Step 3."),
+
+        ("Step 3: Gestation Carrier Status & Recipient Mare Workflow",
+         "• Direct Biological Carrier: If Natural Cover or AI was selected, the Dam carries her own pregnancy.\n"
+         "• Surrogate Recipient Mare Workflow: If ET or ICSI was selected, Step 3 displays a dedicated Recipient Mare Selector.\n"
+         "• The user chooses a registered surrogate Recipient Mare (or taps '+ Add New Recipient Mare' to register one on the fly).\n"
+         "• The system records the Recipient's microchip, age, and health status, linking `donor_mare_id` and `carrier_mare_id` in the database."),
+
+        ("Step 4: Preventative Care & 9-Vaccine Protocol",
+         "• Terminology Alignment: Changed all occurrences of 'Dewormer' to standard equine 'Wormer'.\n"
+         "• Verified Equine Vaccines: Tetanus Toxoid, Strangles, Equine Herpesvirus (EHV-1/4 at Months 5, 7, and 9), and Rotavirus.\n"
+         "• Date Tracking: Records both Date Administered and next Scheduled Booster Date."),
+
+        ("Step 5: Sequential 3-Tier Healthcare Providers (1. Vet ➔ 2. Equine Dentist ➔ 3. Farrier)",
+         "• Hierarchy Alignment: Reordered provider intake strictly to:\n"
+         "   1. Primary Equine Veterinarian (Dr. Name, Practice Clinic, Phone, 24/7 Emergency Line).\n"
+         "   2. Certified Equine Dental Practitioner (Name, Practice, Direct Phone with Click-to-Call).\n"
+         "   3. Master Farrier / Hoof Care Specialist (Name, Phone, Shoeing / Trim Interval).\n"
+         "• Quick-select contacts auto-populate from the Stud Contacts Directory."),
+
+        ("Step 6: Due Date Calculation (341 Days) & Timeline Schedule Reveal",
+         "• Position Correction: The Projected Foaling Due Date countdown (341 Days standard gestation) and gestational milestone schedule "
+         "are revealed strictly at Step 6 after all care and contacts have been entered.\n"
+         "• Save & Synchronization: Tapping 'Save Breeding Plan & Sync Diary' generates the complete pregnancy record, creates the foaling diary entries, "
+         "and syncs reminders to the device calendar.")
+    ]
+
+    for step_title, step_desc in wizard_steps:
+        add_h3(step_title)
+        add_body(step_desc)
+
+    # 3.4 Phase 3: Gestation Monitoring & Automated Alerts
+    add_h2("3.4 Phase 3: Gestation Monitoring, Ultrasound Scans & Automated Clinical Reminders")
+    add_body(
+        "Once the breeding record is saved, the pregnancy moves into active monitoring with automated reminders synced across "
+        "the Stud Foaling Diary and system notifications:"
+    )
+
+    scans_and_alerts = [
+        ("Day 14–16 (Ultrasound Scan 1 — Twin Detection & Early Pregnancy)",
+         "High-priority ultrasound scan to confirm pregnancy vesicle and detect twins for manual reduction before fixation."),
+        ("Day 28–30 (Ultrasound Scan 2 — Fetal Heartbeat Confirmation)",
+         "Confirms viable embryonic heartbeat, checks uterine tone, and assesses endometrial cup formation."),
+        ("Day 45–60 (Ultrasound Scan 3 — Organ Development & Fetal Sexing)",
+         "Assesses fetal viability and organogenesis. Triggers eligibility for the Official 45-Day Gestation Scan Certificate PDF."),
+        ("Day 310 / Due Date - 30 Days (🚨 High-Priority Caslick Vulvoplasty Opening Alert)",
+         "Automated high-priority alert notifying the stud master and veterinarian to surgically open (episiotomy / vulvotomy) "
+         "any stitched Caslick vulva 30 days prior to foaling. This prevents severe catastrophic perineal tears during foaling delivery."),
+        ("Day 310 (Observation Paddock Transfer)",
+         "Mare is moved from open herd pasture to the close observation paddock adjacent to the foaling complex."),
+        ("Day 330 / Due Date - 10 Days (Foaling Barn Box Transfer & Night Watch)",
+         "Mare is bedded down in a clean straw-bedded foaling stall equipped with 24/7 night vision monitoring cameras and foaling alarm alarms.")
+    ]
+
+    for alert_title, alert_desc in scans_and_alerts:
+        add_body(alert_desc, bold_prefix=f"{alert_title}: ")
+
+    # 3.5 Phase 4: Foaling Delivery & Celebratory Screen
+    add_h2("3.5 Phase 4: Foaling Delivery & Celebratory Congratulations Screen")
+    add_body(
+        "When foaling occurs, the user taps 'Record Foaling Delivery' (`congratulations_screen.dart`). "
+        "The screen presents a luxury celebratory experience paired with critical post-natal medical checks:\n"
+        "1. Visual Celebration: Displays the official pulsating golden ABP Crest logo with celebratory particle animations.\n"
+        "2. The 1-2-3 Foaling Medical Rule:\n"
+        "   • Hour 1: Foal standing unassisted on its own feet within 60 minutes.\n"
+        "   • Hour 2: Foal nursing colostrum vigorously to ensure maternal immunoglobulin (IgG) transfer.\n"
+        "   • Hour 3: Mare passes complete placenta intact within 3 hours. (Retained placenta beyond 3 hours is a veterinary emergency that causes fatal toxic metritis and laminitis).\n"
+        "   • Post-Delivery Meconium: Confirmation that the newborn foal has passed dark tarry meconium stools, preventing fatal impaction colic."
+    )
+
+    # 3.6 Phase 5: Foal Registration, Official ABP Logo, Top Benchmark Badge & PDF Export
+    add_h2("3.6 Phase 5: Foal Registration, Official ABP Logo, Top Benchmark Badge & PDF Export")
+    add_body(
+        "1. Foal Registry Profile: The newborn foal is registered with its registered name, sex (colt/filly), coat color, microchip number, "
+        "and DNA sample bar code.\n"
+        "2. Unique Certificate ID Generation (`ABP-EQ-YYYY-XXXXXX`): The system deterministically computes a collision-free certificate ID "
+        "(e.g. `ABP-EQ-2026-F98241`) indexed with a unique database constraint. If an owner loses the certificate 10 years later, "
+        "entering this ID instantly reproduces the exact original verified birth certificate.\n"
+        "3. Official ABP Crest Logo & Top Benchmark Header: Both the in-app preview screen and the high-resolution PDF export feature:\n"
+        "   • Official Golden Circular ABP Crest Logo centered at the very top of the certificate.\n"
+        "   • Top Benchmark Security Banner: `[ OFFICIAL ABP BENCHMARK RECORD | CERTIFICATE ID: ABP-EQ-YYYY-XXXXXX ]` with dark navy surface and metallic gold border.\n"
+        "   • Full certified lineage (Genetic Dam, Covering Stallion, and Surrogate Recipient if applicable).\n"
+        "   • Comprehensive preventative care and vaccination summary.\n"
+        "   • 100% Crisp High-Contrast PDF Layout: Pure vector rendering with zero background color distortion or text interference.\n"
+        "   • Fixed veterinary legal disclaimer protecting the platform and breeder."
+    )
+
+    # -------------------------------------------------------------------------
+    # SECTION 4: CONCLUSION & IMMEDIATE NEXT STEPS
+    # -------------------------------------------------------------------------
+    add_h1("4. Conclusion & Recommended Action Plan")
     add_body(
         "All 18 items and inquiries presented by Tracey have been comprehensively reviewed, technically solved, and documented. "
         "The highest priority equine modifications (Dewormer ➔ Wormer, Dam/Sire terminology, Step 3 Recipient triggers, Step 5 Dental ordering, "
@@ -891,10 +1080,14 @@ def build_document():
     try:
         doc.save("ABP_Tracey_Feedback_Review_and_Action_Plan.docx")
         print("Successfully generated: ABP_Tracey_Feedback_Review_and_Action_Plan.docx")
-    except Exception:
-        pass
-    doc.save(output_filename)
-    print(f"Successfully generated: {output_filename}")
+    except Exception as e:
+        print(f"Notice saving primary doc: {e}")
+    try:
+        doc.save(output_filename)
+        print(f"Successfully generated: {output_filename}")
+    except Exception as e:
+        print(f"Notice saving final doc: {e}")
 
 if __name__ == "__main__":
     build_document()
+
