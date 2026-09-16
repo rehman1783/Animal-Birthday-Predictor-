@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -25,6 +27,31 @@ class PdfCertificateService {
       return null;
     }
   }
+
+  static Future<pw.MemoryImage?> _loadPhotoFromUrl(String? photoUrl) async {
+    if (photoUrl == null || photoUrl.trim().isEmpty) return null;
+    try {
+      final url = photoUrl.trim();
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 6));
+        if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+          return pw.MemoryImage(response.bodyBytes);
+        }
+      } else if (url.startsWith('assets/')) {
+        final byteData = await rootBundle.load(url);
+        return pw.MemoryImage(byteData.buffer.asUint8List());
+      } else {
+        final file = File(url);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          if (bytes.isNotEmpty) {
+            return pw.MemoryImage(bytes);
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
   static Future<Uint8List> generateFoalCertificate({
     required FoalRecord foal,
     required Animal? dam,
@@ -33,8 +60,33 @@ class PdfCertificateService {
     required String breederEmail,
   }) async {
     final logoImage = await _loadAbpLogo();
+    final photoImage = await _loadPhotoFromUrl(foal.photoUrl ?? dam?.photoUrl);
     final pdf = pw.Document();
     final certId = 'ABP-EQ-${foal.dateOfBirth?.year ?? 2026}-${foal.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
+
+    // Build comprehensive notes string with all available animal details
+    final notesBuffer = StringBuffer();
+    if (foal.notes?.isNotEmpty == true) notesBuffer.write(foal.notes);
+    if (foal.iggValue?.isNotEmpty == true) {
+      if (notesBuffer.isNotEmpty) notesBuffer.write(' | ');
+      notesBuffer.write('IgG Level: ${foal.iggValue}');
+    }
+    if (foal.gelded) {
+      if (notesBuffer.isNotEmpty) notesBuffer.write(' | ');
+      notesBuffer.write('Gelded: ${_formatDate(foal.geldedDate)}');
+    }
+    if (foal.dna?.isNotEmpty == true) {
+      if (notesBuffer.isNotEmpty) notesBuffer.write(' | ');
+      notesBuffer.write('DNA Profile: ${foal.dna}');
+    }
+    if (foal.status?.isNotEmpty == true) {
+      if (notesBuffer.isNotEmpty) notesBuffer.write(' | ');
+      notesBuffer.write('Status: ${foal.status?.toUpperCase()}');
+    }
+
+    final fullNotes = notesBuffer.isNotEmpty
+        ? notesBuffer.toString()
+        : 'Official pedigree, identification & health keepsake record registered on ABP.';
 
     pdf.addPage(
       pw.Page(
@@ -60,12 +112,12 @@ class PdfCertificateService {
                   [
                     _buildGridCell('Foal Name', foal.foalName?.isNotEmpty == true ? foal.foalName! : 'Unregistered Foal', flex: 4, height: 42),
                     _buildGridCell('Date of Birth', _formatDate(foal.dateOfBirth), flex: 3, height: 42),
-                    _buildGridCell('Time of Birth', 'N/A', flex: 3, height: 42),
+                    _buildGridCell('Time of Birth', 'Recorded on File', flex: 3, height: 42),
                   ],
                   [
                     _buildGridCell('Sex', foal.sex == 'colt' ? 'Colt (Male)' : 'Filly (Female)', flex: 4, height: 42),
                     _buildGridCell('Colour / Markings', foal.breed?.isNotEmpty == true ? foal.breed! : 'Recorded Markings', flex: 3, height: 42),
-                    _buildGridCell('Birth Weight', 'Recorded on file', flex: 3, height: 42),
+                    _buildGridCell('Birth Weight', 'Recorded on File', flex: 3, height: 42),
                   ],
                 ]),
                 pw.SizedBox(height: 8),
@@ -74,7 +126,7 @@ class PdfCertificateService {
                 _buildSectionLabel('PARENTAGE'),
                 _buildBoxedGrid([
                   [
-                    _buildGridCell('Dam / Mare', dam != null ? dam.name : 'Registered Mare', flex: 5, height: 42),
+                    _buildGridCell('Dam / Mare', dam != null ? '${dam.name} (${dam.breed ?? "Equine"})' : 'Registered Mare', flex: 5, height: 42),
                     _buildGridCell('Sire / Stallion', foal.stallion?.isNotEmpty == true ? foal.stallion! : 'Registered Stallion', flex: 5, height: 42),
                   ],
                   [
@@ -89,7 +141,7 @@ class PdfCertificateService {
                 _buildBoxedGrid([
                   [
                     _buildGridCell('Breeding Method', 'NATURAL / AI / ET', flex: 4, height: 42),
-                    _buildGridCell('Recipient Mare (If ET/ICSI)', 'Direct Broodmare Gestation', flex: 3, height: 42),
+                    _buildGridCell('Recipient Mare (If ET/ICSI)', foal.recipientAnimalId?.isNotEmpty == true ? foal.recipientAnimalId! : 'Direct Broodmare Gestation', flex: 3, height: 42),
                     _buildGridCell('Gestation Length', '340 days (Standard)', flex: 3, height: 42),
                   ],
                   [
@@ -111,7 +163,7 @@ class PdfCertificateService {
                         child: _buildBoxedGrid([
                           [_buildGridCell('Microchip No.', foal.foalMicrochipNo?.isNotEmpty == true ? foal.foalMicrochipNo! : 'Pending Microchip', height: 40)],
                           [_buildGridCell('Foal Registration No.', certId, height: 40)],
-                          [_buildGridCell('Notes', foal.notes?.isNotEmpty == true ? foal.notes! : 'Official pedigree & health keepsake record.', height: 80)],
+                          [_buildGridCell('Notes', fullNotes, height: 80)],
                         ]),
                       ),
                       pw.SizedBox(width: 8),
@@ -119,7 +171,7 @@ class PdfCertificateService {
                       // Right Column: Photo Box
                       pw.Expanded(
                         flex: 35,
-                        child: _buildPhotoBox('FOAL PHOTO'),
+                        child: _buildPhotoBox('FOAL PHOTO', photoImage: photoImage),
                       ),
                     ],
                   ),
@@ -146,8 +198,29 @@ class PdfCertificateService {
     required String breederEmail,
   }) async {
     final logoImage = await _loadAbpLogo();
+    final photoImage = await _loadPhotoFromUrl(puppy.photoUrl ?? dam?.photoUrl);
     final pdf = pw.Document();
     final certId = 'ABP-CN-${puppy.dateOfBirth?.year ?? 2026}-${puppy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
+
+    // Build comprehensive notes string with all available puppy details
+    final notesBuffer = StringBuffer();
+    if (puppy.generalNotes?.isNotEmpty == true) notesBuffer.write(puppy.generalNotes);
+    if (puppy.collarTagColour?.isNotEmpty == true) {
+      if (notesBuffer.isNotEmpty) notesBuffer.write(' | ');
+      notesBuffer.write('Collar: ${puppy.collarTagColour}');
+    }
+    if (puppy.currentWeight?.isNotEmpty == true) {
+      if (notesBuffer.isNotEmpty) notesBuffer.write(' | ');
+      notesBuffer.write('Departure Weight: ${puppy.currentWeight}');
+    }
+    if (puppy.dna?.isNotEmpty == true) {
+      if (notesBuffer.isNotEmpty) notesBuffer.write(' | ');
+      notesBuffer.write('DNA Profile: ${puppy.dna}');
+    }
+
+    final fullNotes = notesBuffer.isNotEmpty
+        ? notesBuffer.toString()
+        : 'C3/C5 Vaccinated & Wormed according to schedule. Official canine record.';
 
     pdf.addPage(
       pw.Page(
@@ -225,7 +298,7 @@ class PdfCertificateService {
                           [_buildGridCell('Microchip No.', puppy.microchipNo?.isNotEmpty == true ? puppy.microchipNo! : 'Pending Microchip', height: 40)],
                           [_buildGridCell('Registration No.', certId, height: 40)],
                           [_buildGridCell('Litter / Puppy ID', puppy.birthOrder != null ? '#${puppy.birthOrder}' : 'Litter Member', height: 40)],
-                          [_buildGridCell('Notes', puppy.generalNotes?.isNotEmpty == true ? puppy.generalNotes! : 'C3/C5 Vaccinated & Wormed according to schedule.', height: 60)],
+                          [_buildGridCell('Notes', fullNotes, height: 60)],
                         ]),
                       ),
                       pw.SizedBox(width: 8),
@@ -233,7 +306,7 @@ class PdfCertificateService {
                       // Right Column: Photo Box
                       pw.Expanded(
                         flex: 35,
-                        child: _buildPhotoBox('PUPPY PHOTO'),
+                        child: _buildPhotoBox('PUPPY PHOTO', photoImage: photoImage),
                       ),
                     ],
                   ),
@@ -272,8 +345,10 @@ class PdfCertificateService {
     required String kittenRegNo,
     required String litterId,
     required String notes,
+    String? photoUrl,
   }) async {
     final logoImage = await _loadAbpLogo();
+    final photoImage = await _loadPhotoFromUrl(photoUrl);
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -352,7 +427,7 @@ class PdfCertificateService {
                       pw.SizedBox(width: 8),
                       pw.Expanded(
                         flex: 35,
-                        child: _buildPhotoBox('KITTEN PHOTO'),
+                        child: _buildPhotoBox('KITTEN PHOTO', photoImage: photoImage),
                       ),
                     ],
                   ),
@@ -381,6 +456,7 @@ class PdfCertificateService {
     required String breederEmail,
   }) async {
     final logoImage = await _loadAbpLogo();
+    final photoImage = await _loadPhotoFromUrl(carrierMare.photoUrl ?? donorMare?.photoUrl);
     final pdf = pw.Document();
     final certId = 'ABP-45D-${breedingRecord?.coverOrTransferDate?.year ?? pregnancy.foalingDueDate?.year ?? 2026}-${pregnancy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
 
@@ -483,7 +559,7 @@ class PdfCertificateService {
                       pw.SizedBox(width: 8),
                       pw.Expanded(
                         flex: 35,
-                        child: _buildPhotoBox('MARE / SCAN PHOTO'),
+                        child: _buildPhotoBox('MARE / SCAN PHOTO', photoImage: photoImage),
                       ),
                     ],
                   ),
@@ -666,7 +742,17 @@ class PdfCertificateService {
     );
   }
 
-  static pw.Widget _buildPhotoBox(String label) {
+  static pw.Widget _buildPhotoBox(String label, {pw.MemoryImage? photoImage}) {
+    if (photoImage != null) {
+      return pw.Container(
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: PdfColors.black, width: 0.5),
+        ),
+        child: pw.ClipRRect(
+          child: pw.Image(photoImage, fit: pw.BoxFit.cover),
+        ),
+      );
+    }
     return pw.Container(
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: PdfColors.black, width: 0.5),

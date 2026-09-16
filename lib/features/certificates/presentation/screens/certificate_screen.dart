@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -469,6 +470,68 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     );
   }
 
+  Widget _buildAnimalPhotoHeader(String? photoUrl, String placeholderLabel) {
+    if (photoUrl != null && photoUrl.trim().isNotEmpty) {
+      final url = photoUrl.trim();
+      return Container(
+        height: 140,
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.primaryGold, width: 1.5),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: (url.startsWith('http://') || url.startsWith('https://'))
+              ? Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (ctx, err, stack) => _buildPhotoPlaceholder(placeholderLabel),
+                )
+              : (url.startsWith('assets/'))
+                  ? Image.asset(url, fit: BoxFit.cover)
+                  : Image.file(
+                      File(url),
+                      fit: BoxFit.cover,
+                      errorBuilder: (ctx, err, stack) => _buildPhotoPlaceholder(placeholderLabel),
+                    ),
+        ),
+      );
+    }
+    return _buildPhotoPlaceholder(placeholderLabel);
+  }
+
+  Widget _buildPhotoPlaceholder(String label) {
+    return Container(
+      height: 90,
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.primaryGold.withValues(alpha: 0.5), width: 1),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.add_a_photo_outlined, color: AppColors.primaryGold, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              '$label (ATTACHED UPON EXPORT)',
+              style: AppTypography.captionBold.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 10,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _build45DayScanCertificateContent(dynamic user) {
     final preg = widget.pregnancy!;
     final carrierMareAsync = widget.carrierMare != null
@@ -606,6 +669,9 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
           ),
         ),
         const SizedBox(height: 18),
+
+        // Animal / Mare Photo Preview
+        _buildAnimalPhotoHeader(carrierMare?.photoUrl ?? widget.donorMare?.photoUrl, 'MARE PHOTO'),
 
         // Section 1: Mare & Carrier Identification
         const Text(
@@ -813,6 +879,9 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
           ),
         ),
         const Divider(color: AppColors.primaryGold, height: 24, thickness: 1),
+
+        // Animal Photo Preview
+        _buildAnimalPhotoHeader(foal.photoUrl ?? damMareAsync.valueOrNull?.photoUrl, 'FOAL PHOTO'),
 
         // Section 1: Identification
         const Text('I. IDENTIFICATION', style: AppTypography.sectionLabel),
@@ -1070,6 +1139,9 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
           ),
         ),
         const Divider(color: AppColors.primaryGold, height: 24, thickness: 1),
+
+        // Animal Photo Preview
+        _buildAnimalPhotoHeader(puppy.photoUrl ?? damDogAsync.valueOrNull?.photoUrl, 'PUPPY PHOTO'),
 
         // Section 1: Identification
         const Text(
