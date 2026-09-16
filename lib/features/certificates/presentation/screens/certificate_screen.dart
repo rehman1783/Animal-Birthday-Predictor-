@@ -87,15 +87,15 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
 
   String _getCertType() {
     if (widget.is45DayScan || widget.pregnancy != null) {
-      return 'scan_45_day';
+      return '45_day_scan';
     }
     if (widget.foal != null) {
-      return 'foal_pedigree';
+      return 'foal';
     }
     if (widget.puppy != null) {
-      return 'puppy_pedigree';
+      return 'puppy';
     }
-    return 'general';
+    return 'other';
   }
 
   String _getCertId() {
