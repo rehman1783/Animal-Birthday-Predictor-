@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
@@ -32,21 +33,38 @@ class PdfCertificateService {
     if (photoUrl == null || photoUrl.trim().isEmpty) return null;
     try {
       final url = photoUrl.trim();
+
+      // 1. Data URI / Base64 format (produced by AppImagePicker)
+      if (url.startsWith('data:image/') || url.contains('base64,')) {
+        final commaIndex = url.indexOf(',');
+        final base64String = commaIndex != -1 ? url.substring(commaIndex + 1) : url;
+        final cleanBase64 = base64String.replaceAll(RegExp(r'\s+'), '');
+        final bytes = base64Decode(cleanBase64);
+        if (bytes.isNotEmpty) {
+          return pw.MemoryImage(bytes);
+        }
+      }
+
+      // 2. HTTP / HTTPS Network URL
       if (url.startsWith('http://') || url.startsWith('https://')) {
         final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 6));
         if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
           return pw.MemoryImage(response.bodyBytes);
         }
-      } else if (url.startsWith('assets/')) {
+      }
+
+      // 3. App Assets
+      if (url.startsWith('assets/')) {
         final byteData = await rootBundle.load(url);
         return pw.MemoryImage(byteData.buffer.asUint8List());
-      } else {
-        final file = File(url);
-        if (await file.exists()) {
-          final bytes = await file.readAsBytes();
-          if (bytes.isNotEmpty) {
-            return pw.MemoryImage(bytes);
-          }
+      }
+
+      // 4. Local Filesystem Path
+      final file = File(url);
+      if (await file.exists()) {
+        final bytes = await file.readAsBytes();
+        if (bytes.isNotEmpty) {
+          return pw.MemoryImage(bytes);
         }
       }
     } catch (_) {}

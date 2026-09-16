@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -473,6 +474,33 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
   Widget _buildAnimalPhotoHeader(String? photoUrl, String placeholderLabel) {
     if (photoUrl != null && photoUrl.trim().isNotEmpty) {
       final url = photoUrl.trim();
+
+      // 1. Data URI / Base64 format (from AppImagePicker)
+      if (url.startsWith('data:image/') || url.contains('base64,')) {
+        try {
+          final commaIndex = url.indexOf(',');
+          final base64String = commaIndex != -1 ? url.substring(commaIndex + 1) : url;
+          final cleanBase64 = base64String.replaceAll(RegExp(r'\s+'), '');
+          final bytes = base64Decode(cleanBase64);
+          if (bytes.isNotEmpty) {
+            return Container(
+              height: 140,
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.primaryGold, width: 1.5),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.memory(bytes, fit: BoxFit.cover),
+              ),
+            );
+          }
+        } catch (_) {}
+      }
+
+      // 2. Network, Asset, or Local File
       return Container(
         height: 140,
         width: double.infinity,
