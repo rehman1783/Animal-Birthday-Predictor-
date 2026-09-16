@@ -42,15 +42,15 @@ extension AnimalTypeX on AnimalType {
   IconData get icon {
     switch (this) {
       case AnimalType.horse:
-        return Icons.pets_rounded;
+        return Icons.workspace_premium;
       case AnimalType.dog:
-        return Icons.bedroom_baby_outlined;
+        return Icons.pets;
       case AnimalType.cat:
-        return Icons.catching_pokemon;
+        return Icons.cruelty_free;
       case AnimalType.cow:
-        return Icons.grass_rounded;
+        return Icons.agriculture_rounded;
       case AnimalType.sheep:
-        return Icons.cloud_outlined;
+        return Icons.grass_rounded;
     }
   }
 

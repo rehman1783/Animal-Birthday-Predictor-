@@ -149,7 +149,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             children: [
               // Header Banner
               const AuthHeaderBanner(
-                imagePath: 'assets/images/auth_header_join_the_mystery.png',
+                title: 'CREATE BREEDER ACCOUNT',
+                subtitle: 'Join the premier equine breeding & gestation management network',
+                badgeText: 'ABP OFFICIAL BREEDER REGISTRATION',
               ),
 
               Padding(
@@ -280,6 +282,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         'By creating an account, you agree to our Terms of Service and Privacy Policy',
                         style: AppTypography.finePrint,
                         textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Center(
+                      child: Text(
+                        'ABP Platform Build v1.1.0 (Equine Edition)',
+                        style: AppTypography.finePrint.copyWith(
+                          color: AppColors.primaryGold.withValues(alpha: 0.7),
+                          fontSize: 10,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
 

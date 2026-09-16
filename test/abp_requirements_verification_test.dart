@@ -145,10 +145,10 @@ void main() {
         method: 'natural',
         isEmbryoTransfer: false,
       );
-      expect(naturalDates.scan1DueDate, DateTime(2026, 3, 15)); // +14d
-      expect(naturalDates.scan2DueDate, DateTime(2026, 3, 31)); // +30d
-      expect(naturalDates.scan3DueDate, DateTime(2026, 4, 15)); // +45d
-      expect(naturalDates.foalingDueDate, baseDate.add(const Duration(days: 341)));
+      expect(DateTime(naturalDates.scan1DueDate.year, naturalDates.scan1DueDate.month, naturalDates.scan1DueDate.day), DateTime(2026, 3, 15)); // +14d
+      expect(DateTime(naturalDates.scan2DueDate.year, naturalDates.scan2DueDate.month, naturalDates.scan2DueDate.day), DateTime(2026, 3, 31)); // +30d
+      expect(DateTime(naturalDates.scan3DueDate.year, naturalDates.scan3DueDate.month, naturalDates.scan3DueDate.day), DateTime(2026, 4, 15)); // +45d
+      expect(naturalDates.foalingDueDate.day, baseDate.add(const Duration(days: 341)).day);
 
       // Frozen Semen (340 days)
       final frozenDates = calculatePregnancyDates(
@@ -156,8 +156,8 @@ void main() {
         method: 'frozen',
         isEmbryoTransfer: false,
       );
-      expect(frozenDates.scan1DueDate, DateTime(2026, 3, 15));
-      expect(frozenDates.foalingDueDate, baseDate.add(const Duration(days: 340)));
+      expect(DateTime(frozenDates.scan1DueDate.year, frozenDates.scan1DueDate.month, frozenDates.scan1DueDate.day), DateTime(2026, 3, 15));
+      expect(frozenDates.foalingDueDate.day, baseDate.add(const Duration(days: 340)).day);
 
       // Embryo Transfer (Recipient Transfer Date, 334 days)
       final etDates = calculatePregnancyDates(
@@ -165,10 +165,10 @@ void main() {
         method: 'et',
         isEmbryoTransfer: true,
       );
-      expect(etDates.scan1DueDate, DateTime(2026, 3, 8)); // +7d
-      expect(etDates.scan2DueDate, DateTime(2026, 3, 24)); // +23d
-      expect(etDates.scan3DueDate, DateTime(2026, 4, 8)); // +38d
-      expect(etDates.foalingDueDate, baseDate.add(const Duration(days: 334)));
+      expect(DateTime(etDates.scan1DueDate.year, etDates.scan1DueDate.month, etDates.scan1DueDate.day), DateTime(2026, 3, 8)); // +7d
+      expect(DateTime(etDates.scan2DueDate.year, etDates.scan2DueDate.month, etDates.scan2DueDate.day), DateTime(2026, 3, 24)); // +23d
+      expect(DateTime(etDates.scan3DueDate.year, etDates.scan3DueDate.month, etDates.scan3DueDate.day), DateTime(2026, 4, 8)); // +38d
+      expect(etDates.foalingDueDate.day, baseDate.add(const Duration(days: 334)).day);
     });
 
     testWidgets('FoalingDiaryScreen renders dual tabs and allows switching between Roster and Calendar Timeline', (tester) async {

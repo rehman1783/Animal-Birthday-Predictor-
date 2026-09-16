@@ -70,12 +70,15 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsGroup(
                 title: 'Subscription & Payment Management',
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.workspace_premium_rounded, color: AppColors.primaryGold, size: 22),
-                    title: const Text('Manage Plan & Invoices', style: AppTypography.inputText),
-                    subtitle: const Text('ABP Pro Master Breeder, payment methods & bank wire', style: AppTypography.finePrint),
-                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
-                    onTap: () => Navigator.pushNamed(context, '/payment-details'),
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      leading: const Icon(Icons.workspace_premium_rounded, color: AppColors.primaryGold, size: 22),
+                      title: const Text('Manage Plan & Invoices', style: AppTypography.inputText),
+                      subtitle: const Text('ABP Pro Master Breeder, payment methods & bank wire', style: AppTypography.finePrint),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      onTap: () => Navigator.pushNamed(context, '/payment-details'),
+                    ),
                   ),
                 ],
               ),
@@ -86,38 +89,47 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsGroup(
                 title: 'Notifications & Alerts',
                 children: [
-                  SwitchListTile(
-                    activeTrackColor: AppColors.surface,
-                    activeThumbColor: AppColors.primaryGold,
-                    title: const Text('Due Date Reminders', style: AppTypography.inputText),
-                    subtitle: const Text(
-                      'Notify 14 days before expected foaling/whelping',
-                      style: AppTypography.finePrint,
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      activeTrackColor: AppColors.surface,
+                      activeThumbColor: AppColors.primaryGold,
+                      title: const Text('Due Date Reminders', style: AppTypography.inputText),
+                      subtitle: const Text(
+                        'Notify 14 days before expected foaling/whelping',
+                        style: AppTypography.finePrint,
+                      ),
+                      value: settings.dueDateReminders,
+                      onChanged: (val) => settingsNotifier.toggleDueDateReminders(val),
                     ),
-                    value: settings.dueDateReminders,
-                    onChanged: (val) => settingsNotifier.toggleDueDateReminders(val),
                   ),
-                  SwitchListTile(
-                    activeTrackColor: AppColors.surface,
-                    activeThumbColor: AppColors.primaryGold,
-                    title: const Text('Foaling & Whelping Alerts', style: AppTypography.inputText),
-                    subtitle: const Text(
-                      'Critical labor & nesting alerts',
-                      style: AppTypography.finePrint,
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      activeTrackColor: AppColors.surface,
+                      activeThumbColor: AppColors.primaryGold,
+                      title: const Text('Foaling & Whelping Alerts', style: AppTypography.inputText),
+                      subtitle: const Text(
+                        'Critical labor & nesting alerts',
+                        style: AppTypography.finePrint,
+                      ),
+                      value: settings.foalingAlerts,
+                      onChanged: (val) => settingsNotifier.toggleFoalingAlerts(val),
                     ),
-                    value: settings.foalingAlerts,
-                    onChanged: (val) => settingsNotifier.toggleFoalingAlerts(val),
                   ),
-                  SwitchListTile(
-                    activeTrackColor: AppColors.surface,
-                    activeThumbColor: AppColors.primaryGold,
-                    title: const Text('Email Summary Reports', style: AppTypography.inputText),
-                    subtitle: const Text(
-                      'Weekly breeder digest to registered email',
-                      style: AppTypography.finePrint,
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      activeTrackColor: AppColors.surface,
+                      activeThumbColor: AppColors.primaryGold,
+                      title: const Text('Email Summary Reports', style: AppTypography.inputText),
+                      subtitle: const Text(
+                        'Weekly breeder digest to registered email',
+                        style: AppTypography.finePrint,
+                      ),
+                      value: settings.emailNotifications,
+                      onChanged: (val) => settingsNotifier.toggleEmailNotifications(val),
                     ),
-                    value: settings.emailNotifications,
-                    onChanged: (val) => settingsNotifier.toggleEmailNotifications(val),
                   ),
                 ],
               ),
@@ -176,20 +188,26 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsGroup(
                 title: 'Help, FAQ & Legal',
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.help_outline_rounded, color: AppColors.primaryGold, size: 22),
-                    title: const Text('Frequently Asked Questions', style: AppTypography.inputText),
-                    subtitle: const Text('Gestation models, 45-day scans, puppy care & sync', style: AppTypography.finePrint),
-                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
-                    onTap: () => Navigator.pushNamed(context, '/faq'),
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      leading: const Icon(Icons.help_outline_rounded, color: AppColors.primaryGold, size: 22),
+                      title: const Text('Frequently Asked Questions', style: AppTypography.inputText),
+                      subtitle: const Text('Gestation models, 45-day scans, puppy care & sync', style: AppTypography.finePrint),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      onTap: () => Navigator.pushNamed(context, '/faq'),
+                    ),
                   ),
                   const Divider(color: AppColors.inputBorder, height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.gavel_outlined, color: AppColors.primaryGold, size: 22),
-                    title: const Text('Medical & Legal Disclaimer', style: AppTypography.inputText),
-                    subtitle: const Text('Veterinary notice, gestation limits & liability terms', style: AppTypography.finePrint),
-                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
-                    onTap: () => Navigator.pushNamed(context, '/disclaimer'),
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      leading: const Icon(Icons.gavel_outlined, color: AppColors.primaryGold, size: 22),
+                      title: const Text('Medical & Legal Disclaimer', style: AppTypography.inputText),
+                      subtitle: const Text('Veterinary notice, gestation limits & liability terms', style: AppTypography.finePrint),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      onTap: () => Navigator.pushNamed(context, '/disclaimer'),
+                    ),
                   ),
                 ],
               ),
@@ -277,22 +295,25 @@ class _SettingsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-            child: Text(title, style: AppTypography.featureTitle),
-          ),
-          const Divider(color: AppColors.inputBorder, height: 1),
-          ...children,
-        ],
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+          border: Border.all(color: AppColors.inputBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+              child: Text(title, style: AppTypography.featureTitle),
+            ),
+            const Divider(color: AppColors.inputBorder, height: 1),
+            ...children,
+          ],
+        ),
       ),
     );
   }

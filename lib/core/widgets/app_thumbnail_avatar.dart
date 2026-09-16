@@ -19,7 +19,7 @@ class AppThumbnailAvatar extends StatelessWidget {
     super.key,
     required this.imagePath,
     this.species,
-    this.fallbackIcon = Icons.pets,
+    this.fallbackIcon = Icons.workspace_premium,
     this.customFallback,
     this.size = 50,
     this.iconSize = 24,

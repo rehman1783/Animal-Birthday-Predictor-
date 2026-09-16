@@ -26,7 +26,7 @@ class _SpeciesSelectionScreenState extends ConsumerState<SpeciesSelectionScreen>
       key: 'horse',
       title: 'Horse / Equine',
       subtitle: 'Complete breeding, pregnancy scan calculation & foal registration',
-      icon: Icons.pets_rounded,
+      icon: Icons.workspace_premium,
     ),
     (
       key: 'dog',

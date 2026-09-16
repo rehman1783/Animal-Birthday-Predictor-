@@ -111,7 +111,9 @@ class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
               children: [
                 // Header Banner
                 const AuthHeaderBanner(
-                  imagePath: 'assets/images/auth_header_lost_your_way.png',
+                  title: 'CREATE NEW PASSWORD',
+                  subtitle: 'Enter a strong, secure password for your ABP account',
+                  badgeText: 'ABP ACCOUNT SECURITY',
                 ),
 
                 Padding(

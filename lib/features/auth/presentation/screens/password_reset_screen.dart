@@ -227,7 +227,9 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
               children: [
                 // Header Banner
                 const AuthHeaderBanner(
-                  imagePath: 'assets/images/auth_header_lost_your_way.png',
+                  title: 'RESET PASSWORD',
+                  subtitle: 'Enter your registered email to receive secure recovery instructions',
+                  badgeText: 'ABP ACCOUNT SECURITY',
                 ),
 
                 Padding(

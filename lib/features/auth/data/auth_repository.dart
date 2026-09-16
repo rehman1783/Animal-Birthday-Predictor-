@@ -227,12 +227,6 @@ class AuthRepository {
   Future<void> resetPasswordForEmail(String email) async {
     final cleanEmail = email.trim().toLowerCase();
 
-    // Check if account exists via RPC or fallback
-    final exists = await checkEmailExists(cleanEmail);
-    if (!exists) {
-      throw const AuthExceptionCustom('This email is not registered.');
-    }
-
     try {
       await _supabase.auth.resetPasswordForEmail(
         cleanEmail,
@@ -241,8 +235,16 @@ class AuthRepository {
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
       if (msg.contains('user not found') ||
-          msg.contains('unable to find user')) {
+          msg.contains('unable to find user') ||
+          e.code == 'user_not_found') {
         throw const AuthExceptionCustom('This email is not registered.');
+      }
+      if (msg.contains('rate limit') ||
+          msg.contains('over_email_send_rate_limit') ||
+          e.code == 'over_email_send_rate_limit') {
+        throw const AuthExceptionCustom(
+          'Password reset email rate limit reached. Please wait a few minutes before trying again.',
+        );
       }
       throw _handleError(e);
     } catch (e) {

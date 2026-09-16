@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 abstract class AppEnv {
@@ -6,10 +7,38 @@ abstract class AppEnv {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xb3VzaHRzbXl0cmVjcGd1dWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTQ2NjUsImV4cCI6MjEwMTY3MDY2NX0.-k5WrGjrBUj0eeSHqehpT-bB2QsV-F8aH1LME0ngEAY';
 
   static const String authRedirectScheme = 'io.supabase.animalbirthdaypredictor';
-  static const String emailVerificationRedirectUrl =
-      'io.supabase.animalbirthdaypredictor://login-callback';
-  static const String passwordResetRedirectUrl =
-      'io.supabase.animalbirthdaypredictor://reset-callback';
+
+  /// Platform-adaptive Email Verification Redirect URL
+  /// On Web: redirects back to origin (browser domain)
+  /// On Mobile: uses custom scheme deep link for iOS/Android
+  static String get emailVerificationRedirectUrl {
+    if (kIsWeb) {
+      try {
+        final origin = Uri.base.origin;
+        if (origin.isNotEmpty && !origin.startsWith('file:')) {
+          return origin;
+        }
+      } catch (_) {}
+      return 'https://animal-birthday-predictor.web.app';
+    }
+    return 'io.supabase.animalbirthdaypredictor://login-callback';
+  }
+
+  /// Platform-adaptive Password Reset Redirect URL
+  /// On Web: redirects back to password update web screen
+  /// On Mobile: uses custom scheme deep link for iOS/Android
+  static String get passwordResetRedirectUrl {
+    if (kIsWeb) {
+      try {
+        final origin = Uri.base.origin;
+        if (origin.isNotEmpty && !origin.startsWith('file:')) {
+          return '$origin/#/update-password';
+        }
+      } catch (_) {}
+      return 'https://animal-birthday-predictor.web.app/#/update-password';
+    }
+    return 'io.supabase.animalbirthdaypredictor://reset-callback';
+  }
 
   static String get supabaseUrl {
     const defineUrl = String.fromEnvironment('SUPABASE_URL');

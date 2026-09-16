@@ -212,17 +212,20 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                     const Divider(color: AppColors.inputBorder, height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.delete_forever_rounded, color: AppColors.error, size: 22),
-                      title: const Text('Delete Account', style: AppTypography.inputText),
-                      subtitle: const Text(
-                        'Permanently delete account and all records',
-                        style: AppTypography.finePrint,
+                    Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        leading: const Icon(Icons.delete_forever_rounded, color: AppColors.error, size: 22),
+                        title: const Text('Delete Account', style: AppTypography.inputText),
+                        subtitle: const Text(
+                          'Permanently delete account and all records',
+                          style: AppTypography.finePrint,
+                        ),
+                        trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/delete-account');
+                        },
                       ),
-                      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/delete-account');
-                      },
                     ),
                   ],
                 ),
@@ -300,15 +303,18 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primaryGold, size: 20),
-      title: Text(label, style: AppTypography.finePrint),
-      subtitle: Text(
-        value,
-        style: AppTypography.inputText,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.primaryGold, size: 20),
+        title: Text(label, style: AppTypography.finePrint),
+        subtitle: Text(
+          value,
+          style: AppTypography.inputText,
+        ),
+        trailing: onTap != null ? const Icon(Icons.chevron_right, color: AppColors.textMuted) : null,
+        onTap: onTap,
       ),
-      trailing: onTap != null ? const Icon(Icons.chevron_right, color: AppColors.textMuted) : null,
-      onTap: onTap,
     );
   }
 }

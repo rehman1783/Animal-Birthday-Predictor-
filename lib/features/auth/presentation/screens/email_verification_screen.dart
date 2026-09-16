@@ -190,7 +190,9 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
               children: [
                 // Auth Banner Header
                 const AuthHeaderBanner(
-                  imagePath: 'assets/images/auth_header_join_the_mystery.png',
+                  title: 'VERIFY YOUR EMAIL',
+                  subtitle: 'Confirm your registered email to activate your breeder account',
+                  badgeText: 'ABP OFFICIAL VERIFICATION',
                 ),
 
                 Padding(

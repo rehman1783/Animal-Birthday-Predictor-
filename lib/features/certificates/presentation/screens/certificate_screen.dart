@@ -7,7 +7,6 @@ import '../../../../core/constants/app_typography.dart';
 import '../../../../core/widgets/abp_brand_badge.dart';
 import '../../../../core/widgets/app_feedback_snackbar.dart';
 import '../../../../core/widgets/gradient_cta_button.dart';
-import '../../../../core/widgets/horseshoe_icon.dart';
 import '../../../../core/widgets/responsive_body.dart';
 import '../../../animals/domain/animal.dart';
 import '../../../animals/presentation/providers/animal_provider.dart';
@@ -20,6 +19,8 @@ import '../../../pregnancy/presentation/providers/preventative_care_provider.dar
 import '../../../puppy/domain/puppy.dart';
 import '../../../puppy/presentation/providers/puppy_provider.dart';
 import '../../data/pdf_certificate_service.dart';
+import '../../data/certificate_quota_service.dart';
+import '../widgets/purchase_certificates_dialog.dart';
 
 class CertificateScreen extends ConsumerStatefulWidget {
   final FoalRecord? foal;
@@ -49,6 +50,70 @@ class CertificateScreen extends ConsumerStatefulWidget {
 
 class _CertificateScreenState extends ConsumerState<CertificateScreen> {
   bool _isExporting = false;
+  bool _isAlreadyIssued = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIssuedStatus();
+  }
+
+  Future<void> _checkIssuedStatus() async {
+    final targetId = _getTargetId();
+    if (targetId.isNotEmpty) {
+      final issued = await ref
+          .read(certificateQuotaProvider.notifier)
+          .checkIsAlreadyIssued(targetId);
+      if (mounted) {
+        setState(() => _isAlreadyIssued = issued);
+      }
+    }
+  }
+
+  String _getTargetId() {
+    if (widget.is45DayScan || widget.pregnancy != null) {
+      return widget.pregnancy?.id ?? '';
+    }
+    if (widget.foal != null) {
+      return widget.foal?.id ?? '';
+    }
+    if (widget.puppy != null) {
+      return widget.puppy?.id ?? '';
+    }
+    return '';
+  }
+
+  String _getCertType() {
+    if (widget.is45DayScan || widget.pregnancy != null) {
+      return 'scan_45_day';
+    }
+    if (widget.foal != null) {
+      return 'foal_pedigree';
+    }
+    if (widget.puppy != null) {
+      return 'puppy_pedigree';
+    }
+    return 'general';
+  }
+
+  String _getCertId() {
+    final targetId = _getTargetId();
+    final type = _getCertType();
+    return 'ABP-${type.toUpperCase()}-${targetId.isNotEmpty && targetId.length >= 6 ? targetId.substring(0, 6).toUpperCase() : "REC"}';
+  }
+
+  String _getTargetName() {
+    if (widget.is45DayScan || widget.pregnancy != null) {
+      return widget.carrierMare?.name ?? 'Carrier Mare';
+    }
+    if (widget.foal != null) {
+      return widget.foal?.foalName ?? 'Foal Record';
+    }
+    if (widget.puppy != null) {
+      return widget.puppy?.puppyName ?? 'Puppy Record';
+    }
+    return 'Certificate Record';
+  }
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return 'N/A';
@@ -56,8 +121,35 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
   }
 
   Future<void> _exportPdf() async {
+    final targetId = _getTargetId();
+    final quotaNotifier = ref.read(certificateQuotaProvider.notifier);
+    final isIssued = await quotaNotifier.checkIsAlreadyIssued(targetId);
+    final currentQuota = ref.read(certificateQuotaProvider);
+
+    if (!isIssued && currentQuota.remaining <= 0) {
+      if (mounted) {
+        AppFeedbackSnackbar.showError(
+          context,
+          title: 'Certificate Quota Reached',
+          error: 'You have used all ${currentQuota.totalAllocated} certificate credits. Please top up your account to generate new official PDF certificates.',
+        );
+        PurchaseCertificatesDialog.show(context);
+      }
+      return;
+    }
+
     setState(() => _isExporting = true);
     try {
+      if (!isIssued) {
+        await quotaNotifier.consumeCredit(
+          targetId: targetId,
+          certType: _getCertType(),
+          certId: _getCertId(),
+          targetName: _getTargetName(),
+        );
+        setState(() => _isAlreadyIssued = true);
+      }
+
       final authState = ref.read(authControllerProvider);
       final user = authState.value;
       final breederName = user?.fullName.isNotEmpty == true
@@ -157,6 +249,16 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
           'puppy_certificate_${widget.puppy!.puppyName ?? "canine"}.pdf',
         );
       }
+
+      if (mounted) {
+        AppFeedbackSnackbar.showSuccess(
+          context,
+          title: isIssued ? 'Certificate Exported' : 'Certificate Issued & Exported',
+          message: isIssued
+              ? 'Free re-download completed successfully.'
+              : '1 credit consumed. Official certificate registered.',
+        );
+      }
     } catch (e) {
       if (mounted) {
         AppFeedbackSnackbar.showError(context, title: 'Export Error', error: e);
@@ -164,6 +266,93 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
+  }
+
+  Widget _buildQuotaBanner(CertificateQuota quota) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        border: Border.all(
+          color: _isAlreadyIssued
+              ? const Color(0xFF10B981)
+              : (quota.remaining > 0 ? AppColors.primaryGold : Colors.redAccent),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _isAlreadyIssued
+                ? Icons.check_circle_rounded
+                : (quota.remaining > 0
+                      ? Icons.workspace_premium
+                      : Icons.warning_amber_rounded),
+            color: _isAlreadyIssued
+                ? const Color(0xFF10B981)
+                : (quota.remaining > 0
+                      ? AppColors.primaryGold
+                      : Colors.redAccent),
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _isAlreadyIssued
+                      ? 'CERTIFICATE ISSUED (FREE RE-DOWNLOAD)'
+                      : 'OFFICIAL CERTIFICATE CREDITS',
+                  style: AppTypography.captionBold.copyWith(
+                    color: _isAlreadyIssued
+                        ? const Color(0xFF10B981)
+                        : (quota.remaining > 0
+                              ? AppColors.primaryGold
+                              : Colors.redAccent),
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _isAlreadyIssued
+                      ? 'This certificate has been issued. You can re-export or print anytime at zero credit cost.'
+                      : '${quota.remaining} of ${quota.totalAllocated} credits remaining on your account.',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.primaryGold.withValues(alpha: 0.15),
+              foregroundColor: AppColors.primaryGold,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+                side: const BorderSide(color: AppColors.primaryGold, width: 1),
+              ),
+            ),
+            icon: const Icon(Icons.add_circle_outline_rounded, size: 14),
+            label: const Text(
+              'TOP UP',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.8,
+              ),
+            ),
+            onPressed: () => PurchaseCertificatesDialog.show(context),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -192,6 +381,7 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
 
     final authState = ref.watch(authControllerProvider);
     final user = authState.value;
+    final quotaState = ref.watch(certificateQuotaProvider);
 
     String titleText = 'CERTIFICATE';
     if (is45Day) {
@@ -235,6 +425,9 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Quota & Entitlement Status Banner
+                _buildQuotaBanner(quotaState),
+
                 // Certificate Paper Container
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -262,7 +455,9 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
                 GradientCtaButton(
                   text: _isExporting
                       ? 'GENERATING PRINTABLE PDF...'
-                      : 'EXPORT / PRINT PDF CERTIFICATE',
+                      : (_isAlreadyIssued
+                            ? 'RE-EXPORT / PRINT PDF (FREE)'
+                            : 'EXPORT / PRINT PDF CERTIFICATE (1 CREDIT)'),
                   onPressed: _isExporting ? null : _exportPdf,
                 ),
                 const SizedBox(height: 24),

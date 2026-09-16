@@ -81,11 +81,11 @@ class _AnimalProfileScreenState extends ConsumerState<AnimalProfileScreen> {
   IconData _getSpeciesIcon(String species) {
     switch (species.toLowerCase()) {
       case 'horse':
-        return Icons.pets_rounded;
+        return Icons.workspace_premium;
       case 'dog':
         return Icons.pets;
       case 'cat':
-        return Icons.catching_pokemon;
+        return Icons.cruelty_free;
       default:
         return Icons.category_rounded;
     }

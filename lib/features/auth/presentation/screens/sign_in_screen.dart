@@ -132,7 +132,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               children: [
                 // Header Banner
                 const AuthHeaderBanner(
-                  imagePath: 'assets/images/auth_header_welcome_back.png',
+                  title: 'SIGN IN',
+                  subtitle: 'Access your official stud, foal & gestation records',
+                  badgeText: 'ABP PROFESSIONAL BREEDER PORTAL',
                 ),
 
                 Padding(
@@ -295,6 +297,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Center(
+                      child: Text(
+                        'ABP Platform Build v1.1.0 (Equine Edition)',
+                        style: AppTypography.finePrint.copyWith(
+                          color: AppColors.primaryGold.withValues(alpha: 0.7),
+                          fontSize: 10,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
                     ],

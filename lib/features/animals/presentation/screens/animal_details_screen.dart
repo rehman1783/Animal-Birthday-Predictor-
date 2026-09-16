@@ -423,9 +423,9 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                       Row(
                         children: [
                           for (final sp in const [
-                            ('horse', 'Horse / Equine', Icons.pets_rounded),
+                            ('horse', 'Horse / Equine', Icons.workspace_premium),
                             ('dog', 'Dog / Canine', Icons.pets),
-                            ('cat', 'Cat / Feline', Icons.catching_pokemon),
+                            ('cat', 'Cat / Feline', Icons.cruelty_free),
                             ('other', 'Other', Icons.category_rounded),
                           ])
                             Expanded(
@@ -578,12 +578,12 @@ class _AnimalDetailsScreenState extends ConsumerState<AnimalDetailsScreen> {
                               (
                                 'female',
                                 _currentSpecies == 'dog' ? 'DAM / BITCH' : 'FEMALE',
-                                _currentSpecies == 'dog' ? Icons.pets : Icons.female,
+                                Icons.female,
                               ),
                               (
                                 'male',
                                 _currentSpecies == 'dog' ? 'STUD / DOG' : 'MALE',
-                                _currentSpecies == 'dog' ? Icons.pets : Icons.male,
+                                Icons.male,
                               ),
                             ])
                               Expanded(

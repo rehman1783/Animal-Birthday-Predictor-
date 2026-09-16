@@ -146,4 +146,10 @@ abstract class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textMuted,
   );
+
+  static const TextStyle captionBold = TextStyle(
+    fontSize: 12.0,
+    fontWeight: FontWeight.bold,
+    color: AppColors.primaryGold,
+  );
 }

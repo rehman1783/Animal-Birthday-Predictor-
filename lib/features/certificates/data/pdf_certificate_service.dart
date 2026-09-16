@@ -10,8 +10,21 @@ import '../../../features/pregnancy/domain/preventative_care_record.dart';
 import '../../../features/puppy/domain/dog_preventative_care.dart';
 import '../../../features/puppy/domain/puppy.dart';
 import '../../../features/foaling_diary/domain/foaling_diary_entry.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class PdfCertificateService {
+  static pw.MemoryImage? _cachedLogoImage;
+
+  static Future<pw.MemoryImage?> _loadAbpLogo() async {
+    if (_cachedLogoImage != null) return _cachedLogoImage;
+    try {
+      final byteData = await rootBundle.load('assets/images/abp_official_logo.jpg');
+      _cachedLogoImage = pw.MemoryImage(byteData.buffer.asUint8List());
+      return _cachedLogoImage;
+    } catch (_) {
+      return null;
+    }
+  }
   static Future<Uint8List> generateFoalCertificate({
     required FoalRecord foal,
     required Animal? dam,
@@ -19,131 +32,106 @@ class PdfCertificateService {
     required String breederName,
     required String breederEmail,
   }) async {
+    final logoImage = await _loadAbpLogo();
     final pdf = pw.Document();
-
-    final goldColor = PdfColor.fromHex('#D4AF37');
-    final darkNavy = PdfColor.fromHex('#0A192F');
-    final surfaceColor = PdfColor.fromHex('#112240');
-    final textMuted = PdfColor.fromHex('#8A8F98');
+    final certId = 'ABP-EQ-${foal.dateOfBirth?.year ?? 2026}-${foal.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
 
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.all(20),
         build: (pw.Context context) {
-          final certId = 'ABP-EQ-${foal.dateOfBirth?.year ?? 2026}-${foal.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
-
-          return pw.Container(
-            padding: const pw.EdgeInsets.all(24),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: goldColor, width: 2.5),
-              borderRadius: pw.BorderRadius.circular(12),
-            ),
+          return _buildCertificateFrame(
+            logoImage: logoImage,
             child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
-                // Header
-                pw.Center(
-                  child: pw.Column(
-                    children: [
-                      _buildPdfLogo(goldColor, surfaceColor),
-                      pw.Text(
-                        'ANIMAL BIRTHDAY PREDICTOR (ABP)',
-                        style: pw.TextStyle(
-                          fontSize: 10,
-                          fontWeight: pw.FontWeight.bold,
-                          color: goldColor,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      pw.SizedBox(height: 3),
-                      pw.Text(
-                        'OFFICIAL EQUINE / FOAL CERTIFICATE',
-                        style: pw.TextStyle(
-                          fontSize: 18,
-                          fontWeight: pw.FontWeight.bold,
-                          color: darkNavy,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      pw.SizedBox(height: 3),
-                      pw.Text(
-                        'Certified Pedigree, Physical Identification & Preventative Health Record',
-                        style: pw.TextStyle(fontSize: 8.5, color: textMuted, fontStyle: pw.FontStyle.italic),
-                      ),
-                      pw.SizedBox(height: 8),
+                // Top Header with Logo and Titles
+                _buildCertificateHeader(
+                  title: 'ANIMAL BIRTHDAY PREDICTOR',
+                  subTitle: 'FOAL BIRTH CERTIFICATE',
+                  tagline: 'Designed for app auto-population and printing as a breeder record and keepsake.',
+                  logoImage: logoImage,
+                ),
+                pw.SizedBox(height: 10),
 
-                      // Top Benchmark & Certificate ID Security Banner
-                      _buildPdfBenchmarkBadge(
-                        certId: certId,
-                        goldColor: goldColor,
-                        surfaceColor: surfaceColor,
+                // Top Offspring Details Grid
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Foal Name', foal.foalName?.isNotEmpty == true ? foal.foalName! : 'Unregistered Foal', flex: 4, height: 42),
+                    _buildGridCell('Date of Birth', _formatDate(foal.dateOfBirth), flex: 3, height: 42),
+                    _buildGridCell('Time of Birth', 'N/A', flex: 3, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Sex', foal.sex == 'colt' ? 'Colt (Male)' : 'Filly (Female)', flex: 4, height: 42),
+                    _buildGridCell('Colour / Markings', foal.breed?.isNotEmpty == true ? foal.breed! : 'Recorded Markings', flex: 3, height: 42),
+                    _buildGridCell('Birth Weight', 'Recorded on file', flex: 3, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
+
+                // PARENTAGE Section
+                _buildSectionLabel('PARENTAGE'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Dam / Mare', dam != null ? dam.name : 'Registered Mare', flex: 5, height: 42),
+                    _buildGridCell('Sire / Stallion', foal.stallion?.isNotEmpty == true ? foal.stallion! : 'Registered Stallion', flex: 5, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Dam Registration No.', dam?.microchipNo?.isNotEmpty == true ? dam!.microchipNo! : 'On Registry File', flex: 5, height: 42),
+                    _buildGridCell('Sire Registration No.', foal.studBookAssociation?.isNotEmpty == true ? foal.studBookAssociation! : 'On Registry File', flex: 5, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
+
+                // BREEDING & FOALING DETAILS Section
+                _buildSectionLabel('BREEDING & FOALING DETAILS'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Breeding Method', 'NATURAL / AI / ET', flex: 4, height: 42),
+                    _buildGridCell('Recipient Mare (If ET/ICSI)', 'Direct Broodmare Gestation', flex: 3, height: 42),
+                    _buildGridCell('Gestation Length', '340 days (Standard)', flex: 3, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Place of Birth', 'Registered Stud Facility', flex: 4, height: 42),
+                    _buildGridCell('Breeder / Stud', breederName.isNotEmpty ? breederName : 'Certified Equine Breeder', flex: 3, height: 42),
+                    _buildGridCell('Owner', foal.buyerName?.isNotEmpty == true ? foal.buyerName! : (breederName.isNotEmpty ? breederName : 'Recorded Owner'), flex: 3, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
+
+                // Bottom Grid & Photo Box
+                pw.Expanded(
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                    children: [
+                      // Left Column: Identifiers & Notes
+                      pw.Expanded(
+                        flex: 65,
+                        child: _buildBoxedGrid([
+                          [_buildGridCell('Microchip No.', foal.foalMicrochipNo?.isNotEmpty == true ? foal.foalMicrochipNo! : 'Pending Microchip', height: 40)],
+                          [_buildGridCell('Foal Registration No.', certId, height: 40)],
+                          [_buildGridCell('Notes', foal.notes?.isNotEmpty == true ? foal.notes! : 'Official pedigree & health keepsake record.', height: 80)],
+                        ]),
+                      ),
+                      pw.SizedBox(width: 8),
+
+                      // Right Column: Photo Box
+                      pw.Expanded(
+                        flex: 35,
+                        child: _buildPhotoBox('FOAL PHOTO'),
                       ),
                     ],
                   ),
                 ),
-                pw.Divider(color: goldColor, thickness: 1, height: 16),
+                pw.SizedBox(height: 8),
 
-                    // Section 1: Identification
-                    _buildPdfSectionHeader('I. IDENTIFICATION', goldColor),
-                    pw.SizedBox(height: 6),
-                    _buildPdfRow('Registered Name', foal.foalName?.isNotEmpty == true ? foal.foalName! : 'Unregistered Foal'),
-                    _buildPdfRow('Breed', foal.breed?.isNotEmpty == true ? foal.breed! : 'Equine'),
-                    _buildPdfRow('Sex', foal.sex == 'colt' ? 'Colt (Male)' : 'Filly (Female)'),
-                    _buildPdfRow('Date of Birth', _formatDate(foal.dateOfBirth)),
-                    _buildPdfRow('Microchip Number', foal.foalMicrochipNo?.isNotEmpty == true ? foal.foalMicrochipNo! : 'Not Microchipped'),
-                    _buildPdfRow('DNA Profile', foal.dna?.isNotEmpty == true ? foal.dna! : 'On File / Pending'),
-                    _buildPdfRow('Official Certificate ID', certId),
-                    _buildPdfRow('Stud Book Association', foal.studBookAssociation?.isNotEmpty == true ? foal.studBookAssociation! : 'Recorded Breeder'),
-                    pw.SizedBox(height: 12),
-
-                    // Section 2: Parentage & Lineage
-                    _buildPdfSectionHeader('II. PARENTAGE & LINEAGE', goldColor),
-                    pw.SizedBox(height: 6),
-                    _buildPdfRow('Sire (Stallion)', foal.stallion?.isNotEmpty == true ? foal.stallion! : 'Recorded Stallion'),
-                    _buildPdfRow('Dam (Broodmare)', dam != null ? '${dam.name} (Chip: ${dam.microchipNo ?? "N/A"})' : 'Registered Mare'),
-                    pw.SizedBox(height: 12),
-
-                    // Section 3: Health Summary
-                    _buildPdfSectionHeader('III. HEALTH & PREVENTATIVE CARE SUMMARY', goldColor),
-                    pw.SizedBox(height: 6),
-                    _buildPdfRow('Tetanus Toxoid', prevCare?.tetanusDone == true ? 'Completed ${_formatDate(prevCare?.tetanusDate)}' : 'Scheduled Primary'),
-                    _buildPdfRow('Wormer Status', prevCare?.wormerDone == true ? 'Completed ${_formatDate(prevCare?.wormerDate)}' : 'Scheduled Routine'),
-                    _buildPdfRow('Strangles Vaccination', prevCare?.stranglesDone == true ? 'Completed ${_formatDate(prevCare?.stranglesDate)}' : 'Not Recorded'),
-                    _buildPdfRow('Dental Examination', prevCare?.dentalDone == true ? 'Inspected ${_formatDate(prevCare?.dentalDate)}' : 'Scheduled at Weaning'),
-                    _buildPdfRow('Farrier / Hoof Care', prevCare?.farrierDone == true ? 'Trimmed ${_formatDate(prevCare?.farrierDate)}' : 'Scheduled Routine'),
-                    pw.SizedBox(height: 12),
-
-                    // Section 4: Breeder Details
-                    _buildPdfSectionHeader('IV. BREEDER & OWNER ATTESTATION', goldColor),
-                    pw.SizedBox(height: 6),
-                    _buildPdfRow('Breeder / Stud Name', breederName.isNotEmpty ? breederName : 'Certified Equine Breeder'),
-                    _buildPdfRow('Contact', breederEmail.isNotEmpty ? breederEmail : 'support@abp.app'),
-                    if (foal.buyerName?.isNotEmpty == true) ...[
-                      _buildPdfRow('New Owner / Transfer', foal.buyerName!),
-                      if (foal.saleDate != null) _buildPdfRow('Date of Transfer', _formatDate(foal.saleDate)),
-                    ],
-                    _buildPdfRow('Date Issued', _formatDate(DateTime.now())),
-                    pw.Spacer(),
-
-                    // Fixed Legal Disclaimer
-                    pw.Divider(color: surfaceColor, thickness: 0.5),
-                    pw.SizedBox(height: 4),
-                    pw.Center(
-                      child: pw.Text(
-                        'This certificate is a summary of information recorded by the breeder/owner. It is not a substitute for veterinary records, veterinary examination or professional veterinary advice.',
-                        style: pw.TextStyle(
-                          fontSize: 8,
-                          color: textMuted,
-                          fontStyle: pw.FontStyle.italic,
-                        ),
-                        textAlign: pw.TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                // Footer Disclaimer
+                _buildFooterDisclaimer(),
+              ],
+            ),
+          );
+        },
       ),
     );
 
@@ -157,146 +145,221 @@ class PdfCertificateService {
     required String breederName,
     required String breederEmail,
   }) async {
+    final logoImage = await _loadAbpLogo();
     final pdf = pw.Document();
-
-    final goldColor = PdfColor.fromHex('#D4AF37');
-    final darkNavy = PdfColor.fromHex('#0A192F');
-    final surfaceColor = PdfColor.fromHex('#112240');
-    final textMuted = PdfColor.fromHex('#8A8F98');
-
-    final wormings = healthItems.where((i) => i.treatmentType == 'worming' && i.isCompleted).toList();
-    final vaccines = healthItems.where((i) => i.treatmentType == 'vaccination' && i.isCompleted).toList();
-    final vetChecks = healthItems.where((i) => i.treatmentType == 'vet_check' && i.isCompleted).toList();
+    final certId = 'ABP-CN-${puppy.dateOfBirth?.year ?? 2026}-${puppy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
 
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.all(20),
         build: (pw.Context context) {
-          final certId = 'ABP-CN-${puppy.dateOfBirth?.year ?? 2026}-${puppy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
-
-          return pw.Container(
-            padding: const pw.EdgeInsets.all(24),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: goldColor, width: 2.5),
-              borderRadius: pw.BorderRadius.circular(12),
-            ),
+          return _buildCertificateFrame(
+            logoImage: logoImage,
             child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
-                // Header
-                pw.Center(
-                  child: pw.Column(
-                    children: [
-                      _buildPdfLogo(goldColor, surfaceColor),
-                      pw.Text(
-                        'ANIMAL BIRTHDAY PREDICTOR (ABP)',
-                        style: pw.TextStyle(
-                          fontSize: 10,
-                          fontWeight: pw.FontWeight.bold,
-                          color: goldColor,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      pw.SizedBox(height: 3),
-                      pw.Text(
-                        'OFFICIAL CANINE / PUPPY CERTIFICATE',
-                        style: pw.TextStyle(
-                          fontSize: 18,
-                          fontWeight: pw.FontWeight.bold,
-                          color: darkNavy,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      pw.SizedBox(height: 3),
-                      pw.Text(
-                        'Certified Pedigree, Physical Identification & Preventative Health Record',
-                        style: pw.TextStyle(fontSize: 8.5, color: textMuted, fontStyle: pw.FontStyle.italic),
-                      ),
-                      pw.SizedBox(height: 8),
+                // Top Header with Logo and Titles
+                _buildCertificateHeader(
+                  title: 'ANIMAL BIRTHDAY PREDICTOR',
+                  subTitle: 'PUPPY BIRTH CERTIFICATE',
+                  tagline: 'Designed for app auto-population and printing as a breeder record and keepsake.',
+                  logoImage: logoImage,
+                ),
+                pw.SizedBox(height: 10),
 
-                      // Top Benchmark & Certificate ID Security Banner
-                      _buildPdfBenchmarkBadge(
-                        certId: certId,
-                        goldColor: goldColor,
-                        surfaceColor: surfaceColor,
+                // Top Offspring Details Grid
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Puppy Name', puppy.puppyName?.isNotEmpty == true ? puppy.puppyName! : 'Puppy Record', flex: 4, height: 42),
+                    _buildGridCell('Date of Birth', _formatDate(puppy.dateOfBirth), flex: 3, height: 42),
+                    _buildGridCell('Time of Birth', puppy.timeOfBirth?.isNotEmpty == true ? puppy.timeOfBirth! : 'Recorded', flex: 3, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Sex', puppy.sex == 'male' ? 'Male' : 'Female', flex: 4, height: 42),
+                    _buildGridCell('Colour / Markings', puppy.colour?.isNotEmpty == true ? puppy.colour! : 'Recorded Markings', flex: 3, height: 42),
+                    _buildGridCell('Birth Weight', puppy.birthWeight?.isNotEmpty == true ? puppy.birthWeight! : 'Recorded at birth', flex: 3, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
+
+                // PARENTAGE Section
+                _buildSectionLabel('PARENTAGE'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Dam', dam != null ? '${dam.name} (${dam.breed ?? "Canine"})' : 'Registered Dam Dog', flex: 5, height: 42),
+                    _buildGridCell('Sire', puppy.sireName?.isNotEmpty == true ? puppy.sireName! : 'Registered Sire Dog', flex: 5, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Dam Registration No.', dam?.microchipNo?.isNotEmpty == true ? dam!.microchipNo! : 'On Registry File', flex: 5, height: 42),
+                    _buildGridCell('Sire Registration No.', puppy.dna?.isNotEmpty == true ? puppy.dna! : 'On Registry File', flex: 5, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
+
+                // BIRTH & BREEDER DETAILS Section
+                _buildSectionLabel('BIRTH & BREEDER DETAILS'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Breed', dam?.breed?.isNotEmpty == true ? dam!.breed! : 'Canine Breed', flex: 4, height: 42),
+                    _buildGridCell('Breeder / Kennel', breederName.isNotEmpty ? breederName : 'Certified Canine Breeder', flex: 3, height: 42),
+                    _buildGridCell('Owner', puppy.newOwnerName?.isNotEmpty == true ? puppy.newOwnerName! : (breederName.isNotEmpty ? breederName : 'Recorded Owner'), flex: 3, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Place of Birth', 'Certified Kennel Facility', flex: 4, height: 42),
+                    _buildGridCell('Predicted Whelping Date', _formatDate(puppy.dateOfBirth), flex: 3, height: 42),
+                    _buildGridCell('Actual vs Predicted', 'On Schedule', flex: 3, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
+
+                // Bottom Grid & Photo Box
+                pw.Expanded(
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                    children: [
+                      // Left Column: Identifiers & Notes
+                      pw.Expanded(
+                        flex: 65,
+                        child: _buildBoxedGrid([
+                          [_buildGridCell('Microchip No.', puppy.microchipNo?.isNotEmpty == true ? puppy.microchipNo! : 'Pending Microchip', height: 40)],
+                          [_buildGridCell('Registration No.', certId, height: 40)],
+                          [_buildGridCell('Litter / Puppy ID', puppy.birthOrder != null ? '#${puppy.birthOrder}' : 'Litter Member', height: 40)],
+                          [_buildGridCell('Notes', puppy.generalNotes?.isNotEmpty == true ? puppy.generalNotes! : 'C3/C5 Vaccinated & Wormed according to schedule.', height: 60)],
+                        ]),
+                      ),
+                      pw.SizedBox(width: 8),
+
+                      // Right Column: Photo Box
+                      pw.Expanded(
+                        flex: 35,
+                        child: _buildPhotoBox('PUPPY PHOTO'),
                       ),
                     ],
                   ),
                 ),
-                pw.Divider(color: goldColor, thickness: 1, height: 16),
+                pw.SizedBox(height: 8),
 
-                // Section 1: Identification
-                _buildPdfSectionHeader('I. PUPPY IDENTIFICATION', goldColor),
-                pw.SizedBox(height: 6),
-                _buildPdfRow('Puppy Name / ID', puppy.puppyName?.isNotEmpty == true ? puppy.puppyName! : 'Puppy Record'),
-                _buildPdfRow('Official Certificate ID', certId),
-                _buildPdfRow('Collar / Tag Colour', puppy.collarTagColour?.isNotEmpty == true ? puppy.collarTagColour! : 'None Assigned'),
-                _buildPdfRow('Sex', puppy.sex == 'male' ? 'Male' : 'Female'),
-                _buildPdfRow('Coat Colour / Pattern', puppy.colour?.isNotEmpty == true ? puppy.colour! : 'Recorded'),
-                _buildPdfRow('Birth Order', puppy.birthOrder != null ? '#${puppy.birthOrder}' : 'Recorded'),
-                _buildPdfRow('Date of Birth', _formatDate(puppy.dateOfBirth)),
-                _buildPdfRow('Microchip Number', puppy.microchipNo?.isNotEmpty == true ? puppy.microchipNo! : 'Pending Microchip'),
-                pw.SizedBox(height: 12),
+                // Footer Disclaimer
+                _buildFooterDisclaimer(),
+              ],
+            ),
+          );
+        },
+      ),
+    );
 
-                // Section 2: Parentage & Weights
-                _buildPdfSectionHeader('II. PARENTAGE & WEIGHT METRICS', goldColor),
-                pw.SizedBox(height: 6),
-                _buildPdfRow('Mother (Dam Dog)', dam != null ? '${dam.name} (${dam.breed ?? "Canine"})' : 'Registered Dam'),
-                _buildPdfRow('Father (Sire)', puppy.sireName?.isNotEmpty == true ? puppy.sireName! : 'Recorded Sire'),
-                _buildPdfRow('Birth Weight', puppy.birthWeight?.isNotEmpty == true ? puppy.birthWeight! : 'Recorded at birth'),
-                _buildPdfRow('Departure Weight', puppy.currentWeight?.isNotEmpty == true ? puppy.currentWeight! : 'Recorded on departure'),
-                pw.SizedBox(height: 12),
+    return pdf.save();
+  }
 
-                // Section 3: Health Summary
-                _buildPdfSectionHeader('III. HEALTH & PREVENTATIVE CARE SUMMARY', goldColor),
-                pw.SizedBox(height: 6),
-                _buildPdfRow(
-                  'Worming Protocol',
-                  wormings.isNotEmpty
-                      ? wormings.map((w) => '${w.title}: ${_formatDate(w.dateGiven)}').join(', ')
-                      : 'Completed according to schedule',
+  static Future<Uint8List> generateKittenCertificate({
+    required String kittenName,
+    required String sex,
+    required DateTime? dateOfBirth,
+    required String? timeOfBirth,
+    required String? colourPattern,
+    required String? birthWeight,
+    required String queenName,
+    required String queenRegNo,
+    required String sireName,
+    required String sireRegNo,
+    required String breed,
+    required String breederName,
+    required String ownerName,
+    required String catteryPrefix,
+    required String placeOfBirth,
+    required String microchipNo,
+    required String kittenRegNo,
+    required String litterId,
+    required String notes,
+  }) async {
+    final logoImage = await _loadAbpLogo();
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(20),
+        build: (pw.Context context) {
+          return _buildCertificateFrame(
+            logoImage: logoImage,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+              children: [
+                _buildCertificateHeader(
+                  title: 'ANIMAL BIRTHDAY PREDICTOR',
+                  subTitle: 'KITTEN BIRTH CERTIFICATE',
+                  tagline: 'Designed for app auto-population and printing as a breeder record and keepsake.',
+                  logoImage: logoImage,
                 ),
-                _buildPdfRow(
-                  'Vaccination Protocol',
-                  vaccines.isNotEmpty
-                      ? vaccines.map((v) => '${v.title}: ${_formatDate(v.dateGiven)}').join(', ')
-                      : 'C3/C5 Primary Vaccination Completed',
-                ),
-                _buildPdfRow(
-                  'Veterinary Examination',
-                  vetChecks.isNotEmpty
-                      ? vetChecks.map((vc) => '${vc.title}: ${_formatDate(vc.dateGiven)} (Passed)').join(', ')
-                      : 'General Health Exam Completed',
-                ),
-                pw.SizedBox(height: 12),
+                pw.SizedBox(height: 10),
 
-                // Section 4: Breeder Details & Going Home
-                _buildPdfSectionHeader('IV. BREEDER & NEW OWNER ATTESTATION', goldColor),
-                pw.SizedBox(height: 6),
-                _buildPdfRow('Breeder / Kennel Name', breederName.isNotEmpty ? breederName : 'Certified Canine Breeder'),
-                _buildPdfRow('Breeder Contact', breederEmail.isNotEmpty ? breederEmail : 'support@abp.app'),
-                if (puppy.newOwnerName?.isNotEmpty == true) ...[
-                  _buildPdfRow('New Owner / Home', puppy.newOwnerName!),
-                  if (puppy.dateGoingHome != null) _buildPdfRow('Date Going Home', _formatDate(puppy.dateGoingHome)),
-                ],
-                _buildPdfRow('Date Issued', _formatDate(DateTime.now())),
-                pw.Spacer(),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Kitten Name', kittenName.isNotEmpty ? kittenName : 'Kitten Record', flex: 4, height: 42),
+                    _buildGridCell('Date of Birth', _formatDate(dateOfBirth), flex: 3, height: 42),
+                    _buildGridCell('Time of Birth', timeOfBirth?.isNotEmpty == true ? timeOfBirth! : 'N/A', flex: 3, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Sex', sex, flex: 4, height: 42),
+                    _buildGridCell('Colour / Pattern', colourPattern?.isNotEmpty == true ? colourPattern! : 'Recorded', flex: 3, height: 42),
+                    _buildGridCell('Birth Weight', birthWeight?.isNotEmpty == true ? birthWeight! : 'Recorded', flex: 3, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
 
-                // Fixed Legal Disclaimer
-                pw.Divider(color: surfaceColor, thickness: 0.5),
-                pw.SizedBox(height: 4),
-                pw.Center(
-                  child: pw.Text(
-                    'This certificate is a summary of information recorded by the breeder/owner. It is not a substitute for veterinary records, veterinary examination or professional veterinary advice.',
-                    style: pw.TextStyle(
-                      fontSize: 8,
-                      color: textMuted,
-                      fontStyle: pw.FontStyle.italic,
-                    ),
-                    textAlign: pw.TextAlign.center,
+                _buildSectionLabel('PARENTAGE'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Queen / Dam', queenName, flex: 5, height: 42),
+                    _buildGridCell('Sire / Stud', sireName, flex: 5, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Queen Registration No.', queenRegNo, flex: 5, height: 42),
+                    _buildGridCell('Sire Registration No.', sireRegNo, flex: 5, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
+
+                _buildSectionLabel('BIRTH & BREEDER DETAILS'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Breed', breed, flex: 4, height: 42),
+                    _buildGridCell('Breeder / Cattery', breederName, flex: 3, height: 42),
+                    _buildGridCell('Owner', ownerName, flex: 3, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Cattery Prefix', catteryPrefix, flex: 4, height: 42),
+                    _buildGridCell('Place of Birth', placeOfBirth, flex: 3, height: 42),
+                    _buildGridCell('Gestation Length', '65 days (Standard)', flex: 3, height: 42),
+                  ],
+                ]),
+                pw.SizedBox(height: 8),
+
+                pw.Expanded(
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                    children: [
+                      pw.Expanded(
+                        flex: 65,
+                        child: _buildBoxedGrid([
+                          [_buildGridCell('Microchip No.', microchipNo, height: 40)],
+                          [_buildGridCell('Kitten Registration No.', kittenRegNo, height: 40)],
+                          [_buildGridCell('Litter / Kitten ID', litterId, height: 40)],
+                          [_buildGridCell('Notes', notes, height: 60)],
+                        ]),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        flex: 35,
+                        child: _buildPhotoBox('KITTEN PHOTO'),
+                      ),
+                    ],
                   ),
                 ),
+                pw.SizedBox(height: 8),
+
+                _buildFooterDisclaimer(),
               ],
             ),
           );
@@ -317,13 +380,9 @@ class PdfCertificateService {
     required String breederName,
     required String breederEmail,
   }) async {
+    final logoImage = await _loadAbpLogo();
     final pdf = pw.Document();
-
-    final goldColor = PdfColor.fromHex('#D4AF37');
-    final darkNavy = PdfColor.fromHex('#0A192F');
-    final surfaceColor = PdfColor.fromHex('#112240');
-    final textMuted = PdfColor.fromHex('#8A8F98');
-    final emeraldGreen = PdfColor.fromHex('#10B981');
+    final certId = 'ABP-45D-${breedingRecord?.coverOrTransferDate?.year ?? pregnancy.foalingDueDate?.year ?? 2026}-${pregnancy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
 
     final isET = breedingRecord?.isEmbryoTransfer == true ||
         (breedingRecord?.method.toLowerCase().trim() == 'et') ||
@@ -332,14 +391,14 @@ class PdfCertificateService {
 
     final rawMethod = breedingRecord?.method.toLowerCase().trim() ?? 'natural';
     String methodLabel = 'Natural Cover';
-    if (rawMethod == 'chilled') methodLabel = 'Artificial Insemination (AI - Chilled Semen)';
-    if (rawMethod == 'frozen') methodLabel = 'Artificial Insemination (AI - Frozen Semen)';
+    if (rawMethod == 'chilled') methodLabel = 'AI (Chilled Semen)';
+    if (rawMethod == 'frozen') methodLabel = 'AI (Frozen Semen)';
     if (rawMethod == 'et') methodLabel = 'Embryo Transfer (ET)';
-    if (rawMethod == 'icsi') methodLabel = 'Intracytoplasmic Sperm Injection (ICSI)';
+    if (rawMethod == 'icsi') methodLabel = 'ICSI';
 
     final geneticDam = donorMare != null
         ? '${donorMare.name} (Chip: ${donorMare.microchipNo ?? "Recorded"})'
-        : (breedingRecord?.damOfEmbryo?.isNotEmpty == true ? breedingRecord!.damOfEmbryo! : 'Recorded Donor Mare');
+        : (breedingRecord?.damOfEmbryo?.isNotEmpty == true ? breedingRecord!.damOfEmbryo! : 'Donor Mare');
 
     final stallion = breedingRecord?.stallionName?.isNotEmpty == true
         ? breedingRecord!.stallionName!
@@ -350,164 +409,88 @@ class PdfCertificateService {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.all(20),
         build: (pw.Context context) {
-          final certId = 'ABP-45D-${breedingRecord?.coverOrTransferDate?.year ?? pregnancy.foalingDueDate?.year ?? 2026}-${pregnancy.id.replaceAll("-", "").padRight(6, "0").substring(0, 6).toUpperCase()}';
-
-          return pw.Container(
-            padding: const pw.EdgeInsets.all(24),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: goldColor, width: 2.5),
-              borderRadius: pw.BorderRadius.circular(12),
-            ),
+          return _buildCertificateFrame(
+            logoImage: logoImage,
             child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
-                // Header
-                pw.Center(
-                  child: pw.Column(
-                    children: [
-                      _buildPdfLogo(goldColor, surfaceColor),
-                      pw.Text(
-                        'ANIMAL BIRTHDAY PREDICTOR (ABP)',
-                        style: pw.TextStyle(
-                          fontSize: 10,
-                          fontWeight: pw.FontWeight.bold,
-                          color: goldColor,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      pw.SizedBox(height: 3),
-                      pw.Text(
-                        'OFFICIAL 45-DAY EQUINE PREGNANCY SCAN CERTIFICATE',
-                        style: pw.TextStyle(
-                          fontSize: 16,
-                          fontWeight: pw.FontWeight.bold,
-                          color: darkNavy,
-                          letterSpacing: 1.2,
-                        ),
-                        textAlign: pw.TextAlign.center,
-                      ),
-                      pw.SizedBox(height: 3),
-                      pw.Text(
-                        'Thoroughbred & Sport Horse Standard | Day 45 Gestation Security Attestation',
-                        style: pw.TextStyle(fontSize: 8.5, color: textMuted, fontStyle: pw.FontStyle.italic),
-                        textAlign: pw.TextAlign.center,
-                      ),
-                      pw.SizedBox(height: 8),
-
-                      // Top Benchmark & Certificate ID Security Banner
-                      _buildPdfBenchmarkBadge(
-                        certId: certId,
-                        goldColor: goldColor,
-                        surfaceColor: surfaceColor,
-                      ),
-                    ],
-                  ),
-                ),
-                pw.Divider(color: goldColor, thickness: 1, height: 16),
-
-                // Milestone Banner
-                pw.Container(
-                  width: double.infinity,
-                  padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                  decoration: pw.BoxDecoration(
-                    color: surfaceColor,
-                    borderRadius: pw.BorderRadius.circular(6),
-                    border: pw.Border.all(color: goldColor, width: 0.8),
-                  ),
-                  child: pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Text(
-                        'MILESTONE STATUS: 45-DAY POSITIVE SCAN CONFIRMED',
-                        style: pw.TextStyle(
-                          fontSize: 9,
-                          fontWeight: pw.FontWeight.bold,
-                          color: goldColor,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      pw.Text(
-                        isET ? 'RECIPIENT MARE GESTATION' : 'DIRECT / AI MARE GESTATION',
-                        style: pw.TextStyle(
-                          fontSize: 8.5,
-                          fontWeight: pw.FontWeight.bold,
-                          color: emeraldGreen,
-                        ),
-                      ),
-                    ],
-                  ),
+                _buildCertificateHeader(
+                  title: 'ANIMAL BIRTHDAY PREDICTOR',
+                  subTitle: '45-DAY POSITIVE SCAN CERTIFICATE',
+                  tagline: 'Thoroughbred & Sport Horse Standard | Day 45 Gestation Security Attestation',
+                  logoImage: logoImage,
                 ),
                 pw.SizedBox(height: 10),
 
-                // Section 1: Mare & Carrier Identification
-                _buildPdfSectionHeader('I. MARE & CARRIER IDENTIFICATION', goldColor),
-                pw.SizedBox(height: 4),
-                _buildPdfRow('Carrier Mare (In-Foal)', carrierMare.name),
-                _buildPdfRow('Breed & Color', '${carrierMare.breed?.isNotEmpty == true ? carrierMare.breed! : "Equine"} / ${carrierMare.colour?.isNotEmpty == true ? carrierMare.colour! : "Standard"}'),
-                _buildPdfRow('Microchip / Reg No', carrierMare.microchipNo?.isNotEmpty == true ? carrierMare.microchipNo! : 'Recorded In Registry'),
-                _buildPdfRow('Gestation Carrier Role', isET ? 'Recipient Carrier Mare (Embryo Transfer / ICSI)' : 'Biological Dam / Broodmare (AI / Natural)'),
-                if (isET) ...[
-                  _buildPdfRow('Genetic Donor Dam', geneticDam),
-                  _buildPdfRow('Sire (Covering Stallion)', stallion),
-                ] else ...[
-                  _buildPdfRow('Sire (Covering Stallion)', stallion),
-                ],
+                // Section 1: Mare & Carrier Details
+                _buildSectionLabel('MARE & CARRIER IDENTIFICATION'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Carrier Mare (In-Foal)', carrierMare.name, flex: 5, height: 42),
+                    _buildGridCell('Gestation Carrier Role', isET ? 'Recipient Carrier (ET/ICSI)' : 'Biological Dam (AI/Natural)', flex: 5, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Breed & Colour', '${carrierMare.breed ?? "Equine"} / ${carrierMare.colour ?? "Standard"}', flex: 5, height: 42),
+                    _buildGridCell('Microchip / Reg No', carrierMare.microchipNo?.isNotEmpty == true ? carrierMare.microchipNo! : 'Recorded in Registry', flex: 5, height: 42),
+                  ],
+                ]),
                 pw.SizedBox(height: 8),
 
-                // Section 2: Conception & Breeding Details
-                _buildPdfSectionHeader('II. CONCEPTION & BREEDING DETAILS', goldColor),
-                pw.SizedBox(height: 4),
-                _buildPdfRow('Breeding Method', methodLabel),
-                if (breedingRecord?.coverOrTransferDate != null)
-                  _buildPdfRow(isET ? 'Embryo Transfer Date' : 'Cover / Insemination Date', _formatDate(breedingRecord!.coverOrTransferDate)),
-                _buildPdfRow('Expected Foaling Due Date', _formatDate(pregnancy.foalingDueDate)),
-                _buildPdfRow('Gestation Security Status', 'Day 45 Complete | Organogenesis & Endometrial Cups Formed'),
+                // Section 2: PARENTAGE & SIRE
+                _buildSectionLabel('PARENTAGE & BREEDING METHOD'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('Genetic Donor Dam', isET ? geneticDam : carrierMare.name, flex: 5, height: 42),
+                    _buildGridCell('Covering Sire (Stallion)', stallion, flex: 5, height: 42),
+                  ],
+                  [
+                    _buildGridCell('Breeding Method', methodLabel, flex: 5, height: 42),
+                    _buildGridCell('Cover / Transfer Date', breedingRecord?.coverOrTransferDate != null ? _formatDate(breedingRecord!.coverOrTransferDate) : 'Recorded', flex: 5, height: 42),
+                  ],
+                ]),
                 pw.SizedBox(height: 8),
 
-                // Section 3: Ultrasound Scan Protocol & Findings
-                _buildPdfSectionHeader('III. VETERINARY ULTRASOUND SCAN EXAMINATION TIMELINE', goldColor),
-                pw.SizedBox(height: 4),
-                _buildPdfRow(
-                  '1st Scan (Day 14-16)',
-                  'Due ${_formatDate(pregnancy.scan1DueDate)} - ${pregnancy.scan1Confirmed ? "CONFIRMED POSITIVE (Vesicle Detected, Single Conceptus)" : "Evaluated & Recorded"}',
-                ),
-                _buildPdfRow(
-                  '2nd Scan (Day 28-30)',
-                  'Due ${_formatDate(pregnancy.scan2DueDate)} - ${pregnancy.scan2Confirmed ? "CONFIRMED POSITIVE (Viable Heartbeat Detected)" : "Evaluated & Recorded"}',
-                ),
-                _buildPdfRow(
-                  '3rd Milestone Scan (Day 45)',
-                  'Due ${_formatDate(pregnancy.scan3DueDate)} - CONFIRMED POSITIVE (Organogenesis Verified, Safe Gestation Status)',
-                ),
+                // Section 3: ULTRASOUND EXAMINATION TIMELINE
+                _buildSectionLabel('ULTRASOUND EXAMINATION TIMELINE'),
+                _buildBoxedGrid([
+                  [
+                    _buildGridCell('1st Scan (Day 14-16)', 'Due ${_formatDate(pregnancy.scan1DueDate)} - ${pregnancy.scan1Confirmed ? "CONFIRMED POSITIVE" : "Recorded"}', flex: 5, height: 42),
+                    _buildGridCell('2nd Scan (Day 28-30)', 'Due ${_formatDate(pregnancy.scan2DueDate)} - ${pregnancy.scan2Confirmed ? "CONFIRMED HEARTBEAT" : "Recorded"}', flex: 5, height: 42),
+                  ],
+                  [
+                    _buildGridCell('3rd Milestone Scan (Day 45)', 'Due ${_formatDate(pregnancy.scan3DueDate)} - CONFIRMED POSITIVE (Organogenesis Secured)', flex: 5, height: 42),
+                    _buildGridCell('Expected Foaling Due Date', _formatDate(pregnancy.foalingDueDate), flex: 5, height: 42),
+                  ],
+                ]),
                 pw.SizedBox(height: 8),
 
-                // Section 4: Attestation & Verification
-                _buildPdfSectionHeader('IV. VETERINARY & BREEDER ATTESTATION', goldColor),
-                pw.SizedBox(height: 4),
-                _buildPdfRow('Attending Veterinarian', vetName.isNotEmpty ? vetName : (pregnancy.vetName?.isNotEmpty == true ? pregnancy.vetName! : 'Certified Equine Practitioner')),
-                _buildPdfRow('Veterinary Contact', vetNumber.isNotEmpty ? vetNumber : (pregnancy.vetNumber?.isNotEmpty == true ? pregnancy.vetNumber! : 'On Record')),
-                _buildPdfRow('Breeder / Stud Name', breederName.isNotEmpty ? breederName : 'Certified Equine Stud Master'),
-                _buildPdfRow('Breeder Contact', breederEmail.isNotEmpty ? breederEmail : 'support@abp.app'),
-                _buildPdfRow('Date Certificate Issued', _formatDate(DateTime.now())),
-                _buildPdfRow('Certificate Serial', 'ABP-45D-${pregnancy.id.isNotEmpty && pregnancy.id.length >= 8 ? pregnancy.id.substring(0, 8).toUpperCase() : "EQUINE"}'),
-                pw.Spacer(),
-
-                // Fixed Legal Disclaimer
-                pw.Divider(color: surfaceColor, thickness: 0.5),
-                pw.SizedBox(height: 4),
-                pw.Center(
-                  child: pw.Text(
-                    'This 45-day equine pregnancy scan certificate certifies positive gestation status verified at the critical 45-day milestone. Recognized for Thoroughbred and Sport Horse breeding records, stud farm management, and Live Foal Guarantee validation.',
-                    style: pw.TextStyle(
-                      fontSize: 7.5,
-                      color: textMuted,
-                      fontStyle: pw.FontStyle.italic,
-                    ),
-                    textAlign: pw.TextAlign.center,
+                // Section 4: Attestation & Notes
+                pw.Expanded(
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                    children: [
+                      pw.Expanded(
+                        flex: 65,
+                        child: _buildBoxedGrid([
+                          [_buildGridCell('Attending Veterinarian', vetName.isNotEmpty ? vetName : 'Certified Equine Practitioner', height: 40)],
+                          [_buildGridCell('Breeder / Stud Master', breederName.isNotEmpty ? breederName : 'Certified Stud Master', height: 40)],
+                          [_buildGridCell('Certificate ID', certId, height: 40)],
+                          [_buildGridCell('Notes', 'Official 45-day equine pregnancy scan certificate for Live Foal Guarantee (LFG) records.', height: 60)],
+                        ]),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        flex: 35,
+                        child: _buildPhotoBox('MARE / SCAN PHOTO'),
+                      ),
+                    ],
                   ),
                 ),
+                pw.SizedBox(height: 8),
+
+                _buildFooterDisclaimer(),
               ],
             ),
           );
@@ -518,40 +501,206 @@ class PdfCertificateService {
     return pdf.save();
   }
 
-  static pw.Widget _buildPdfSectionHeader(String title, PdfColor color) {
-    return pw.Text(
-      title,
-      style: pw.TextStyle(
-        fontSize: 10,
-        fontWeight: pw.FontWeight.bold,
-        color: color,
-        letterSpacing: 1.2,
+  // --- Helper UI Builders for PDF Reference Grid Layout ---
+
+  static pw.Widget _buildCertificateFrame({
+    required pw.MemoryImage? logoImage,
+    required pw.Widget child,
+  }) {
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.black, width: 1.5),
+      ),
+      padding: const pw.EdgeInsets.all(2.5),
+      child: pw.Container(
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: PdfColors.black, width: 0.6),
+        ),
+        padding: const pw.EdgeInsets.all(14),
+        child: pw.Stack(
+          children: [
+            if (logoImage != null)
+              pw.Positioned.fill(
+                child: pw.Center(
+                  child: pw.Opacity(
+                    opacity: 0.05,
+                    child: pw.Image(logoImage, width: 300, height: 300),
+                  ),
+                ),
+              ),
+            child,
+          ],
+        ),
       ),
     );
   }
 
-  static pw.Widget _buildPdfRow(String label, String value) {
+  static pw.Widget _buildCertificateHeader({
+    required String title,
+    required String subTitle,
+    required String tagline,
+    required pw.MemoryImage? logoImage,
+  }) {
+    return pw.Stack(
+      alignment: pw.Alignment.center,
+      children: [
+        // Top Left Logo Area
+        pw.Align(
+          alignment: pw.Alignment.topLeft,
+          child: pw.Container(
+            width: 48,
+            height: 48,
+            decoration: pw.BoxDecoration(
+              shape: pw.BoxShape.circle,
+              border: pw.Border.all(color: PdfColors.black, width: 1.0),
+            ),
+            child: logoImage != null
+                ? pw.ClipOval(child: pw.Image(logoImage, fit: pw.BoxFit.cover))
+                : pw.Center(
+                    child: pw.Text('ABP', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                  ),
+          ),
+        ),
+
+        // Centered Header Title & Sub-header
+        pw.Column(
+          children: [
+            pw.Text(
+              title,
+              style: pw.TextStyle(
+                fontSize: 15,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.black,
+                letterSpacing: 1.5,
+              ),
+              textAlign: pw.TextAlign.center,
+            ),
+            pw.SizedBox(height: 2),
+            pw.Text(
+              subTitle,
+              style: pw.TextStyle(
+                fontSize: 12,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.black,
+                letterSpacing: 1.2,
+              ),
+              textAlign: pw.TextAlign.center,
+            ),
+            pw.SizedBox(height: 2),
+            pw.Text(
+              tagline,
+              style: pw.TextStyle(
+                fontSize: 7.5,
+                fontStyle: pw.FontStyle.italic,
+                color: PdfColors.grey800,
+              ),
+              textAlign: pw.TextAlign.center,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  static pw.Widget _buildSectionLabel(String title) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 2),
-      child: pw.Row(
-        children: [
-          pw.SizedBox(
-            width: 140,
-            child: pw.Text(
-              label,
-              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
-            ),
-          ),
-          pw.Expanded(
-            child: pw.Text(
-              value,
-              style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
-            ),
-          ),
-        ],
+      padding: const pw.EdgeInsets.only(top: 4, bottom: 3),
+      child: pw.Text(
+        title,
+        style: pw.TextStyle(
+          fontSize: 8.5,
+          fontWeight: pw.FontWeight.bold,
+          color: PdfColors.black,
+          letterSpacing: 1.0,
+        ),
       ),
     );
   }
+
+  static pw.Widget _buildBoxedGrid(List<List<pw.Widget>> rows) {
+    return pw.Column(
+      children: rows.map((row) {
+        return pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: row,
+        );
+      }).toList(),
+    );
+  }
+
+  static pw.Widget _buildGridCell(String label, String value, {int flex = 1, double? height}) {
+    return pw.Expanded(
+      flex: flex,
+      child: pw.Container(
+        height: height,
+        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: PdfColors.black, width: 0.5),
+        ),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.center,
+          children: [
+            pw.Text(
+              label,
+              style: pw.TextStyle(
+                fontSize: 7.5,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.black,
+              ),
+              maxLines: 1,
+            ),
+            pw.SizedBox(height: 2),
+            pw.Text(
+              value,
+              style: pw.TextStyle(
+                fontSize: 8.5,
+                color: PdfColors.grey900,
+              ),
+              maxLines: 2,
+              overflow: pw.TextOverflow.clip,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static pw.Widget _buildPhotoBox(String label) {
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.black, width: 0.5),
+      ),
+      child: pw.Center(
+        child: pw.Text(
+          label,
+          style: pw.TextStyle(
+            fontSize: 9,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.grey700,
+            letterSpacing: 1.0,
+          ),
+          textAlign: pw.TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  static pw.Widget _buildFooterDisclaimer() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.only(top: 4),
+      child: pw.Text(
+        'Generated by Animal BirthDay Predictor | Breeder record/keepsake only - not an official breed registry certificate, veterinary record or proof of ownership.',
+        style: pw.TextStyle(
+          fontSize: 7,
+          fontStyle: pw.FontStyle.italic,
+          color: PdfColors.grey800,
+        ),
+        textAlign: pw.TextAlign.center,
+      ),
+    );
+  }
+
 
   static Future<Uint8List> generateFoalingDiaryPdf({
     required List<FoalingDiaryEntry> entries,
@@ -563,8 +712,6 @@ class PdfCertificateService {
 
     final goldColor = PdfColor.fromHex('#D4AF37');
     final darkNavy = PdfColor.fromHex('#0A192F');
-    final surfaceColor = PdfColor.fromHex('#112240');
-    final textMuted = PdfColor.fromHex('#8A8F98');
     final alertRed = PdfColor.fromHex('#EF4444');
     final alertAmber = PdfColor.fromHex('#F59E0B');
     final pastureGreen = PdfColor.fromHex('#10B981');
@@ -746,89 +893,7 @@ class PdfCertificateService {
     return pdf.save();
   }
 
-  static pw.Widget _buildPdfLogo(PdfColor goldColor, PdfColor surfaceColor) {
-    return pw.Container(
-      width: 44,
-      height: 44,
-      margin: const pw.EdgeInsets.only(bottom: 6),
-      decoration: pw.BoxDecoration(
-        color: surfaceColor,
-        shape: pw.BoxShape.circle,
-        border: pw.Border.all(color: goldColor, width: 2.0),
-      ),
-      child: pw.Center(
-        child: pw.Column(
-          mainAxisAlignment: pw.MainAxisAlignment.center,
-          crossAxisAlignment: pw.CrossAxisAlignment.center,
-          children: [
-            pw.Text(
-              'ABP',
-              style: pw.TextStyle(
-                fontSize: 13,
-                fontWeight: pw.FontWeight.bold,
-                color: goldColor,
-                letterSpacing: 2.0,
-              ),
-            ),
-            pw.Container(
-              width: 18,
-              height: 1,
-              color: goldColor,
-              margin: const pw.EdgeInsets.symmetric(vertical: 1.5),
-            ),
-            pw.Text(
-              'OFFICIAL',
-              style: pw.TextStyle(
-                fontSize: 4.5,
-                fontWeight: pw.FontWeight.bold,
-                color: goldColor,
-                letterSpacing: 0.8,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  static pw.Widget _buildPdfBenchmarkBadge({
-    required String certId,
-    required PdfColor goldColor,
-    required PdfColor surfaceColor,
-  }) {
-    return pw.Container(
-      width: double.infinity,
-      padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-      decoration: pw.BoxDecoration(
-        color: surfaceColor,
-        borderRadius: pw.BorderRadius.circular(6),
-        border: pw.Border.all(color: goldColor, width: 1.0),
-      ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text(
-            'OFFICIAL ABP BENCHMARK RECORD',
-            style: pw.TextStyle(
-              fontSize: 8.5,
-              fontWeight: pw.FontWeight.bold,
-              color: goldColor,
-              letterSpacing: 0.8,
-            ),
-          ),
-          pw.Text(
-            'CERTIFICATE ID: $certId',
-            style: pw.TextStyle(
-              fontSize: 8.5,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.white,
-              letterSpacing: 1.0,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   static pw.Widget _buildKpiBox(String title, String value, PdfColor color) {
     return pw.Column(
