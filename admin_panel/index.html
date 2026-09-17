@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABP Enterprise Owner Admin Portal — Animal Birthday Predictor</title>
+  
+  <!-- Modern Typography (Google Fonts: Outfit & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand-header">
+        <div class="brand-logo">
+          <i class="fa-solid fa-horse-head"></i>
+        </div>
+        <div class="brand-title">
+          <h2>ABP Admin</h2>
+          <span>Master Enterprise Portal</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="#overview" class="nav-item active" data-tab="overviewTab">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Overview</span>
+        </a>
+        <a href="#users" class="nav-item" data-tab="usersTab">
+          <i class="fa-solid fa-users"></i>
+          <span>User Roster</span>
+        </a>
+        <a href="#subscriptions" class="nav-item" data-tab="subscriptionsTab">
+          <i class="fa-solid fa-id-card-clip"></i>
+          <span>Subscriptions</span>
+        </a>
+        <a href="#certificates" class="nav-item" data-tab="certificatesTab">
+          <i class="fa-solid fa-certificate"></i>
+          <span>Certificates Audit</span>
+        </a>
+        <a href="#animals" class="nav-item" data-tab="animalsTab">
+          <i class="fa-solid fa-paw"></i>
+          <span>Animal Registry</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="connection-status-card">
+          <div class="status-indicator live" id="statusDot"></div>
+          <div class="status-text">
+            <span class="status-label" id="statusLabel">Supabase Live DB</span>
+            <span class="status-sub" id="statusSub">Connected to PostgreSQL</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header Bar -->
+      <header class="top-header">
+        <div class="header-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="globalSearchInput" placeholder="Search users, animals, certificates...">
+        </div>
+
+        <div class="header-actions">
+          <button class="btn btn-secondary" id="refreshBtn">
+            <i class="fa-solid fa-rotate"></i> Refresh DB
+          </button>
+          <button class="btn btn-primary" id="exportCsvBtn">
+            <i class="fa-solid fa-file-csv"></i> Export Data (.CSV)
+          </button>
+          <div class="user-avatar" title="Platform Owner">
+            <span>OW</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content Body -->
+      <div class="dashboard-body">
+        
+        <!-- Welcome Banner -->
+        <section class="welcome-banner">
+          <div class="welcome-text">
+            <h1 id="tabTitleHeader">Platform Performance & Real-Time Customer Overview</h1>
+            <p id="tabSubHeader">Live database analytics for user accounts, active subscription plans, certificate entitlements, and revenue.</p>
+          </div>
+          <div class="quick-badge-group">
+            <span class="badge badge-gold"><i class="fa-solid fa-crown"></i> ABP Owner Portal</span>
+            <span class="badge badge-cyan" id="mrrBadge"><i class="fa-solid fa-sack-dollar"></i> MRR: $0.00</span>
+          </div>
+        </section>
+
+        <!-- KPI Metric Cards Grid -->
+        <section class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-blue">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Total Registered Users</span>
+              <h3 class="kpi-value" id="kpiTotalUsers">0</h3>
+              <span class="kpi-sub positive"><i class="fa-solid fa-database"></i> Live DB Accounts</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon bg-green">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Active Paid Subscriptions</span>
+              <h3 class="kpi-value" id="kpiActiveSubs">0</h3>
+              <span class="kpi-sub positive"><i class="fa-solid fa-credit-card"></i> <span id="kpiSubsPaidRate">0%</span> conversion</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon bg-amber">
+              <i class="fa-solid fa-certificate"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Certificates Issued</span>
+              <h3 class="kpi-value" id="kpiCertsIssued">0</h3>
+              <span class="kpi-sub neutral"><i class="fa-solid fa-layer-group"></i> Total PDF Ledger</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon bg-purple">
+              <i class="fa-solid fa-paw"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Total Animals Registered</span>
+              <h3 class="kpi-value" id="kpiTotalAnimals">0</h3>
+              <span class="kpi-sub positive"><i class="fa-solid fa-horse"></i> Active Stock</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 1: OVERVIEW & SUBSCRIPTION CHARTS -->
+        <div class="tab-pane active" id="overviewTab">
+          <section class="analytics-row">
+            <!-- Subscription Breakdown Chart Card -->
+            <div class="card chart-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-chart-bar"></i> Subscription Tier Distribution</h3>
+                <span class="card-subtext">Active Users per Plan Tier</span>
+              </div>
+              <div class="plan-bars-container">
+                <div class="plan-bar-item">
+                  <div class="plan-label">
+                    <span class="tier-tag free">Free Tier (1 Animal)</span>
+                    <span class="plan-count" id="countFree">0 Users</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill fill-free" id="barFree" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="plan-bar-item">
+                  <div class="plan-label">
+                    <span class="tier-tag basic">Basic Tier (10 Animals)</span>
+                    <span class="plan-count" id="countBasic">0 Users</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill fill-basic" id="barBasic" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="plan-bar-item">
+                  <div class="plan-label">
+                    <span class="tier-tag pro">Pro Master Breeder (50 Animals)</span>
+                    <span class="plan-count" id="countPro">0 Users</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill fill-pro" id="barPro" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="plan-bar-item">
+                  <div class="plan-label">
+                    <span class="tier-tag enterprise">Enterprise Stud (200 Animals)</span>
+                    <span class="plan-count" id="countEnterprise">0 Users</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill fill-enterprise" id="barEnterprise" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Revenue Summary Card -->
+            <div class="card summary-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-vault"></i> Platform Revenue & Quota Summary</h3>
+              </div>
+              <div class="revenue-box">
+                <span class="revenue-label">Estimated Monthly Revenue (MRR)</span>
+                <h2 class="revenue-value" id="summaryMrr">$0.00</h2>
+                <p class="revenue-hint">Based on pricing tiers: Basic ($19/mo), Pro ($49/mo), Enterprise ($149/mo)</p>
+              </div>
+              <div class="mini-stats-list">
+                <div class="mini-stat">
+                  <span class="stat-name"><i class="fa-solid fa-coins"></i> Avg Revenue / User</span>
+                  <span class="stat-val" id="arpuVal">$0.00</span>
+                </div>
+                <div class="mini-stat">
+                  <span class="stat-name"><i class="fa-solid fa-scroll"></i> Avg Certificates / User</span>
+                  <span class="stat-val" id="avgCertVal">0.0</span>
+                </div>
+                <div class="mini-stat">
+                  <span class="stat-name"><i class="fa-solid fa-shield-halved"></i> Data Security & RLS</span>
+                  <span class="stat-val text-green">100% Isolated</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- TAB 2 & 3: USER ROSTER & SUBSCRIPTION LEDGER TABLE -->
+        <div class="tab-pane active" id="usersTab">
+          <section class="card table-card">
+            <div class="card-header table-header">
+              <div class="title-group">
+                <h3><i class="fa-solid fa-users-gear"></i> Live User Directory & Subscription Management</h3>
+                <span class="card-subtext">Manage accounts, plan tiers, and certificate quotas</span>
+              </div>
+
+              <div class="filter-controls">
+                <select id="tierFilter" class="form-select">
+                  <option value="ALL">All Tiers</option>
+                  <option value="Free">Free Tier</option>
+                  <option value="Basic">Basic Tier</option>
+                  <option value="Pro">Pro Master</option>
+                  <option value="Enterprise">Enterprise Stud</option>
+                </select>
+
+                <select id="statusFilter" class="form-select">
+                  <option value="ALL">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="expired">Expired</option>
+                  <option value="canceled">Canceled</option>
+                </select>
+
+                <select id="sortSelect" class="form-select">
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="name">Name (A-Z)</option>
+                  <option value="animals">Most Animals</option>
+                  <option value="certs">Most Certificates</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>User Profile</th>
+                    <th>Plan Tier</th>
+                    <th>Status</th>
+                    <th>Animal Quota</th>
+                    <th>Certificates Used</th>
+                    <th>Billing Cycle</th>
+                    <th>Joined Date</th>
+                    <th class="text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                  <tr class="loading-row">
+                    <td colspan="8"><i class="fa-solid fa-spinner fa-spin"></i> Loading live user records from database...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-footer">
+              <span class="showing-text" id="showingCountText">Showing 0 of 0 users</span>
+              <div class="pagination-buttons">
+                <button class="btn btn-icon" id="prevPageBtn" disabled><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="page-num" id="currentPageNum">Page 1</span>
+                <button class="btn btn-icon" id="nextPageBtn" disabled><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- TAB 4: CERTIFICATES LEDGER -->
+        <div class="tab-pane" id="certificatesTab">
+          <section class="card table-card">
+            <div class="card-header table-header">
+              <div class="title-group">
+                <h3><i class="fa-solid fa-certificate"></i> Issued PDF Certificates Audit Ledger</h3>
+                <span class="card-subtext">Real-time log of all foal, puppy, ultrasound, and foaling certificates generated</span>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Certificate ID</th>
+                    <th>Type</th>
+                    <th>Target Animal / Subject</th>
+                    <th>Owner / User</th>
+                    <th>Issued Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="certsTableBody">
+                  <tr class="loading-row">
+                    <td colspan="5"><i class="fa-solid fa-spinner fa-spin"></i> Loading certificates audit log...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- TAB 5: ANIMAL REGISTRY -->
+        <div class="tab-pane" id="animalsTab">
+          <section class="card table-card">
+            <div class="card-header table-header">
+              <div class="title-group">
+                <h3><i class="fa-solid fa-paw"></i> Multi-Species Registered Animals Roster</h3>
+                <span class="card-subtext">All foundation stock registered across horse, dog, and cat breeders</span>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Animal Name</th>
+                    <th>Species</th>
+                    <th>Breed</th>
+                    <th>Sex</th>
+                    <th>Microchip / Reg #</th>
+                    <th>Owner</th>
+                    <th>Created Date</th>
+                  </tr>
+                </thead>
+                <tbody id="animalsTableBody">
+                  <tr class="loading-row">
+                    <td colspan="7"><i class="fa-solid fa-spinner fa-spin"></i> Loading registered animals roster...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Edit User Subscription & Certificate Quota -->
+  <div class="modal-overlay" id="userEditModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-pen"></i> Manage Customer Plan & Quota</h3>
+        <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="userEditForm">
+          <input type="hidden" id="modalUserId">
+
+          <div class="user-summary-badge">
+            <div class="user-avatar-lg" id="modalAvatar">JD</div>
+            <div class="user-details">
+              <h4 id="modalUserName">John Doe</h4>
+              <span id="modalUserEmail">john@example.com</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modalPlanTier">Subscription Plan Tier</label>
+              <select id="modalPlanTier" class="form-select">
+                <option value="Free">Free (1 Animal Limit)</option>
+                <option value="Basic">Basic (10 Animals Limit)</option>
+                <option value="Pro">Pro Master Breeder (50 Animals Limit)</option>
+                <option value="Enterprise">Enterprise Stud (200 Animals Limit)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="modalStatus">Subscription Status</label>
+              <select id="modalStatus" class="form-select">
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+                <option value="canceled">Canceled</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modalAnimalQuota">Max Animal Quota Limit</label>
+              <input type="number" id="modalAnimalQuota" class="form-input" min="1" max="1000" value="1">
+            </div>
+
+            <div class="form-group">
+              <label for="modalAddCertCredits">Grant Certificate Credits</label>
+              <div class="input-with-btn">
+                <input type="number" id="modalAddCertCredits" class="form-input" value="5" min="1" max="100">
+                <button type="button" class="btn btn-secondary" id="addCreditsBtn"><i class="fa-solid fa-plus"></i> Add</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="quota-summary-box">
+            <div class="qs-item">
+              <span>Current Animals:</span>
+              <strong id="modalAnimalCount">0</strong>
+            </div>
+            <div class="qs-item">
+              <span>Certificates Used:</span>
+              <strong id="modalCertsUsed">0</strong>
+            </div>
+            <div class="qs-item">
+              <span>Total Cert Credits:</span>
+              <strong id="modalCertsTotal">5</strong>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="saveUserBtn">
+              <i class="fa-solid fa-floppy-disk"></i> Save Plan Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS Client library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Main Application JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
