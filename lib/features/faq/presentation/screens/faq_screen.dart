@@ -328,75 +328,77 @@ class _FaqAccordionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-          border: Border.all(color: AppColors.inputBorder),
-        ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        border: Border.all(color: AppColors.inputBorder),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        clipBehavior: Clip.antiAlias,
         child: Theme(
           data: Theme.of(context).copyWith(
             dividerColor: Colors.transparent,
           ),
           child: ExpansionTile(
-          iconColor: AppColors.primaryGold,
-          collapsedIconColor: AppColors.textMuted,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
-          title: Text(
-            faq.question,
-            style: AppTypography.inputText.copyWith(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              faq.category.title,
-              style: const TextStyle(
-                color: AppColors.primaryGold,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
+            iconColor: AppColors.primaryGold,
+            collapsedIconColor: AppColors.textMuted,
+            tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
+            title: Text(
+              faq.question,
+              style: AppTypography.inputText.copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                faq.category.title,
+                style: const TextStyle(
+                  color: AppColors.primaryGold,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-          children: [
-            const Divider(color: AppColors.inputBorder, height: 1),
-            const SizedBox(height: 12),
-            Text(
-              faq.answer,
-              style: AppTypography.body.copyWith(
-                color: AppColors.textPrimary.withValues(alpha: 0.9),
-                height: 1.5,
-                fontSize: 13,
-              ),
-            ),
-            if (faq.tags.isNotEmpty) ...[
+            children: [
+              const Divider(color: AppColors.inputBorder, height: 1),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: faq.tags.map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.inputBorder),
-                    ),
-                    child: Text(
-                      '#$tag',
-                      style: AppTypography.finePrint.copyWith(fontSize: 10, color: AppColors.textMuted),
-                    ),
-                  );
-                }).toList(),
+              Text(
+                faq.answer,
+                style: AppTypography.body.copyWith(
+                  color: AppColors.textPrimary.withValues(alpha: 0.9),
+                  height: 1.5,
+                  fontSize: 13,
+                ),
               ),
+              if (faq.tags.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: faq.tags.map((tag) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppColors.inputBorder),
+                      ),
+                      child: Text(
+                        '#$tag',
+                        style: AppTypography.finePrint.copyWith(fontSize: 10, color: AppColors.textMuted),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

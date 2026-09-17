@@ -48,7 +48,36 @@ create policy "Users can update own subscription"
   on public.user_subscriptions for update
   using (auth.uid() = user_id);
 
--- 3. Stored Procedure: get_admin_dashboard_stats
+-- 3. Automatic User Subscription Initialization Trigger
+create or replace function public.handle_new_user_subscription()
+returns trigger as $$
+begin
+  -- Ensure default subscription record exists
+  insert into public.user_subscriptions (
+    user_id, plan_tier, status, max_animal_quota, starts_at
+  ) values (
+    new.id, 'Free', 'active', 1, now()
+  )
+  on conflict (user_id) do nothing;
+
+  -- Ensure default certificate entitlements record exists
+  insert into public.certificate_entitlements (
+    user_id, total_allocated, used_count
+  ) values (
+    new.id, 5, 0
+  )
+  on conflict (user_id) do nothing;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_auth_user_created_subscription on auth.users;
+create trigger on_auth_user_created_subscription
+  after insert on auth.users
+  for each row execute function public.handle_new_user_subscription();
+
+-- 4. Stored Procedure: get_admin_dashboard_stats
 create or replace function public.get_admin_dashboard_stats()
 returns json
 language plpgsql
@@ -100,7 +129,7 @@ $$;
 
 grant execute on function public.get_admin_dashboard_stats() to authenticated, anon;
 
--- 4. Stored Procedure: get_admin_users_overview
+-- 5. Stored Procedure: get_admin_users_overview
 create or replace function public.get_admin_users_overview()
 returns json
 language plpgsql
@@ -138,7 +167,7 @@ $$;
 
 grant execute on function public.get_admin_users_overview() to authenticated, anon;
 
--- 5. Stored Procedure: get_admin_certificates_ledger
+-- 6. Stored Procedure: get_admin_certificates_ledger
 create or replace function public.get_admin_certificates_ledger()
 returns json
 language plpgsql
@@ -170,7 +199,7 @@ $$;
 
 grant execute on function public.get_admin_certificates_ledger() to authenticated, anon;
 
--- 6. Stored Procedure: get_admin_animals_registry
+-- 7. Stored Procedure: get_admin_animals_registry
 create or replace function public.get_admin_animals_registry()
 returns json
 language plpgsql
@@ -206,7 +235,7 @@ $$;
 
 grant execute on function public.get_admin_animals_registry() to authenticated, anon;
 
--- 7. Stored Procedure: admin_update_user_subscription
+-- 8. Stored Procedure: admin_update_user_subscription
 create or replace function public.admin_update_user_subscription(
   target_user_id uuid,
   new_plan_tier text,
